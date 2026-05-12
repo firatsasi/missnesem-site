@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://missnesem.com/sitemap.xml

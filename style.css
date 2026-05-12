@@ -1,0 +1,319 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #f5f1ea;
+  --bg-secondary: #e8dfd3;
+  --accent-pink: #d4a5a5;
+  --accent-gold: #b8985e;
+  --accent-gold-light: #d4af70;
+  --text-dark: #2c2419;
+  --text-light: #6b5d4f;
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --radius: 16px;
+  --transition: 0.3s cubic-bezier(.4, 0, .2, 1);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-dark);
+  font-family: 'Inter', sans-serif;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Marble background ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 110% 65% at 8% 12%, rgba(184,152,94,0.09) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 80% at 92% 88%, rgba(212,165,165,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 55% 45%, rgba(232,223,211,0.55) 0%, transparent 65%),
+    repeating-linear-gradient(
+      108deg,
+      transparent 0px, transparent 58px,
+      rgba(150,130,100,0.028) 58px, rgba(150,130,100,0.028) 59px
+    ),
+    repeating-linear-gradient(
+      74deg,
+      transparent 0px, transparent 82px,
+      rgba(180,155,120,0.022) 82px, rgba(180,155,120,0.022) 83px
+    ),
+    repeating-linear-gradient(
+      142deg,
+      transparent 0px, transparent 110px,
+      rgba(160,140,110,0.018) 110px, rgba(160,140,110,0.018) 111px
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Language bar ── */
+.lang-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  background: rgba(245,241,234,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(184,152,94,0.18);
+}
+
+.lang-buttons { display: flex; gap: 4px; }
+
+.lang-btn {
+  background: transparent;
+  border: 1px solid rgba(184,152,94,0.3);
+  color: var(--text-light);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Kurdistan flag badge */
+.ku-flag {
+  display: inline-block;
+  width: 18px;
+  height: 13px;
+  background: linear-gradient(to bottom, #21a321 0% 33%, #fff 33% 67%, #d20000 67% 100%);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ku-flag::after {
+  content: '✦';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #f9d100;
+  font-size: 8px;
+  line-height: 1;
+}
+
+.lang-btn:hover { color: var(--accent-gold); border-color: var(--accent-gold); }
+.lang-btn.active {
+  background: rgba(184,152,94,0.12);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+/* ── Main wrapper ── */
+.page {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 520px;
+  height: 100dvh;
+  padding: 50px 20px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+@media (max-width: 480px) {
+  .page { padding: 48px 16px 10px; }
+}
+
+/* ── Hero section (logo + divider) ── */
+.section-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── Header ── */
+.site-header {
+  text-align: center;
+  margin-bottom: 0;
+}
+
+/* ── Logo image ── */
+.site-logo {
+  max-width: 650px;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto 10px;
+  opacity: 1;
+  filter: brightness(0) saturate(100%) invert(13%) sepia(15%) saturate(700%) hue-rotate(15deg) drop-shadow(0 2px 6px rgba(44,36,25,0.08));
+}
+
+@media (max-width: 768px) {
+  .site-logo { max-width: 400px; }
+}
+
+@media (max-width: 480px) {
+  .site-logo { max-width: 260px; }
+}
+
+/* ── Slogan ── */
+.slogan {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(14px, 3.2vw, 17px);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-light);
+  letter-spacing: 0.04em;
+}
+
+.location-tag {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--accent-gold);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* ── Divider ── */
+.gold-divider {
+  width: 80px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+  margin: 8px auto 0;
+}
+
+/* ── Button grid ── */
+.btn-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.btn-grid .btn-full { grid-column: 1 / -1; }
+
+.contact-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 13px;
+  background: var(--card-bg);
+  border: 1.5px solid rgba(184,152,94,0.4);
+  border-radius: var(--radius);
+  color: var(--text-dark);
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  transition: var(--transition);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+}
+
+.contact-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(212,165,165,0.14) 0%, transparent 65%);
+  opacity: 0;
+  transition: var(--transition);
+}
+
+/* Hover only on real pointer devices (desktop) */
+@media (hover: hover) {
+  .contact-btn:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent-pink);
+    box-shadow:
+      0 10px 28px rgba(212,165,165,0.22),
+      0 2px 8px rgba(44,36,25,0.06);
+    background: rgba(255,255,255,0.92);
+  }
+  .contact-btn:hover::before { opacity: 1; }
+  .contact-btn:hover .btn-title { color: var(--accent-gold); }
+  .contact-btn:hover .btn-icon { color: var(--accent-gold); }
+}
+
+.contact-btn:active { transform: translateY(-2px); }
+
+.btn-icon {
+  font-size: 17px;
+  line-height: 1;
+  flex-shrink: 0;
+  color: var(--text-light);
+  transition: color var(--transition);
+}
+
+.btn-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+
+.btn-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.btn-title {
+  font-weight: 500;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-dark);
+  transition: color var(--transition);
+}
+
+.btn-sub {
+  font-size: 9px;
+  color: var(--text-light);
+  font-weight: 300;
+  letter-spacing: 0.04em;
+}
+
+.btn-address {
+  font-size: 0.85em;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+/* ── Footer ── */
+.site-footer {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  padding: 4px 0 8px;
+  flex-shrink: 0;
+}
+
+.site-footer span { color: var(--accent-gold); }
+
+/* ── RTL (Arabic) ── */
+[dir="rtl"] .lang-bar { justify-content: flex-start; }
+[dir="rtl"] .contact-btn { flex-direction: row-reverse; text-align: right; }
+[dir="rtl"] body { font-family: 'Noto Sans Arabic', 'Inter', sans-serif; }
+[dir="rtl"] .slogan { font-family: 'Noto Sans Arabic', serif; font-style: normal; }
+
+/* ── Mobile ── */
+@media (max-width: 400px) {
+  .btn-grid { grid-template-columns: 1fr; }
+  .btn-grid .btn-full { grid-column: 1; }
+}
