@@ -32,17 +32,6 @@ const i18n = {
     loc_title: 'موقعنا',
     loc_sub: 'م. نصيح أوزمن، شارع الفاتح، زقاق غولسيفر رقم 7/أ - 15، مرتر/إسطنبول',
   },
-  ku: {
-    lang: 'ku', dir: 'ltr',
-    slogan: 'Şîqliya jinê, navnîşana firotinê ya komî',
-    wach_title: 'Kanala Me ya WhatsApp',
-    wach_sub: 'Berhevok & Firsend',
-    tg_title: 'Kanala Telegramê',
-    ig_title: 'Instagram',
-    mail_title: 'Posta-e',
-    loc_title: 'Cihê Me',
-    loc_sub: 'Mehmet Nesih Özmen Mh., Fatih Cd., Gülsever Sk., No:7/A D:15, Merter/Stenbol',
-  },
   ru: {
     lang: 'ru', dir: 'ltr',
     slogan: 'Элегантность для каждой женщины, оптом',
