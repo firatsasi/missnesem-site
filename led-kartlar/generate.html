@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miss Neşem – LED Kart Önizleme & İndir</title>
+<style>
+  :root {
+    --krem:  #FAF7F3;
+    --altin: #B8934A;
+    --koyu:  #1A130A;
+    --pudra: #E8D0D4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--koyu);
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--krem);
+    padding: 40px 20px;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 50px;
+    border-bottom: 2px solid var(--altin);
+    padding-bottom: 30px;
+  }
+  header h1 { font-size: 2.4rem; color: var(--altin); letter-spacing: .12em; }
+  header p  { margin-top: 8px; color: #ccc; font-family: sans-serif; font-size: .95rem; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .card {
+    background: #2a1e10;
+    border: 1px solid var(--altin);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .card-preview {
+    position: relative;
+    aspect-ratio: 880 / 1560;
+    background: var(--krem);
+    overflow: hidden;
+  }
+  .card-preview img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .card-info { padding: 20px; }
+  .card-info h2 { font-size: 1.1rem; color: var(--altin); margin-bottom: 6px; }
+  .card-info p  { font-size: .82rem; color: #bbb; font-family: sans-serif; line-height: 1.5; }
+  .btn {
+    display: block;
+    margin: 14px 20px 20px;
+    padding: 12px;
+    background: var(--altin);
+    color: var(--koyu);
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+    font-family: sans-serif;
+    font-size: .9rem;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    width: calc(100% - 40px);
+  }
+  .btn:hover { background: #d4a85c; }
+
+  .note {
+    max-width: 900px;
+    margin: 50px auto 0;
+    background: #2a1e10;
+    border: 1px solid var(--altin);
+    border-radius: 12px;
+    padding: 30px;
+    font-family: sans-serif;
+    font-size: .9rem;
+    line-height: 1.7;
+  }
+  .note h2 { color: var(--altin); margin-bottom: 14px; font-size: 1.2rem; }
+  .note ol { padding-left: 20px; color: #ccc; }
+  .note li { margin-bottom: 8px; }
+  .note code { background: #3a2a18; padding: 2px 6px; border-radius: 4px; color: var(--altin); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>MISS NEŞEM</h1>
+  <p>LED Ekran Kartları · 880×1560 px · ViPlex Express</p>
+</header>
+
+<div class="grid" id="grid"></div>
+
+<div class="note">
+  <h2>ViPlex Express Yükleme Rehberi</h2>
+  <ol>
+    <li>ViPlex Express'i açın → <code>Programlar</code> sekmesi → <code>Yeni Program</code></li>
+    <li>Ekran çözünürlüğünü <code>880 × 1560</code> olarak girin.</li>
+    <li>Her kart için <code>Resim/Video Ekle</code> → ilgili PNG dosyasını seçin.</li>
+    <li>Önerilen süre: <strong>Marka kartı 8 sn · Haftasonu 10 sn · QR 12 sn · Ürün 6 sn · İletişim 8 sn · 4Dil 8 sn</strong></li>
+    <li>Sıralama: Marka → 4Dil → Ürün → İletişim → QR → (Haftasonu: yalnızca hafta sonu ekleyin)</li>
+    <li>Programı kaydedin ve ekrana yayınlayın.</li>
+  </ol>
+</div>
+
+<script>
+const cards = [
+  { file: "marka-karti.png",      title: "1. Marka Kartı",         desc: "Logo, 4 dil slogan, missnesem.com. Süre: 8 sn" },
+  { file: "haftasonu-karti.png",  title: "2. Haftasonu / Kapalı",  desc: "Kapalı duyurusu, WhatsApp her zaman açık. Süre: 10 sn" },
+  { file: "qr-whatsapp.png",      title: "3. QR WhatsApp",         desc: "Taranabilir QR kod, doğrudan WhatsApp'a bağlanır. Süre: 12 sn" },
+  { file: "urun-cerceve.png",     title: "4. Ürün Çerçevesi",      desc: "Ürün fotoğrafı şablonu. Python ile özelleştirin. Süre: 6 sn" },
+  { file: "iletisim-karti.png",   title: "5. İletişim Kartı",      desc: "Adres ve telefon bilgileri. Süre: 8 sn" },
+  { file: "4dil-hizmet-karti.png",title: "6. 4 Dil Hizmet Kartı",  desc: "TR/EN/AR/RU dil göstergesi. Süre: 8 sn" },
+];
+
+const grid = document.getElementById('grid');
+cards.forEach(c => {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.innerHTML = `
+    <div class="card-preview">
+      <img src="${c.file}" alt="${c.title}" loading="lazy" onerror="this.style.display='none'">
+    </div>
+    <div class="card-info">
+      <h2>${c.title}</h2>
+      <p>${c.desc}</p>
+    </div>
+    <a class="btn" href="${c.file}" download="${c.file}">İndir / Download</a>
+  `;
+  grid.appendChild(div);
+});
+</script>
+</body>
+</html>
