@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Miss Neşem · İrsaliye</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -578,18 +579,23 @@ function inputlariGeriYukle(saved){
 function hazirla(){
   var addBtn=document.getElementById('addBtn');
   var optsRow=document.getElementById('optsRow');
+  var bakBox=document.getElementById('bakiyeBox');
   var delCells=document.querySelectorAll('.td-del');
   var delCols=document.querySelectorAll('.del-col');
   addBtn.style.display='none';
   optsRow.style.display='none';
+  // Bakiye kutusu PDF/PNG'de görünmesin (müşteriye eski borcu gösterme)
+  var bakAktif=bakBox.classList.contains('aktif');
+  if(bakAktif)bakBox.style.display='none';
   delCells.forEach(function(c){c.style.display='none';});
   delCols.forEach(function(c){c.style.display='none';});
   var saved=inputlariMetneCevir();
-  return {addBtn:addBtn,optsRow:optsRow,delCells:delCells,delCols:delCols,saved:saved};
+  return {addBtn:addBtn,optsRow:optsRow,bakBox:bakBox,bakAktif:bakAktif,delCells:delCells,delCols:delCols,saved:saved};
 }
 function geriAl(s){
   s.addBtn.style.display='';
   s.optsRow.style.display='flex';
+  if(s.bakAktif)s.bakBox.style.display='';
   s.delCells.forEach(function(c){c.style.display='';});
   s.delCols.forEach(function(c){c.style.display='';});
   inputlariGeriYukle(s.saved);
