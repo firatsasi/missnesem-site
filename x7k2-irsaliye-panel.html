@@ -116,6 +116,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 </div>
 <div class="btns">
   <button class="btn-sec" onclick="temizle()">Temizle</button>
+  <button class="btn-pri" onclick="pngIndir()" style="background:#2c2419">PNG olarak indir</button>
   <button class="btn-pri" onclick="pdfIndir()">PDF olarak indir</button>
 </div>
 </div>
@@ -267,6 +268,33 @@ function pdfIndir(){
     inputlariGeriYukle(saved);
   });
 }
+
+function pngIndir(){
+  var addBtn=document.getElementById('addBtn');
+  var optsRow=document.getElementById('optsRow');
+  var delCells=document.querySelectorAll('.td-del');
+  var delCols=document.querySelectorAll('.del-col');
+  addBtn.style.display='none';
+  optsRow.style.display='none';
+  delCells.forEach(function(c){c.style.display='none';});
+  delCols.forEach(function(c){c.style.display='none';});
+  var saved=inputlariMetneCevir();
+  var musteri=document.getElementById('musteri').value||'irsaliye';
+  var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.png';
+  var el=document.getElementById('irsaliye');
+  html2canvas(el,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
+    var link=document.createElement('a');
+    link.download=dosyaAdi;
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    addBtn.style.display='';
+    optsRow.style.display='flex';
+    delCells.forEach(function(c){c.style.display='';});
+    delCols.forEach(function(c){c.style.display='';});
+    inputlariGeriYukle(saved);
+  });
+}
+
 ekle();ekle();ekle();
 </script>
 </body>
