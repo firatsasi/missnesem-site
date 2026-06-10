@@ -53,11 +53,36 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .btns{margin-top:1.2rem;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 .btn-sec{font-size:13px;padding:10px 18px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:transparent;font-weight:600}
 .btn-pri{font-size:13px;padding:10px 20px;cursor:pointer;color:#f0e4d3;border:none;border-radius:6px;background:#a64d3e;font-weight:700}
-.pdf-cell{display:block;width:100%;font-size:15px;padding:9px 10px;background:#fff;border:1px solid #c8a87a;border-radius:6px;color:#2c2419;min-height:38px}
 @media(max-width:480px){.fields{grid-template-columns:1fr}.bn{font-size:20px;letter-spacing:3px}}
+
+/* LOGIN EKRANI */
+#loginOverlay{position:fixed;inset:0;background:#e8ddc9;display:flex;align-items:center;justify-content:center;z-index:9999;padding:1rem}
+.login-box{background:#f0e4d3;border:1px solid #b8985e;border-radius:12px;padding:2.5rem 2rem;max-width:380px;width:100%;text-align:center;box-shadow:0 4px 20px rgba(44,36,25,0.1)}
+.login-box .bn{font-size:22px;letter-spacing:5px;margin-bottom:4px}
+.login-box .bc{font-size:10px;letter-spacing:3px;color:#a64d3e;margin-bottom:1.5rem}
+.login-box h2{font-size:11px;letter-spacing:3px;color:#2c2419;margin-bottom:1.5rem;font-weight:700}
+.login-box input{width:100%;padding:10px 12px;margin-bottom:10px;font-size:14px;border:1px solid #c8a87a;border-radius:6px;background:#fff;color:#2c2419;font-family:Arial,sans-serif}
+.login-box input:focus{outline:1.5px solid #a64d3e;border-color:#a64d3e}
+.login-box button{width:100%;padding:11px;font-size:13px;font-weight:700;color:#f0e4d3;background:#a64d3e;border:none;border-radius:6px;cursor:pointer;letter-spacing:2px;margin-top:6px}
+.login-box .err{color:#a64d3e;font-size:11px;margin-top:8px;min-height:14px;font-weight:600}
+#app{display:none}
 </style>
 </head>
 <body>
+
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="bn">MISS NEŞEM</div>
+    <div class="bc">MERTER · İSTANBUL</div>
+    <h2>YETKİLİ GİRİŞİ</h2>
+    <input type="text" id="user" placeholder="Kullanıcı adı" autocomplete="username" />
+    <input type="password" id="pass" placeholder="Şifre" autocomplete="current-password" />
+    <button onclick="login()">GİRİŞ</button>
+    <div class="err" id="err"></div>
+  </div>
+</div>
+
+<div id="app">
 <div class="wrap">
 <div class="card" id="irsaliye">
   <div class="brand">
@@ -94,7 +119,36 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   <button class="btn-pri" onclick="pdfIndir()">PDF olarak indir</button>
 </div>
 </div>
+</div>
+
 <script>
+/* ====== LOGIN ====== */
+var KIMLIK="YWRtaW46MjEyNDQwMDEyelg=";
+function login(){
+  var u=document.getElementById('user').value.trim();
+  var p=document.getElementById('pass').value;
+  var k=btoa(u+':'+p);
+  if(k===KIMLIK){
+    var bitis=new Date();bitis.setDate(bitis.getDate()+30);
+    document.cookie="mn_auth="+k+"; expires="+bitis.toUTCString()+"; path=/; SameSite=Strict";
+    goster();
+  }else{
+    document.getElementById('err').textContent="Hatalı kullanıcı adı veya şifre";
+  }
+}
+function goster(){
+  document.getElementById('loginOverlay').style.display='none';
+  document.getElementById('app').style.display='block';
+}
+function check(){
+  var c=document.cookie.split(';').find(function(x){return x.trim().indexOf('mn_auth=')===0;});
+  if(c&&c.split('=')[1]===KIMLIK){goster();}
+}
+document.getElementById('pass').addEventListener('keypress',function(e){if(e.key==='Enter')login();});
+document.getElementById('user').addEventListener('keypress',function(e){if(e.key==='Enter')document.getElementById('pass').focus();});
+check();
+
+/* ====== İRSALİYE ====== */
 var sc=0;
 var sym={TL:'₺',USD:'$',EUR:'€'};
 function birim(){return sym[document.getElementById('para').value]||'₺';}
@@ -176,9 +230,9 @@ function inputlariMetneCevir(){
     span.textContent=txt;
     var inFiyat=inp.closest('.fiyat-wrap');
     if(inFiyat){
-      span.style.cssText='font-size:15px;color:#2c2419;text-align:right;flex:1';
+      span.style.cssText='font-size:15px;color:#2c2419;text-align:right;flex:1;padding:9px 0';
     }else{
-      span.className='pdf-temp pdf-cell';
+      span.style.cssText='display:block;width:100%;font-size:15px;padding:9px 10px;background:#fff;border:1px solid #c8a87a;border-radius:6px;color:#2c2419;min-height:38px';
       if(inp.style.textAlign==='center')span.style.textAlign='center';
     }
     inp.style.display='none';
