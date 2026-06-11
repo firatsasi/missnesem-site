@@ -235,12 +235,12 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 
 <script>
 /* ====== LOGIN ====== */
-var KIMLIK="YWRtaW46MjEyNDQwMDEyelg=";
+var KULLANICILAR=["YWRtaW46MjEyNDQwMDEyelg=","Z3VyaGFuOjIxMDA2Nw=="];
 function login(){
   var u=document.getElementById('user').value.trim();
   var p=document.getElementById('pass').value;
   var k=btoa(u+':'+p);
-  if(k===KIMLIK){
+  if(KULLANICILAR.indexOf(k)!==-1){
     var bitis=new Date();bitis.setDate(bitis.getDate()+30);
     document.cookie="mn_auth="+k+"; expires="+bitis.toUTCString()+"; path=/; SameSite=Strict";
     goster();
@@ -258,8 +258,8 @@ function goster(){
   odemeGuncelle();
 }
 function check(){
-  var c=document.cookie.split(';').find(function(x){return x.trim().indexOf('mn_auth=')===0;});
-  if(c&&c.split('=')[1]===KIMLIK){goster();}
+  var ck=document.cookie.split(';').find(function(x){return x.trim().indexOf('mn_auth=')===0;});
+  if(ck){var val=ck.trim().split('=').slice(1).join('=');if(KULLANICILAR.indexOf(val)!==-1){goster();}}
 }
 document.getElementById('pass').addEventListener('keypress',function(e){if(e.key==='Enter')login();});
 document.getElementById('user').addEventListener('keypress',function(e){if(e.key==='Enter')document.getElementById('pass').focus();});
