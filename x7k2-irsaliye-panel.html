@@ -626,7 +626,9 @@ function cariGuncelle(){
     var div=document.createElement('div');
     div.className='cari-musteri-kart';
     div.onclick=function(){cariEkstre(k);};
-    div.innerHTML='<div class="isim">'+m.isim+'</div><div class="bakiye">'+fmtTL(m.bakiye)+'</div><div class="son">Son: '+sonTarih+' · Detay için tıkla</div>';
+    div.style.position='relative';
+    div.innerHTML='<div class="isim">'+m.isim+'</div><div class="bakiye">'+fmtTL(m.bakiye)+'</div><div class="son">Son: '+sonTarih+'</div>'+
+      '<div style="position:absolute;top:10px;right:10px;font-size:18px;opacity:0.5">👁</div>';
     grid.appendChild(div);
   });
   // Toplam kart
@@ -1153,7 +1155,9 @@ function cariGuncelle(){
     var div=document.createElement('div');
     div.className='cari-musteri-kart';
     div.onclick=function(){cariEkstre(k);};
-    div.innerHTML='<div class="isim">'+m.isim+'</div><div class="bakiye">'+fmtTL(m.bakiye)+'</div><div class="son">Son: '+sonTarih+' · Detay için tıkla</div>';
+    div.style.position='relative';
+    div.innerHTML='<div class="isim">'+m.isim+'</div><div class="bakiye">'+fmtTL(m.bakiye)+'</div><div class="son">Son: '+sonTarih+'</div>'+
+      '<div style="position:absolute;top:10px;right:10px;font-size:18px;opacity:0.5">👁</div>';
     grid.appendChild(div);
   });
   // Toplam kart
