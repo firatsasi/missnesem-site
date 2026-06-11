@@ -250,9 +250,12 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   </div>
 
   <div class="date-pick">
-    <label class="opt-lbl">TARİH</label>
-    <input type="date" id="raporTarih" onchange="raporGuncelle()" />
-    <button class="btn-sec" onclick="raporTumu()">Tüm günleri göster</button>
+    <label class="opt-lbl">BAŞLANGIÇ</label>
+    <input type="date" id="raporBaslangic" onchange="raporGuncelle()" />
+    <label class="opt-lbl">BİTİŞ</label>
+    <input type="date" id="raporBitis" onchange="raporGuncelle()" />
+    <button class="btn-sec" onclick="raporBugün()">Bugün</button>
+    <button class="btn-sec" onclick="raporTumu()">Tümü</button>
   </div>
 
   <div class="rapor-grid">
@@ -363,7 +366,8 @@ function goster(){
   document.getElementById('app').style.display='block';
   var bugun=new Date().toISOString().split('T')[0];
   document.getElementById('tarih').value=bugun;
-  document.getElementById('raporTarih').value=bugun;
+  document.getElementById('raporBaslangic').value=bugun;
+  document.getElementById('raporBitis').value=bugun;
   raporGuncelle();
   odemeGuncelle();
 }
@@ -833,12 +837,29 @@ function kaydet(sessiz){
 
 /* ====== RAPOR ====== */
 var raporFiltre='gun';
-function raporTumu(){raporFiltre='hepsi';raporGuncelle();}
+function raporTumu(){
+  raporFiltre='hepsi';
+  document.getElementById('raporBaslangic').value='';
+  document.getElementById('raporBitis').value='';
+  raporGuncelle();
+}
+function raporBugün(){
+  raporFiltre='gun';
+  var bugun=new Date().toISOString().split('T')[0];
+  document.getElementById('raporBaslangic').value=bugun;
+  document.getElementById('raporBitis').value=bugun;
+  raporGuncelle();
+}
 function raporGuncelle(){
   var v=veriCek();
-  var tarih=document.getElementById('raporTarih').value;
+  var bas=document.getElementById('raporBaslangic').value;
+  var bit=document.getElementById('raporBitis').value;
   var filtreli=v;
-  if(raporFiltre==='gun'&&tarih){filtreli=v.filter(function(k){return k.tarih===tarih;});}
+  if(raporFiltre==='gun'){
+    if(bas&&bit){filtreli=v.filter(function(k){return k.tarih>=bas&&k.tarih<=bit;});}
+    else if(bas){filtreli=v.filter(function(k){return k.tarih>=bas;});}
+    else if(bit){filtreli=v.filter(function(k){return k.tarih<=bit;});}
+  }
   document.getElementById('rIrs').textContent=filtreli.length;
   var parca=0,resmi=0,gayri=0,nakit=0,havale=0,kredi=0,mail=0,acik=0;
   filtreli.forEach(function(k){
