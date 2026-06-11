@@ -312,6 +312,25 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
     </div>
   </div>
 
+  <!-- Manuel müşteri ekle -->
+  <div class="cari-form" style="margin-top:10px">
+    <div style="font-size:10px;letter-spacing:1.5px;color:#a64d3e;font-weight:700;margin-bottom:10px">YENİ MÜŞTERİ EKLE</div>
+    <div class="cari-form-grid">
+      <div>
+        <label>MÜŞTERİ ADI</label>
+        <input type="text" id="yeniMusteriAd" placeholder="Müşteri adı" />
+      </div>
+      <div>
+        <label>BAŞLANGIÇ BAKİYESİ (₺)</label>
+        <input type="text" id="yeniMusteriBakiye" inputmode="decimal" placeholder="0" />
+      </div>
+      <div style="grid-column:span 1"></div>
+      <div>
+        <button onclick="musteriEkle()" style="padding:9px 16px;background:#a64d3e;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">+ MÜŞTERİ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Müşteri kartları -->
   <div class="cari-grid" id="cariGrid"></div>
 
@@ -556,7 +575,7 @@ function cariMigrasyon(){
   var yeni={musteri:{},hareketler:[]};
   // Önce mn_cari bakiyelerini yükle (key olduğu gibi)
   Object.keys(eskiCari).forEach(function(k){
-    yeni.musteri[k]={isim:k.replace(/\b\w/g,function(l){return l.toUpperCase();}),bakiye:eskiCari[k]};
+    yeni.musteri[k]={isim:k.split(' ').map(function(w){return w.charAt(0).toUpperCase()+w.slice(1);}).join(' '),bakiye:eskiCari[k]};
   });
   // Açık hesap irsaliyelerini hareketlere ekle
   irsaliyeler.filter(function(k){return k.odeme==='AcikHesap'||k.odeme==='Veresiye';}).forEach(function(k){
@@ -692,6 +711,25 @@ function cariHareketSil(id){
   kapatCariPop();
   cariEkstre(key);
   cariGuncelle();
+}
+
+function musteriEkle(){
+  var ad=document.getElementById('yeniMusteriAd').value.trim();
+  var bakiyeRaw=document.getElementById('yeniMusteriBakiye').value.replace(/\./g,'').replace(',','.');
+  var bakiye=parseFloat(bakiyeRaw)||0;
+  if(!ad){alert('Müşteri adı girin');return;}
+  var d=cariVeriCek();
+  var key=ad.toLowerCase();
+  if(d.musteri[key]){alert(ad+' zaten kayıtlı!');return;}
+  d.musteri[key]={isim:ad,bakiye:bakiye};
+  if(bakiye>0){
+    d.hareketler.push({id:Date.now(),tarih:new Date().toISOString().split('T')[0],musteri:ad,key:key,tip:'borc',tutar:bakiye,aciklama:'Başlangıç bakiyesi'});
+  }
+  cariVeriYaz(d);
+  document.getElementById('yeniMusteriAd').value='';
+  document.getElementById('yeniMusteriBakiye').value='';
+  cariGuncelle();
+  alert('✅ '+ad+' eklendi!');
 }
 
 function cariYedekIndir(){
@@ -1059,7 +1097,7 @@ function cariMigrasyon(){
   var yeni={musteri:{},hareketler:[]};
   // Önce mn_cari bakiyelerini yükle (key olduğu gibi)
   Object.keys(eskiCari).forEach(function(k){
-    yeni.musteri[k]={isim:k.replace(/\b\w/g,function(l){return l.toUpperCase();}),bakiye:eskiCari[k]};
+    yeni.musteri[k]={isim:k.split(' ').map(function(w){return w.charAt(0).toUpperCase()+w.slice(1);}).join(' '),bakiye:eskiCari[k]};
   });
   // Açık hesap irsaliyelerini hareketlere ekle
   irsaliyeler.filter(function(k){return k.odeme==='AcikHesap'||k.odeme==='Veresiye';}).forEach(function(k){
@@ -1195,6 +1233,25 @@ function cariHareketSil(id){
   kapatCariPop();
   cariEkstre(key);
   cariGuncelle();
+}
+
+function musteriEkle(){
+  var ad=document.getElementById('yeniMusteriAd').value.trim();
+  var bakiyeRaw=document.getElementById('yeniMusteriBakiye').value.replace(/\./g,'').replace(',','.');
+  var bakiye=parseFloat(bakiyeRaw)||0;
+  if(!ad){alert('Müşteri adı girin');return;}
+  var d=cariVeriCek();
+  var key=ad.toLowerCase();
+  if(d.musteri[key]){alert(ad+' zaten kayıtlı!');return;}
+  d.musteri[key]={isim:ad,bakiye:bakiye};
+  if(bakiye>0){
+    d.hareketler.push({id:Date.now(),tarih:new Date().toISOString().split('T')[0],musteri:ad,key:key,tip:'borc',tutar:bakiye,aciklama:'Başlangıç bakiyesi'});
+  }
+  cariVeriYaz(d);
+  document.getElementById('yeniMusteriAd').value='';
+  document.getElementById('yeniMusteriBakiye').value='';
+  cariGuncelle();
+  alert('✅ '+ad+' eklendi!');
 }
 
 function cariYedekIndir(){
