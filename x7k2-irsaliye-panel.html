@@ -177,6 +177,8 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   <div class="totals">
     <div class="ara-row" id="araRow" style="display:none"><span class="ara-lbl">ARA TOPLAM</span><span class="ara-val" id="araToplam">-</span></div>
     <div class="ara-row" id="kdvRow" style="display:none"><span class="ara-lbl" id="kdvLbl">KDV</span><span class="ara-val" id="kdvTutar">-</span></div>
+    <div class="ara-row" id="buIslemRow" style="display:none"><span class="ara-lbl">BU İŞLEM</span><span class="ara-val" id="buIslemSatir">-</span></div>
+    <div class="ara-row" id="eskiBakiyeSatir" style="display:none"><span class="ara-lbl">ESKİ BAKİYE</span><span class="ara-val" id="eskiBakiyeVal">-</span></div>
     <div class="total-box"><span class="total-lbl">GENEL TOPLAM</span><span class="total-val" id="gt">0 ₺</span></div>
   </div>
   <div class="foot-note">MISS NEŞEM · MERTER · İSTANBUL</div>
@@ -291,6 +293,8 @@ function bakiyeGoster(){
     box.classList.add('aktif');
   }else{
     box.classList.remove('aktif');
+    document.getElementById('buIslemRow').style.display='none';
+    document.getElementById('eskiBakiyeSatir').style.display='none';
   }
   hesapla();
 }
@@ -417,6 +421,8 @@ function temizle(){
   document.getElementById('eskiBakiye').value='';
   document.getElementById('bakiyeInfo').textContent='';
   document.getElementById('bakiyeBox').classList.remove('aktif');
+  document.getElementById('buIslemRow').style.display='none';
+  document.getElementById('eskiBakiyeSatir').style.display='none';
   odemeGuncelle();
   document.getElementById('araRow').style.display='none';
   document.getElementById('kdvRow').style.display='none';
@@ -427,11 +433,11 @@ function temizle(){
 /* ====== KAYIT (localStorage) ====== */
 function veriCek(){var v=localStorage.getItem('mn_irsaliye');return v?JSON.parse(v):[];}
 function veriYaz(a){localStorage.setItem('mn_irsaliye',JSON.stringify(a));}
-function kaydet(){
+function kaydet(sessiz){
   var musteri=document.getElementById('musteri').value.trim();
-  if(!musteri){alert('Müşteri adı boş olamaz');return;}
+  if(!musteri){if(!sessiz)alert('Müşteri adı boş olamaz');return false;}
   var tarih=document.getElementById('tarih').value;
-  if(!tarih){alert('Tarih boş olamaz');return;}
+  if(!tarih){if(!sessiz)alert('Tarih boş olamaz');return false;}
   var urunler=[];
   var parca=0;
   var ara=0;
@@ -447,7 +453,7 @@ function kaydet(){
       ara+=a*f;
     }
   });
-  if(urunler.length===0){alert('En az 1 ürün girin');return;}
+  if(urunler.length===0){if(!sessiz)alert('En az 1 ürün girin');return false;}
   var oran=parseInt(document.getElementById('kdvOran').value)||0;
   var kdv=Math.round(ara*oran/100*100)/100;
   var genel=ara+kdv;
@@ -482,8 +488,9 @@ function kaydet(){
     veriYaz(v);
     bakiyeMsg='\n\n💼 Yeni açık bakiye: '+fmtTL(yeniBakiye);
   }
-  alert('✅ Kaydedildi!\n\n'+musteri+' · '+fmtTL(genel)+'\n'+kayit.odeme+' · '+kayit.tur+bakiyeMsg);
+  if(!sessiz)alert('✅ Kaydedildi!\n\n'+musteri+' · '+fmtTL(genel)+'\n'+kayit.odeme+' · '+kayit.tur+bakiyeMsg);
   raporGuncelle();
+  return true;
 }
 
 /* ====== RAPOR ====== */
@@ -601,6 +608,7 @@ function geriAl(s){
   inputlariGeriYukle(s.saved);
 }
 function pdfIndir(){
+  kaydet(true);
   var s=hazirla();
   var musteri=document.getElementById('musteri').value||'irsaliye';
   var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.pdf';
@@ -609,6 +617,7 @@ function pdfIndir(){
   html2pdf().set(opt).from(el).save().then(function(){geriAl(s);});
 }
 function pngIndir(){
+  kaydet(true);
   var s=hazirla();
   var musteri=document.getElementById('musteri').value||'irsaliye';
   var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.png';
