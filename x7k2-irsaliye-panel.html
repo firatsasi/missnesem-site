@@ -57,6 +57,30 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .btn-drk{font-size:13px;padding:10px 20px;cursor:pointer;color:#f0e4d3;border:none;border-radius:6px;background:#2c2419;font-weight:700}
 .btn-gld{font-size:13px;padding:10px 20px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:#d4b896;font-weight:700}
 @media(max-width:480px){.fields{grid-template-columns:1fr}.bn{font-size:20px;letter-spacing:3px}}
+
+/* CARİ TAKİP */
+.cari-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:1rem 0}
+.cari-musteri-kart{background:#fff;border:1px solid #c8a87a;border-radius:8px;padding:14px;cursor:pointer;transition:border-color .2s}
+.cari-musteri-kart:hover{border-color:#a64d3e}
+.cari-musteri-kart .isim{font-size:13px;font-weight:700;color:#2c2419;margin-bottom:6px}
+.cari-musteri-kart .bakiye{font-size:18px;font-weight:700;color:#a64d3e}
+.cari-musteri-kart .son{font-size:10px;color:#b8985e;margin-top:4px;letter-spacing:0.5px}
+.cari-form{background:#fff;border:1px solid #c8a87a;border-radius:8px;padding:16px;margin-bottom:1rem}
+.cari-form-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end}
+.cari-form-grid label{font-size:9px;letter-spacing:1.5px;color:#a64d3e;font-weight:700;display:block;margin-bottom:4px}
+.cari-form-grid input,.cari-form-grid select{width:100%;font-size:13px;padding:8px 10px;background:#fff !important;color:#2c2419 !important;border:1px solid #c8a87a;border-radius:6px;font-family:Arial,sans-serif}
+.cari-ekstre-pop{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9997;display:flex;align-items:center;justify-content:center;padding:1rem}
+.cari-ekstre-ic{background:#f0e4d3;border-radius:10px;border:1px solid #b8985e;padding:2rem;max-width:680px;width:100%;max-height:85vh;overflow-y:auto}
+.cari-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:1rem}
+.cari-tbl th{padding:8px 10px;font-size:10px;letter-spacing:1px;color:#f0e4d3;background:#2c2419;text-align:left}
+.cari-tbl th.r{text-align:right}
+.cari-tbl td{padding:8px 10px;border-bottom:1px solid #e0cdb5;background:#fff;font-size:13px}
+.cari-tbl tr:nth-child(even) td{background:#faf6f0}
+.cari-tbl td.r{text-align:right}
+.cari-tbl .borc{color:#a64d3e;font-weight:700}
+.cari-tbl .tah{color:#2d7a3a;font-weight:700}
+.tahsilat-satir td{background:#f0fff0 !important}
+@media(max-width:480px){.cari-form-grid{grid-template-columns:1fr 1fr}}
 .kargo-toggle{display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;user-select:none}
 .kargo-toggle input{width:16px;height:16px;cursor:pointer;accent-color:#a64d3e}
 .kargo-toggle span{font-size:10px;letter-spacing:1.5px;color:#a64d3e;font-weight:700}
@@ -137,6 +161,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 <div class="tabs">
   <button class="tab active" id="tab1" onclick="tabGoster('irs')">İRSALİYE OLUŞTUR</button>
   <button class="tab" id="tab2" onclick="tabGoster('rap')">GÜNLÜK RAPOR</button>
+  <button class="tab" id="tab3" onclick="tabGoster('car')">CARİ TAKİP</button>
 </div>
 
 <!-- TAB 1: İRSALİYE -->
@@ -255,6 +280,47 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 </div>
 </div>
 
+<!-- TAB 3: CARİ TAKİP -->
+<div id="tabCar" style="display:none">
+<div class="rapor-card">
+  <div class="brand">
+    <div class="bn">MISS NEŞEM</div>
+    <div class="bd" style="font-size:11px">CARİ TAKİP</div>
+  </div>
+
+  <!-- Tahsilat formu -->
+  <div class="cari-form">
+    <div style="font-size:10px;letter-spacing:1.5px;color:#a64d3e;font-weight:700;margin-bottom:10px">TAHSİLAT GİR</div>
+    <div class="cari-form-grid">
+      <div>
+        <label>MÜŞTERİ</label>
+        <select id="cariMusteriSec" style="width:100%;font-size:13px;padding:8px 10px;background:#fff;color:#2c2419;border:1px solid #c8a87a;border-radius:6px">
+          <option value="">Müşteri seç...</option>
+        </select>
+      </div>
+      <div>
+        <label>TUTAR (₺)</label>
+        <input type="text" id="cariTahsilatTutar" inputmode="decimal" placeholder="0" />
+      </div>
+      <div>
+        <label>TARİH</label>
+        <input type="date" id="cariTahsilatTarih" />
+      </div>
+      <div>
+        <button onclick="tahsilatKaydet()" style="padding:9px 16px;background:#2d7a3a;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">+ TAHSİLAT</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Müşteri kartları -->
+  <div class="cari-grid" id="cariGrid"></div>
+
+  <div class="btns">
+    <button class="btn-sec" onclick="cariYedekIndir()">Yedek indir (JSON)</button>
+  </div>
+</div>
+</div>
+
 </div>
 </div>
 
@@ -368,9 +434,12 @@ function bakiyeHesapla(){
 function tabGoster(t){
   document.getElementById('tabIrs').style.display=t==='irs'?'block':'none';
   document.getElementById('tabRap').style.display=t==='rap'?'block':'none';
+  document.getElementById('tabCar').style.display=t==='car'?'block':'none';
   document.getElementById('tab1').classList.toggle('active',t==='irs');
   document.getElementById('tab2').classList.toggle('active',t==='rap');
+  document.getElementById('tab3').classList.toggle('active',t==='car');
   if(t==='rap')raporGuncelle();
+  if(t==='car')cariGuncelle();
 }
 
 /* ====== İRSALİYE ====== */
@@ -474,7 +543,180 @@ function temizle(){
   document.getElementById('araRow').style.display='none';
   document.getElementById('kdvRow').style.display='none';
   document.getElementById('gt').textContent='0 ₺';
-  sc=0;ekle();ekle();ekle();
+  sc=0;/* ====== CARİ TAKİP ====== */
+function cariVeriCek(){var v=localStorage.getItem('mn_cari2');return v?JSON.parse(v):{musteri:{},hareketler:[]};}
+function cariVeriYaz(d){localStorage.setItem('mn_cari2',JSON.stringify(d));}
+function cariKey(m){return(m||'').trim().toLowerCase();}
+
+// Mevcut mn_cari verisini mn_cari2'ye taşı (ilk açılışta)
+function cariMigrasyon(){
+  if(localStorage.getItem('mn_cari2'))return;
+  var irsaliyeler=JSON.parse(localStorage.getItem('mn_irsaliye')||'[]');
+  var eskiCari=JSON.parse(localStorage.getItem('mn_cari')||'{}');
+  var yeni={musteri:{},hareketler:[]};
+  // Önce mn_cari bakiyelerini yükle (key olduğu gibi)
+  Object.keys(eskiCari).forEach(function(k){
+    yeni.musteri[k]={isim:k.replace(/\b\w/g,function(l){return l.toUpperCase();}),bakiye:eskiCari[k]};
+  });
+  // Açık hesap irsaliyelerini hareketlere ekle
+  irsaliyeler.filter(function(k){return k.odeme==='AcikHesap'||k.odeme==='Veresiye';}).forEach(function(k){
+    var key=k.musteri.toLowerCase();
+    if(!yeni.musteri[key])yeni.musteri[key]={isim:k.musteri,bakiye:0};
+    if(!yeni.hareketler.find(function(h){return h.aciklama==='İrsaliye #'+k.id;}))
+      yeni.hareketler.push({id:k.id,tarih:k.tarih,musteri:k.musteri,key:key,tip:'borc',tutar:k.genel,aciklama:'İrsaliye #'+k.id});
+  });
+  cariVeriYaz(yeni);
+}
+
+function cariGuncelle(){
+  cariMigrasyon();
+  var d=cariVeriCek();
+  // Dropdown güncelle
+  var sel=document.getElementById('cariMusteriSec');
+  var secili=sel.value;
+  sel.innerHTML='<option value="">Müşteri seç...</option>';
+  Object.keys(d.musteri).sort().forEach(function(k){
+    var m=d.musteri[k];
+    if(m.bakiye>0){
+      var op=document.createElement('option');
+      op.value=k;op.textContent=m.isim+' ('+fmtTL(m.bakiye)+')';
+      sel.appendChild(op);
+    }
+  });
+  if(secili)sel.value=secili;
+  // Tarih bugün
+  var bugun=new Date().toISOString().split('T')[0];
+  if(!document.getElementById('cariTahsilatTarih').value)
+    document.getElementById('cariTahsilatTarih').value=bugun;
+  // Kartları çiz
+  var grid=document.getElementById('cariGrid');
+  var aktifler=Object.keys(d.musteri).filter(function(k){return d.musteri[k].bakiye>0;}).sort(function(a,b){return d.musteri[b].bakiye-d.musteri[a].bakiye;});
+  if(aktifler.length===0){grid.innerHTML='<div class="bos">Açık bakiyeli müşteri yok</div>';return;}
+  grid.innerHTML='';
+  var toplamBakiye=0;
+  aktifler.forEach(function(k){
+    var m=d.musteri[k];
+    toplamBakiye+=m.bakiye;
+    var sonH=d.hareketler.filter(function(h){return h.key===k;}).sort(function(a,b){return b.id-a.id;})[0];
+    var sonTarih=sonH?sonH.tarih:'—';
+    var div=document.createElement('div');
+    div.className='cari-musteri-kart';
+    div.onclick=function(){cariEkstre(k);};
+    div.innerHTML='<div class="isim">'+m.isim+'</div><div class="bakiye">'+fmtTL(m.bakiye)+'</div><div class="son">Son: '+sonTarih+' · Detay için tıkla</div>';
+    grid.appendChild(div);
+  });
+  // Toplam kart
+  var topDiv=document.createElement('div');
+  topDiv.style.cssText='background:#2c2419;border-radius:8px;padding:14px;grid-column:1/-1;display:flex;justify-content:space-between;align-items:center';
+  topDiv.innerHTML='<span style="font-size:10px;letter-spacing:2px;color:#b8985e;font-weight:700">TOPLAM AÇIK BAKİYE</span><span style="font-size:22px;font-weight:700;color:#f0e4d3">'+fmtTL(toplamBakiye)+'</span>';
+  grid.appendChild(topDiv);
+}
+
+function tahsilatKaydet(){
+  var key=document.getElementById('cariMusteriSec').value;
+  var tutarRaw=document.getElementById('cariTahsilatTutar').value.replace(/\./g,'').replace(',','.');
+  var tutar=parseFloat(tutarRaw)||0;
+  var tarih=document.getElementById('cariTahsilatTarih').value;
+  if(!key){alert('Müşteri seçin');return;}
+  if(tutar<=0){alert('Tutar girin');return;}
+  if(!tarih){alert('Tarih girin');return;}
+  var d=cariVeriCek();
+  var m=d.musteri[key];
+  d.hareketler.push({id:Date.now(),tarih:tarih,musteri:m.isim,key:key,tip:'tahsilat',tutar:tutar,aciklama:'Tahsilat'});
+  m.bakiye=Math.max(0,m.bakiye-tutar);
+  cariVeriYaz(d);
+  document.getElementById('cariTahsilatTutar').value='';
+  cariGuncelle();
+  alert('✅ Tahsilat kaydedildi!\n\n'+m.isim+'\n'+fmtTL(tutar)+' tahsil edildi.\nYeni bakiye: '+fmtTL(m.bakiye));
+}
+
+function cariEkstre(key){
+  var d=cariVeriCek();
+  var m=d.musteri[key];
+  var hareketler=d.hareketler.filter(function(h){return h.key===key;}).sort(function(a,b){return a.id-b.id;});
+  var satirlar='';
+  var bakiye=0;
+  hareketler.forEach(function(h){
+    if(h.tip==='borc')bakiye+=h.tutar;else bakiye-=h.tutar;
+    var cls=h.tip==='borc'?'borc':'tah';
+    var rowCls=h.tip==='tahsilat'?'tahsilat-satir':'';
+    var da=new Date(h.id);
+    var sa=String(da.getHours()).padStart(2,'0')+':'+String(da.getMinutes()).padStart(2,'0');
+    satirlar+='<tr class="'+rowCls+'"><td>'+h.tarih+'<br><small style="color:#b8985e">'+sa+'</small></td>';
+    satirlar+='<td>'+h.aciklama+'</td>';
+    satirlar+='<td class="r '+(h.tip==='borc'?'borc':'')+'">'+( h.tip==='borc'?fmtTL(h.tutar):'—')+'</td>';
+    satirlar+='<td class="r '+(h.tip==='tahsilat'?'tah':'')+'">'+( h.tip==='tahsilat'?fmtTL(h.tutar):'—')+'</td>';
+    satirlar+='<td class="r" style="font-weight:700">'+fmtTL(bakiye)+'</td>';
+    satirlar+='<td><button onclick="cariHareketSil('+h.id+')" style="background:none;border:none;cursor:pointer;color:#a64d3e;font-size:14px">×</button></td></tr>';
+  });
+  var pop=document.createElement('div');
+  pop.className='cari-ekstre-pop';
+  pop.id='cariPop';
+  pop.onclick=function(e){if(e.target===pop)pop.remove();};
+  pop.innerHTML='<div class="cari-ekstre-ic">'+
+    '<div style="text-align:center;margin-bottom:1rem">'+
+      '<div style="font-size:16px;font-weight:700;color:#2c2419;letter-spacing:2px">'+m.isim+'</div>'+
+      '<div style="font-size:11px;color:#a64d3e;margin-top:4px">CARİ EKSTRE</div>'+
+    '</div>'+
+    '<table class="cari-tbl">'+
+      '<thead><tr><th>TARİH</th><th>AÇIKLAMA</th><th class="r">BORÇ</th><th class="r">TAHSİLAT</th><th class="r">BAKİYE</th><th></th></tr></thead>'+
+      '<tbody>'+satirlar+'</tbody>'+
+    '</table>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1px solid #b8985e">'+
+      '<span style="font-size:10px;letter-spacing:1px;color:#a64d3e;font-weight:700">GÜNCEL BAKİYE</span>'+
+      '<span style="font-size:20px;font-weight:700;color:#a64d3e">'+fmtTL(m.bakiye)+'</span>'+
+    '</div>'+
+    '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:1rem">'+
+      '<button onclick="kapatCariPop()" style="font-size:12px;padding:8px 16px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:transparent;font-weight:600">Kapat</button>'+
+    '</div>'+
+  '</div>';
+  document.body.appendChild(pop);
+}
+
+function kapatCariPop(){var p=document.getElementById('cariPop');if(p)p.remove();}
+
+function cariHareketSil(id){
+  if(!confirm('Bu hareketi silmek istediğine emin misin?'))return;
+  var d=cariVeriCek();
+  var h=d.hareketler.find(function(x){return x.id===id;});
+  if(!h)return;
+  d.hareketler=d.hareketler.filter(function(x){return x.id!==id;});
+  // Bakiyeyi yeniden hesapla
+  var key=h.key;
+  var bakiye=0;
+  d.hareketler.filter(function(x){return x.key===key;}).forEach(function(x){
+    if(x.tip==='borc')bakiye+=x.tutar;else bakiye-=x.tutar;
+  });
+  d.musteri[key].bakiye=Math.max(0,bakiye);
+  cariVeriYaz(d);
+  kapatCariPop();
+  cariEkstre(key);
+  cariGuncelle();
+}
+
+function cariYedekIndir(){
+  var d=cariVeriCek();
+  var blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='missnesem_cari_'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();
+}
+
+// İrsaliye kaydedilince cari2'ye de borç ekle
+function cariBorc(musteri,tutar,irsaliyeId,tarih){
+  cariMigrasyon();
+  var d=cariVeriCek();
+  var key=cariKey(musteri);
+  if(!d.musteri[key])d.musteri[key]={isim:musteri,bakiye:0};
+  // Aynı irsaliye daha önce eklenmişse ekleme
+  if(d.hareketler.find(function(h){return h.aciklama==='İrsaliye #'+irsaliyeId;}))return;
+  d.hareketler.push({id:Date.now(),tarih:tarih,musteri:musteri,key:key,tip:'borc',tutar:tutar,aciklama:'İrsaliye #'+irsaliyeId});
+  d.musteri[key].bakiye+=tutar;
+  cariVeriYaz(d);
+}
+
+ekle();ekle();ekle();
 }
 
 /* ====== KAYIT (localStorage) ====== */
@@ -534,6 +776,10 @@ function kaydet(sessiz){
     v[v.length-1]=kayit;
     veriYaz(v);
     bakiyeMsg='\n\n💼 Yeni açık bakiye: '+fmtTL(yeniBakiye);
+  }
+  // Cari takibe borç ekle (Açık Hesap ise)
+  if(kayit.odeme==='AcikHesap'){
+    cariBorc(musteri,genel,kayit.id,tarih);
   }
   if(!sessiz)alert('✅ Kaydedildi!\n\n'+musteri+' · '+fmtTL(genel)+'\n'+kayit.odeme+' · '+kayit.tur+bakiyeMsg);
   raporGuncelle();
@@ -798,6 +1044,179 @@ function raporPdf(){
   var el=document.querySelector('.rapor-card');
   var opt={margin:[8,8,8,8],filename:'MissNesem_Rapor_'+new Date().toISOString().split('T')[0]+'.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#f0e4d3'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
   html2pdf().set(opt).from(el).save();
+}
+
+/* ====== CARİ TAKİP ====== */
+function cariVeriCek(){var v=localStorage.getItem('mn_cari2');return v?JSON.parse(v):{musteri:{},hareketler:[]};}
+function cariVeriYaz(d){localStorage.setItem('mn_cari2',JSON.stringify(d));}
+function cariKey(m){return(m||'').trim().toLowerCase();}
+
+// Mevcut mn_cari verisini mn_cari2'ye taşı (ilk açılışta)
+function cariMigrasyon(){
+  if(localStorage.getItem('mn_cari2'))return;
+  var irsaliyeler=JSON.parse(localStorage.getItem('mn_irsaliye')||'[]');
+  var eskiCari=JSON.parse(localStorage.getItem('mn_cari')||'{}');
+  var yeni={musteri:{},hareketler:[]};
+  // Önce mn_cari bakiyelerini yükle (key olduğu gibi)
+  Object.keys(eskiCari).forEach(function(k){
+    yeni.musteri[k]={isim:k.replace(/\b\w/g,function(l){return l.toUpperCase();}),bakiye:eskiCari[k]};
+  });
+  // Açık hesap irsaliyelerini hareketlere ekle
+  irsaliyeler.filter(function(k){return k.odeme==='AcikHesap'||k.odeme==='Veresiye';}).forEach(function(k){
+    var key=k.musteri.toLowerCase();
+    if(!yeni.musteri[key])yeni.musteri[key]={isim:k.musteri,bakiye:0};
+    if(!yeni.hareketler.find(function(h){return h.aciklama==='İrsaliye #'+k.id;}))
+      yeni.hareketler.push({id:k.id,tarih:k.tarih,musteri:k.musteri,key:key,tip:'borc',tutar:k.genel,aciklama:'İrsaliye #'+k.id});
+  });
+  cariVeriYaz(yeni);
+}
+
+function cariGuncelle(){
+  cariMigrasyon();
+  var d=cariVeriCek();
+  // Dropdown güncelle
+  var sel=document.getElementById('cariMusteriSec');
+  var secili=sel.value;
+  sel.innerHTML='<option value="">Müşteri seç...</option>';
+  Object.keys(d.musteri).sort().forEach(function(k){
+    var m=d.musteri[k];
+    if(m.bakiye>0){
+      var op=document.createElement('option');
+      op.value=k;op.textContent=m.isim+' ('+fmtTL(m.bakiye)+')';
+      sel.appendChild(op);
+    }
+  });
+  if(secili)sel.value=secili;
+  // Tarih bugün
+  var bugun=new Date().toISOString().split('T')[0];
+  if(!document.getElementById('cariTahsilatTarih').value)
+    document.getElementById('cariTahsilatTarih').value=bugun;
+  // Kartları çiz
+  var grid=document.getElementById('cariGrid');
+  var aktifler=Object.keys(d.musteri).filter(function(k){return d.musteri[k].bakiye>0;}).sort(function(a,b){return d.musteri[b].bakiye-d.musteri[a].bakiye;});
+  if(aktifler.length===0){grid.innerHTML='<div class="bos">Açık bakiyeli müşteri yok</div>';return;}
+  grid.innerHTML='';
+  var toplamBakiye=0;
+  aktifler.forEach(function(k){
+    var m=d.musteri[k];
+    toplamBakiye+=m.bakiye;
+    var sonH=d.hareketler.filter(function(h){return h.key===k;}).sort(function(a,b){return b.id-a.id;})[0];
+    var sonTarih=sonH?sonH.tarih:'—';
+    var div=document.createElement('div');
+    div.className='cari-musteri-kart';
+    div.onclick=function(){cariEkstre(k);};
+    div.innerHTML='<div class="isim">'+m.isim+'</div><div class="bakiye">'+fmtTL(m.bakiye)+'</div><div class="son">Son: '+sonTarih+' · Detay için tıkla</div>';
+    grid.appendChild(div);
+  });
+  // Toplam kart
+  var topDiv=document.createElement('div');
+  topDiv.style.cssText='background:#2c2419;border-radius:8px;padding:14px;grid-column:1/-1;display:flex;justify-content:space-between;align-items:center';
+  topDiv.innerHTML='<span style="font-size:10px;letter-spacing:2px;color:#b8985e;font-weight:700">TOPLAM AÇIK BAKİYE</span><span style="font-size:22px;font-weight:700;color:#f0e4d3">'+fmtTL(toplamBakiye)+'</span>';
+  grid.appendChild(topDiv);
+}
+
+function tahsilatKaydet(){
+  var key=document.getElementById('cariMusteriSec').value;
+  var tutarRaw=document.getElementById('cariTahsilatTutar').value.replace(/\./g,'').replace(',','.');
+  var tutar=parseFloat(tutarRaw)||0;
+  var tarih=document.getElementById('cariTahsilatTarih').value;
+  if(!key){alert('Müşteri seçin');return;}
+  if(tutar<=0){alert('Tutar girin');return;}
+  if(!tarih){alert('Tarih girin');return;}
+  var d=cariVeriCek();
+  var m=d.musteri[key];
+  d.hareketler.push({id:Date.now(),tarih:tarih,musteri:m.isim,key:key,tip:'tahsilat',tutar:tutar,aciklama:'Tahsilat'});
+  m.bakiye=Math.max(0,m.bakiye-tutar);
+  cariVeriYaz(d);
+  document.getElementById('cariTahsilatTutar').value='';
+  cariGuncelle();
+  alert('✅ Tahsilat kaydedildi!\n\n'+m.isim+'\n'+fmtTL(tutar)+' tahsil edildi.\nYeni bakiye: '+fmtTL(m.bakiye));
+}
+
+function cariEkstre(key){
+  var d=cariVeriCek();
+  var m=d.musteri[key];
+  var hareketler=d.hareketler.filter(function(h){return h.key===key;}).sort(function(a,b){return a.id-b.id;});
+  var satirlar='';
+  var bakiye=0;
+  hareketler.forEach(function(h){
+    if(h.tip==='borc')bakiye+=h.tutar;else bakiye-=h.tutar;
+    var cls=h.tip==='borc'?'borc':'tah';
+    var rowCls=h.tip==='tahsilat'?'tahsilat-satir':'';
+    var da=new Date(h.id);
+    var sa=String(da.getHours()).padStart(2,'0')+':'+String(da.getMinutes()).padStart(2,'0');
+    satirlar+='<tr class="'+rowCls+'"><td>'+h.tarih+'<br><small style="color:#b8985e">'+sa+'</small></td>';
+    satirlar+='<td>'+h.aciklama+'</td>';
+    satirlar+='<td class="r '+(h.tip==='borc'?'borc':'')+'">'+( h.tip==='borc'?fmtTL(h.tutar):'—')+'</td>';
+    satirlar+='<td class="r '+(h.tip==='tahsilat'?'tah':'')+'">'+( h.tip==='tahsilat'?fmtTL(h.tutar):'—')+'</td>';
+    satirlar+='<td class="r" style="font-weight:700">'+fmtTL(bakiye)+'</td>';
+    satirlar+='<td><button onclick="cariHareketSil('+h.id+')" style="background:none;border:none;cursor:pointer;color:#a64d3e;font-size:14px">×</button></td></tr>';
+  });
+  var pop=document.createElement('div');
+  pop.className='cari-ekstre-pop';
+  pop.id='cariPop';
+  pop.onclick=function(e){if(e.target===pop)pop.remove();};
+  pop.innerHTML='<div class="cari-ekstre-ic">'+
+    '<div style="text-align:center;margin-bottom:1rem">'+
+      '<div style="font-size:16px;font-weight:700;color:#2c2419;letter-spacing:2px">'+m.isim+'</div>'+
+      '<div style="font-size:11px;color:#a64d3e;margin-top:4px">CARİ EKSTRE</div>'+
+    '</div>'+
+    '<table class="cari-tbl">'+
+      '<thead><tr><th>TARİH</th><th>AÇIKLAMA</th><th class="r">BORÇ</th><th class="r">TAHSİLAT</th><th class="r">BAKİYE</th><th></th></tr></thead>'+
+      '<tbody>'+satirlar+'</tbody>'+
+    '</table>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1px solid #b8985e">'+
+      '<span style="font-size:10px;letter-spacing:1px;color:#a64d3e;font-weight:700">GÜNCEL BAKİYE</span>'+
+      '<span style="font-size:20px;font-weight:700;color:#a64d3e">'+fmtTL(m.bakiye)+'</span>'+
+    '</div>'+
+    '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:1rem">'+
+      '<button onclick="kapatCariPop()" style="font-size:12px;padding:8px 16px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:transparent;font-weight:600">Kapat</button>'+
+    '</div>'+
+  '</div>';
+  document.body.appendChild(pop);
+}
+
+function kapatCariPop(){var p=document.getElementById('cariPop');if(p)p.remove();}
+
+function cariHareketSil(id){
+  if(!confirm('Bu hareketi silmek istediğine emin misin?'))return;
+  var d=cariVeriCek();
+  var h=d.hareketler.find(function(x){return x.id===id;});
+  if(!h)return;
+  d.hareketler=d.hareketler.filter(function(x){return x.id!==id;});
+  // Bakiyeyi yeniden hesapla
+  var key=h.key;
+  var bakiye=0;
+  d.hareketler.filter(function(x){return x.key===key;}).forEach(function(x){
+    if(x.tip==='borc')bakiye+=x.tutar;else bakiye-=x.tutar;
+  });
+  d.musteri[key].bakiye=Math.max(0,bakiye);
+  cariVeriYaz(d);
+  kapatCariPop();
+  cariEkstre(key);
+  cariGuncelle();
+}
+
+function cariYedekIndir(){
+  var d=cariVeriCek();
+  var blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='missnesem_cari_'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();
+}
+
+// İrsaliye kaydedilince cari2'ye de borç ekle
+function cariBorc(musteri,tutar,irsaliyeId,tarih){
+  cariMigrasyon();
+  var d=cariVeriCek();
+  var key=cariKey(musteri);
+  if(!d.musteri[key])d.musteri[key]={isim:musteri,bakiye:0};
+  // Aynı irsaliye daha önce eklenmişse ekleme
+  if(d.hareketler.find(function(h){return h.aciklama==='İrsaliye #'+irsaliyeId;}))return;
+  d.hareketler.push({id:Date.now(),tarih:tarih,musteri:musteri,key:key,tip:'borc',tutar:tutar,aciklama:'İrsaliye #'+irsaliyeId});
+  d.musteri[key].bakiye+=tutar;
+  cariVeriYaz(d);
 }
 
 ekle();ekle();ekle();
