@@ -319,13 +319,24 @@ function musteriBakiyeYukle(){
 function bakiyeHesapla(){
   var eb=document.getElementById('eskiBakiye');
   if(eb)eb.value=eb.value.replace(/[^0-9.,]/g,'');
-  // Eski bakiye: nokta binlik ayıracı (250.000), virgül ondalık (1,50)
-  // Önce noktaları kaldır, sonra virgülü noktaya çevir
   var ebRaw=(eb?eb.value:'').replace(/\./g,'').replace(',','.');
   var eski=parseFloat(ebRaw)||0;
   var genel=window.sonGenel||0;
+  // Üst bakiye kutusu
   document.getElementById('buIslem').value=fmtTL(genel);
   document.getElementById('toplamBakiye').textContent=fmtTL(eski+genel);
+  // Alt satırlar (irsaliye totals kısmında görünür)
+  var biRow=document.getElementById('buIslemRow');
+  var ebSatir=document.getElementById('eskiBakiyeSatir');
+  if(eski>0){
+    biRow.style.display='flex';
+    ebSatir.style.display='flex';
+    document.getElementById('buIslemSatir').textContent=fmtTL(genel);
+    document.getElementById('eskiBakiyeVal').textContent=fmtTL(eski);
+  }else{
+    biRow.style.display='none';
+    ebSatir.style.display='none';
+  }
 }
 
 /* ====== TABS ====== */
