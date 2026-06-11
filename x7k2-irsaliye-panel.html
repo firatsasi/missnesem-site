@@ -57,6 +57,15 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .btn-drk{font-size:13px;padding:10px 20px;cursor:pointer;color:#f0e4d3;border:none;border-radius:6px;background:#2c2419;font-weight:700}
 .btn-gld{font-size:13px;padding:10px 20px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:#d4b896;font-weight:700}
 @media(max-width:480px){.fields{grid-template-columns:1fr}.bn{font-size:20px;letter-spacing:3px}}
+.kargo-toggle{display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;user-select:none}
+.kargo-toggle input{width:16px;height:16px;cursor:pointer;accent-color:#a64d3e}
+.kargo-toggle span{font-size:10px;letter-spacing:1.5px;color:#a64d3e;font-weight:700}
+.kargo-box{display:none;margin-top:10px;background:#fff;border:1px solid #c8a87a;border-radius:8px;padding:14px 16px}
+.kargo-box.aktif{display:block}
+.kargo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kargo-grid label{font-size:9px;letter-spacing:1.5px;color:#a64d3e;font-weight:700;display:block;margin-bottom:4px}
+.kargo-grid input{width:100%;font-size:14px;padding:8px 10px;background:#fff !important;color:#2c2419 !important;-webkit-text-fill-color:#2c2419 !important;border:1px solid #c8a87a;border-radius:6px;font-family:Arial,sans-serif}
+@media(max-width:480px){.kargo-grid{grid-template-columns:1fr}}
 .bakiye-box{display:none;margin-top:14px;background:#fff;border:1.5px dashed #a64d3e;border-radius:8px;padding:14px 16px}
 .bakiye-box.aktif{display:block}
 .bakiye-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:end}
@@ -180,6 +189,22 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
     <div class="ara-row" id="buIslemRow" style="display:none"><span class="ara-lbl">BU İŞLEM</span><span class="ara-val" id="buIslemSatir">-</span></div>
     <div class="ara-row" id="eskiBakiyeSatir" style="display:none"><span class="ara-lbl">ESKİ BAKİYE</span><span class="ara-val" id="eskiBakiyeVal">-</span></div>
     <div class="total-box"><span class="total-lbl">GENEL TOPLAM</span><span class="total-val" id="gt">0 ₺</span></div>
+  </div>
+  <div class="kargo-toggle" id="kargoToggle">
+    <input type="checkbox" id="kargoChk" onchange="kargoGoster()" />
+    <span>KARGO BİLGİSİ EKLE</span>
+  </div>
+  <div class="kargo-box" id="kargoBox">
+    <div class="kargo-grid">
+      <div>
+        <label>KARGO FİRMASI</label>
+        <input type="text" id="kargoFirma" placeholder="DHL, Aramex, FedEx..." class="cell" />
+      </div>
+      <div>
+        <label>MÜŞTERİ KODU</label>
+        <input type="text" id="kargoKod" placeholder="Müşteri kargo kodu" class="cell" />
+      </div>
+    </div>
   </div>
   <div class="foot-note">MISS NEŞEM · MERTER · İSTANBUL</div>
 </div>
@@ -421,6 +446,13 @@ function hesapla(){
   document.getElementById('gt').textContent=fmt(gtFinal);
   if(bakBox && bakBox.classList.contains('aktif'))bakiyeHesapla();
 }
+function kargoGoster(){
+  var chk=document.getElementById('kargoChk');
+  var box=document.getElementById('kargoBox');
+  if(chk.checked){box.classList.add('aktif');}
+  else{box.classList.remove('aktif');document.getElementById('kargoFirma').value='';document.getElementById('kargoKod').value='';}
+}
+
 function temizle(){
   document.getElementById('tb').innerHTML='';
   document.getElementById('musteri').value='';
@@ -432,6 +464,10 @@ function temizle(){
   document.getElementById('eskiBakiye').value='';
   document.getElementById('bakiyeInfo').textContent='';
   document.getElementById('bakiyeBox').classList.remove('aktif');
+  document.getElementById('kargoChk').checked=false;
+  document.getElementById('kargoBox').classList.remove('aktif');
+  document.getElementById('kargoFirma').value='';
+  document.getElementById('kargoKod').value='';
   document.getElementById('buIslemRow').style.display='none';
   document.getElementById('eskiBakiyeSatir').style.display='none';
   odemeGuncelle();
@@ -717,7 +753,8 @@ function hazirla(){
   var delCols=document.querySelectorAll('.del-col');
   addBtn.style.display='none';
   optsRow.style.display='none';
-  // Bakiye kutusu PDF/PNG'de görünmesin (müşteriye eski borcu gösterme)
+  var kargoToggle=document.getElementById('kargoToggle');
+  kargoToggle.style.display='none';
   var bakAktif=bakBox.classList.contains('aktif');
   if(bakAktif)bakBox.style.display='none';
   delCells.forEach(function(c){c.style.display='none';});
@@ -728,6 +765,7 @@ function hazirla(){
 function geriAl(s){
   s.addBtn.style.display='';
   s.optsRow.style.display='flex';
+  document.getElementById('kargoToggle').style.display='flex';
   if(s.bakAktif)s.bakBox.style.display='';
   s.delCells.forEach(function(c){c.style.display='';});
   s.delCols.forEach(function(c){c.style.display='';});
