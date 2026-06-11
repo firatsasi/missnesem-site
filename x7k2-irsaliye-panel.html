@@ -565,7 +565,12 @@ function temizle(){
   sc=0;/* ====== CARİ TAKİP ====== */
 function cariVeriCek(){var v=localStorage.getItem('mn_cari2');return v?JSON.parse(v):{musteri:{},hareketler:[]};}
 function cariVeriYaz(d){localStorage.setItem('mn_cari2',JSON.stringify(d));}
-function cariKey(m){return(m||'').trim().toLowerCase();}
+function cariKey(m){
+  return(m||'').trim().toLowerCase()
+    .replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s')
+    .replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c')
+    .replace(/İ/g,'i').replace(/I/g,'i');
+}
 
 // Mevcut mn_cari verisini mn_cari2'ye taşı (ilk açılışta)
 function cariMigrasyon(){
@@ -579,7 +584,7 @@ function cariMigrasyon(){
   });
   // Açık hesap irsaliyelerini hareketlere ekle
   irsaliyeler.filter(function(k){return k.odeme==='AcikHesap'||k.odeme==='Veresiye';}).forEach(function(k){
-    var key=k.musteri.toLowerCase();
+    var key=cariKey(k.musteri);
     if(!yeni.musteri[key])yeni.musteri[key]={isim:k.musteri,bakiye:0};
     if(!yeni.hareketler.find(function(h){return h.aciklama==='İrsaliye #'+k.id;}))
       yeni.hareketler.push({id:k.id,tarih:k.tarih,musteri:k.musteri,key:key,tip:'borc',tutar:k.genel,aciklama:'İrsaliye #'+k.id});
@@ -719,7 +724,7 @@ function musteriEkle(){
   var bakiye=parseFloat(bakiyeRaw)||0;
   if(!ad){alert('Müşteri adı girin');return;}
   var d=cariVeriCek();
-  var key=ad.toLowerCase();
+  var key=cariKey(ad);
   if(d.musteri[key]){alert(ad+' zaten kayıtlı!');return;}
   d.musteri[key]={isim:ad,bakiye:bakiye};
   if(bakiye>0){
@@ -1087,7 +1092,12 @@ function raporPdf(){
 /* ====== CARİ TAKİP ====== */
 function cariVeriCek(){var v=localStorage.getItem('mn_cari2');return v?JSON.parse(v):{musteri:{},hareketler:[]};}
 function cariVeriYaz(d){localStorage.setItem('mn_cari2',JSON.stringify(d));}
-function cariKey(m){return(m||'').trim().toLowerCase();}
+function cariKey(m){
+  return(m||'').trim().toLowerCase()
+    .replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s')
+    .replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c')
+    .replace(/İ/g,'i').replace(/I/g,'i');
+}
 
 // Mevcut mn_cari verisini mn_cari2'ye taşı (ilk açılışta)
 function cariMigrasyon(){
@@ -1101,7 +1111,7 @@ function cariMigrasyon(){
   });
   // Açık hesap irsaliyelerini hareketlere ekle
   irsaliyeler.filter(function(k){return k.odeme==='AcikHesap'||k.odeme==='Veresiye';}).forEach(function(k){
-    var key=k.musteri.toLowerCase();
+    var key=cariKey(k.musteri);
     if(!yeni.musteri[key])yeni.musteri[key]={isim:k.musteri,bakiye:0};
     if(!yeni.hareketler.find(function(h){return h.aciklama==='İrsaliye #'+k.id;}))
       yeni.hareketler.push({id:k.id,tarih:k.tarih,musteri:k.musteri,key:key,tip:'borc',tutar:k.genel,aciklama:'İrsaliye #'+k.id});
@@ -1241,7 +1251,7 @@ function musteriEkle(){
   var bakiye=parseFloat(bakiyeRaw)||0;
   if(!ad){alert('Müşteri adı girin');return;}
   var d=cariVeriCek();
-  var key=ad.toLowerCase();
+  var key=cariKey(ad);
   if(d.musteri[key]){alert(ad+' zaten kayıtlı!');return;}
   d.musteri[key]={isim:ad,bakiye:bakiye};
   if(bakiye>0){
