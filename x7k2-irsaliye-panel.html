@@ -240,6 +240,9 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
     </div>
   </div>
   <div class="foot-note">MISS NEŞEM · MERTER · İSTANBUL</div>
+  <div style="text-align:center;color:#999;font-size:11px;margin-top:6px;line-height:1.8;">
+    🌐 missnesem.com &nbsp;|&nbsp; ✈ Telegram: @missnesemwholesale &nbsp;|&nbsp; 📷 Instagram: @missnesemtoptan &nbsp;|&nbsp; ✉ info@missnesem.com
+  </div>
 </div>
 <div class="btns">
   <button class="btn-sec" onclick="temizle()">Temizle</button>
@@ -785,6 +788,7 @@ function musteriEkle(){
   var bakiyeRaw=document.getElementById('yeniMusteriBakiye').value.replace(/\./g,'').replace(',','.');
   var bakiye=parseFloat(bakiyeRaw)||0;
   if(!ad){alert('Müşteri adı girin');return;}
+  cariMigrasyon();
   var d=cariVeriCek();
   var key=cariKey(ad);
   if(d.musteri[key]){alert(ad+' zaten kayıtlı!');return;}
@@ -1368,6 +1372,7 @@ function musteriEkle(){
   var bakiyeRaw=document.getElementById('yeniMusteriBakiye').value.replace(/\./g,'').replace(',','.');
   var bakiye=parseFloat(bakiyeRaw)||0;
   if(!ad){alert('Müşteri adı girin');return;}
+  cariMigrasyon();
   var d=cariVeriCek();
   var key=cariKey(ad);
   if(d.musteri[key]){alert(ad+' zaten kayıtlı!');return;}
