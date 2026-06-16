@@ -116,6 +116,18 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .tag.gay{background:#d4b896;color:#2c2419}
 .date-pick{display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap}
 .date-pick input{padding:7px 10px;font-size:13px;border:1px solid #c8a87a;border-radius:6px;background:#fff;color:#2c2419}
+
+@media print{
+  @page{size:A4 portrait;margin:10mm}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#e8ddc9!important}
+  #loginOverlay,.tabs,.date-pick,.btns,.si,.rapor-tbl td button{display:none!important}
+  .rapor-tbl th:last-child,.rapor-tbl td:last-child{display:none!important}
+  .rapor-tbl td,.rapor-tbl th{padding:4px 7px;font-size:11px}
+  .rapor-cell{padding:9px}
+  .rapor-cell .val{font-size:14px}
+  .rapor-grid{gap:7px;margin:.4rem 0}
+  .rapor-card{padding:1rem;page-break-inside:avoid;break-inside:avoid}
+}
 </style>
 </head>
 <body>
@@ -876,9 +888,22 @@ function pngIndir(){
   });
 }
 function raporPdf(){
-  var el=document.querySelector('.rapor-card');
-  var opt={margin:[8,8,8,8],filename:'MissNesem_Rapor_'+new Date().toISOString().split('T')[0]+'.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#f0e4d3'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
-  html2pdf().set(opt).from(el).save();
+  var card=document.querySelector('.rapor-card');
+  // UI elemanlarını gizle (tarih seçici, butonlar, sil/göster butonları)
+  var hide=card.querySelectorAll('.date-pick,.btns,.si,td button');
+  hide.forEach(function(el){el.style.display='none';});
+  // İçerik yüksekliğini ölç → PDF sayfasını tam oturta
+  var hMM=Math.ceil(card.scrollHeight*0.2646)+16;
+  var opt={
+    margin:[8,8,8,8],
+    filename:'MissNesem_Rapor_'+new Date().toISOString().split('T')[0]+'.pdf',
+    image:{type:'jpeg',quality:0.95},
+    html2canvas:{scale:2,backgroundColor:'#f0e4d3'},
+    jsPDF:{unit:'mm',format:[210,hMM],orientation:'portrait'}
+  };
+  html2pdf().set(opt).from(card).save().then(function(){
+    hide.forEach(function(el){el.style.display='';});
+  });
 }
 
 /* ====== CARİ TAKİP ====== */
@@ -933,6 +958,19 @@ function cariBorc(musteri,tutar,irsaliyeId,tarih,para){
 }
 
 ekle();ekle();ekle();
+
+// Ctrl+P → rapor tek sayfaya sığsın
+window.addEventListener('beforeprint',function(){
+  var card=document.querySelector('.rapor-card');
+  if(!card||card.offsetParent===null)return;
+  var elH=card.scrollHeight;
+  var pageH=1040; // A4 96dpi ~1122px, 10mm margin×2≈76px → ~1046px
+  if(elH>pageH)card.style.zoom=Math.max(0.45,pageH/elH).toFixed(3);
+});
+window.addEventListener('afterprint',function(){
+  var card=document.querySelector('.rapor-card');
+  if(card)card.style.zoom='';
+});
 </script>
 </body>
 </html>
