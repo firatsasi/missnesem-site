@@ -708,6 +708,7 @@ function tahsilatKaydet(){
   m.bakiye=Math.max(0,m.bakiye-tutar);
   cariVeriYaz(d);
   document.getElementById('cariTahsilatTutar').value='';
+  syncSunucu({tip:'tahsilat',musteri:m.isim,key:key,tutar:tutar,tarih:tarih});
   cariGuncelle();
   alert('✅ Tahsilat kaydedildi!\n\n'+m.isim+'\n'+fmtTL(tutar)+' tahsil edildi.\nYeni bakiye: '+fmtTL(m.bakiye));
 }
@@ -833,6 +834,9 @@ ekle();ekle();ekle();
 /* ====== KAYIT (localStorage) ====== */
 function veriCek(){var v=localStorage.getItem('mn_irsaliye');return v?JSON.parse(v):[];}
 function veriYaz(a){localStorage.setItem('mn_irsaliye',JSON.stringify(a));}
+function syncSunucu(payload){
+  try{fetch('http://185.22.187.105/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){}
+}
 function kaydet(sessiz){
   var musteri=document.getElementById('musteri').value.trim();
   if(!musteri){if(!sessiz)alert('Müşteri adı boş olamaz');return false;}
@@ -893,6 +897,7 @@ function kaydet(sessiz){
     cariBorc(musteri,genel,kayit.id,tarih,kayit.para);
   }
   if(!sessiz)alert('✅ Kaydedildi!\n\n'+musteri+' · '+fmtTL(genel)+'\n'+kayit.odeme+' · '+kayit.tur+bakiyeMsg);
+  syncSunucu(Object.assign({tip:'irsaliye_kaydet'},kayit));
   raporGuncelle();
   return true;
 }
@@ -1085,8 +1090,24 @@ function raporListeYap(liste){
 }
 function kayitSil(id){
   if(!confirm('Bu kaydı silmek istediğine emin misin?'))return;
-  var v=veriCek().filter(function(k){return k.id!==id;});
-  veriYaz(v);
+  var liste=veriCek();
+  var kayit=liste.find(function(k){return k.id===id;});
+  veriYaz(liste.filter(function(k){return k.id!==id;}));
+  // Açık hesap ise cari hareketi de sil ve bakiyeyi güncelle
+  if(kayit&&kayit.odeme==='AcikHesap'&&(kayit.para==='TL'||!kayit.para)){
+    cariMigrasyon();
+    var d=cariVeriCek();
+    var key=cariKey(kayit.musteri);
+    d.hareketler=d.hareketler.filter(function(h){return h.aciklama!=='İrsaliye #'+id;});
+    var bakiye=0;
+    d.hareketler.filter(function(h){return h.key===key;}).forEach(function(h){
+      if(h.tip==='borc')bakiye+=h.tutar;else bakiye-=h.tutar;
+    });
+    if(d.musteri[key])d.musteri[key].bakiye=Math.max(0,bakiye);
+    cariVeriYaz(d);
+    cariGuncelle();
+  }
+  syncSunucu({tip:'irsaliye_sil',id:id});
   raporGuncelle();
 }
 function dataIndir(){
@@ -1292,6 +1313,7 @@ function tahsilatKaydet(){
   m.bakiye=Math.max(0,m.bakiye-tutar);
   cariVeriYaz(d);
   document.getElementById('cariTahsilatTutar').value='';
+  syncSunucu({tip:'tahsilat',musteri:m.isim,key:key,tutar:tutar,tarih:tarih});
   cariGuncelle();
   alert('✅ Tahsilat kaydedildi!\n\n'+m.isim+'\n'+fmtTL(tutar)+' tahsil edildi.\nYeni bakiye: '+fmtTL(m.bakiye));
 }
