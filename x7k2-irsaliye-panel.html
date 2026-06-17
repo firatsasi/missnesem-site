@@ -119,7 +119,8 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 
 @media print {
   body { margin: 0 !important; padding: 0 !important; }
-  .tab-container, .tab-btn, #irsaliyeForm, .action-buttons, .rapor-buttons, .no-print { display: none !important; }
+  .tab-container, .tab-btn, #irsaliyeForm, .action-buttons, .rapor-buttons, .no-print,
+  .foot-note, .btns, .date-pick, .tabs { display: none !important; }
   #raporContent {
     display: block !important;
     transform: scale(0.65);
@@ -128,6 +129,10 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
     margin: 0;
     padding: 0;
   }
+  .rapor-tbl { width: 100%; }
+  .rapor-tbl td, .rapor-tbl th { font-size: 9px; padding: 3px 5px; }
+  .rapor-tbl td:nth-child(2) { white-space: nowrap; font-size: 9px; }
+  .rapor-tbl tr { page-break-inside: avoid; }
   @page { margin: 5mm; }
 }
 </style>
