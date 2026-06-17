@@ -601,7 +601,7 @@ ekle();ekle();ekle();
 function veriCek(){var v=localStorage.getItem('mn_irsaliye');return v?JSON.parse(v):[];}
 function veriYaz(a){localStorage.setItem('mn_irsaliye',JSON.stringify(a));}
 function syncSunucu(payload){
-  try{fetch('http://185.22.187.105/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){}
+  try{fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){}
 }
 function kaydet(sessiz){
   var musteri=document.getElementById('musteri').value.trim();
