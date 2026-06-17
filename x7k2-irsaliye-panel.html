@@ -330,11 +330,14 @@ function login(){
     document.getElementById('err').textContent="Hatalı kullanıcı adı veya şifre";
   }
 }
-var _musteriTimer=null;
+var _musteriTimer=null;var _lastAutoMusteri='';
 function musteriAutocomplete(val){
   clearTimeout(_musteriTimer);
   var dd=document.getElementById('musteriDropdown');
   if(!val||val.length<2){dd.style.display='none';return;}
+  // Kullanıcı autocomplete seçiminden sonra input'ta değişiklik yapmadıysa tekrar arama
+  if(val===_lastAutoMusteri){return;}
+  _lastAutoMusteri=''; // kullanıcı yeni bir şey yazıyor
   _musteriTimer=setTimeout(function(){
     fetch('https://panel.missnesem.com/api/customers/search?q='+encodeURIComponent(val))
       .then(function(r){return r.json();})
@@ -373,6 +376,7 @@ function _musteriDropdownGoster(list){
 }
 function _musteriSec(isim,bakiye){
   document.getElementById('musteri').value=isim;
+  _lastAutoMusteri=isim; // blur'da localStorage bulamazsa eskiBakiye'yi ezmemesi için
   document.getElementById('musteriDropdown').style.display='none';
   if(bakiye>0){
     document.getElementById('eskiBakiye').value=bakiye.toLocaleString('tr-TR');
@@ -381,7 +385,7 @@ function _musteriSec(isim,bakiye){
     document.getElementById('eskiBakiye').value='';
     document.getElementById('bakiyeInfo').textContent='ℹ️ Bu müşteri için kayıtlı bakiye yok.';
   }
-  bakiyeHesapla();
+  hesapla(); // GENEL TOPLAM'ı da güncelle (bakiyeHesapla sadece üst kutuyu günceller)
 }
 
 function goster(){
@@ -440,11 +444,12 @@ function bakiyeGoster(){
 function musteriBakiyeYukle(){
   var m=document.getElementById('musteri').value;
   if(!m)return;
+  // Müşteri autocomplete ile seçildiyse API'den bakiye zaten yüklendi; localStorage araması eskiBakiye'yi ezmesin
+  if(m===_lastAutoMusteri){hesapla();return;}
   var cari=cariCek();
   var key=cariKey(m);
   var info=document.getElementById('bakiyeInfo');
   if(cari[key]!==undefined && cari[key]>0){
-    // Sayıyı tr-TR formatında göster (250000 -> 250.000)
     document.getElementById('eskiBakiye').value=cari[key].toLocaleString('tr-TR');
     info.textContent='💡 "'+m+'" için kayıtlı bakiye otomatik yüklendi.';
   }else{
@@ -991,19 +996,33 @@ function geriAl(s){
   s.delCols.forEach(function(c){c.style.display='';});
   inputlariGeriYukle(s.saved);
 }
+function _pdfUrunKontrol(){
+  var musteri=document.getElementById('musteri').value.trim();
+  if(!musteri){alert('Müşteri adı boş olamaz');return null;}
+  var hasUrun=false;
+  document.querySelectorAll('#tb tr').forEach(function(tr){
+    var qty=tr.querySelector('td:nth-child(1) input');
+    var ad=tr.querySelector('td:nth-child(2) input');
+    if(qty&&ad&&parseFloat(qty.value)>0&&ad.value.trim())hasUrun=true;
+  });
+  if(!hasUrun){alert('En az 1 ürün girin');return null;}
+  return musteri;
+}
 function pdfIndir(){
+  var musteri=_pdfUrunKontrol();
+  if(!musteri)return;
   kaydet(true);
   var s=hazirla();
-  var musteri=document.getElementById('musteri').value||'irsaliye';
   var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.pdf';
   var el=document.getElementById('irsaliye');
   var opt={margin:[8,8,8,8],filename:dosyaAdi,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#f0e4d3'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
   html2pdf().set(opt).from(el).save().then(function(){geriAl(s);});
 }
 function pngIndir(){
+  var musteri=_pdfUrunKontrol();
+  if(!musteri)return;
   kaydet(true);
   var s=hazirla();
-  var musteri=document.getElementById('musteri').value||'irsaliye';
   var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.png';
   var el=document.getElementById('irsaliye');
   html2canvas(el,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
