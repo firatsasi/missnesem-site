@@ -131,7 +131,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   }
   .rapor-tbl { width: 100%; }
   .rapor-tbl td, .rapor-tbl th { font-size: 9px; padding: 3px 5px; }
-  .rapor-tbl td:nth-child(2) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; font-size: 9px; }
+  .rapor-tbl td:nth-child(2) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; font-size: 9px; }
   .rapor-tbl tr { page-break-inside: avoid; break-inside: avoid; }
   @page { margin: 5mm; }
 }
@@ -767,7 +767,7 @@ function popPng(id){
 function raporListeYap(liste){
   var el=document.getElementById('raporListe');
   if(liste.length===0){el.innerHTML='<div class="bos">Bu tarihte irsaliye yok</div>';return;}
-  var html='<table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR</th><th>TARİH</th><th></th></tr></thead><tbody>';
+  var html='<table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th></th></tr></thead><tbody>';
   liste.sort(function(a,b){return b.id-a.id;});
   liste.forEach(function(k){
     var d=new Date(k.id);
@@ -777,12 +777,11 @@ function raporListeYap(liste){
     var tarihKisa=tp[2]+'.'+tp[1];
     html+='<tr>';
     html+='<td>'+sa+'</td>';
-    html+='<td style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px">'+k.musteri+'</td>';
+    html+='<td style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px">'+k.musteri+'</td>';
     html+='<td>'+k.parca+'</td>';
     html+='<td class="r">'+fmtPara(k.genel,k.para)+'</td>';
     html+='<td><select onchange="odemeGuncellele('+k.id+',this)" style="border:1px solid #c8a87a;border-radius:5px;padding:3px 6px;font-size:12px;background:#fff;color:#2c2419;cursor:pointer">'+odemeSecenekleri(k.tur,k.odeme)+'</select></td>';
-    html+='<td><span class="tag '+tagCls+'">'+k.tur.toUpperCase()+'</span></td>';
-    html+='<td style="white-space:nowrap;font-size:11px;color:#a64d3e;font-weight:700">'+tarihKisa+'</td>';
+    html+='<td><span class="tag '+tagCls+'">'+k.tur.toUpperCase()+'</span><br><span style="font-size:9px;color:#a64d3e;font-weight:700;letter-spacing:0.5px">'+tarihKisa+'</span></td>';
     html+='<td style="white-space:nowrap">';
     html+='<button title="İrsaliyeyi Görüntüle" onclick="irsaliyeGoster('+k.id+')" style="background:none;border:none;cursor:pointer;color:#2c2419;font-size:16px;padding:2px 4px">👁</button>';
     html+='<button class="si" onclick="kayitSil('+k.id+')">×</button>';
