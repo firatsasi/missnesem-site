@@ -830,7 +830,7 @@ function popPdf(id){
   var el=irsaliyeHtmlOlustur(k);
   document.body.appendChild(el);
   var dosyaAdi='MissNesem_'+k.musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.pdf';
-  var opt={margin:[8,8,8,8],filename:dosyaAdi,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#f0e4d3'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
+  var opt={margin:[8,8,8,8],filename:dosyaAdi,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#f0e4d3',windowWidth:800},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
   html2pdf().set(opt).from(el).save().then(function(){el.remove();});
 }
 function popPng(id){
@@ -839,7 +839,7 @@ function popPng(id){
   if(!k)return;
   var el=irsaliyeHtmlOlustur(k);
   document.body.appendChild(el);
-  html2canvas(el,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
+  html2canvas(el,{scale:2,backgroundColor:'#f0e4d3',windowWidth:800}).then(function(canvas){
     var link=document.createElement('a');
     link.download='MissNesem_'+k.musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.png';
     link.href=canvas.toDataURL('image/png');
