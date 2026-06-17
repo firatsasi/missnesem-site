@@ -56,6 +56,8 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .btn-pri{font-size:13px;padding:10px 20px;cursor:pointer;color:#f0e4d3;border:none;border-radius:6px;background:#a64d3e;font-weight:700}
 .btn-drk{font-size:13px;padding:10px 20px;cursor:pointer;color:#f0e4d3;border:none;border-radius:6px;background:#2c2419;font-weight:700}
 .btn-gld{font-size:13px;padding:10px 20px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:#d4b896;font-weight:700}
+.btn-wa{font-size:13px;padding:10px 20px;cursor:pointer;color:#fff;border:none;border-radius:6px;background:#25D366;font-weight:700;display:inline-flex;align-items:center;gap:7px}
+.btn-wa svg{width:16px;height:16px;fill:#fff}
 @media(max-width:480px){.fields{grid-template-columns:1fr}.bn{font-size:20px;letter-spacing:3px}}
 
 .kargo-toggle{display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;user-select:none}
@@ -266,6 +268,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   <button class="btn-gld" onclick="kaydet()">Kaydet</button>
   <button class="btn-drk" onclick="pngIndir()">PNG indir</button>
   <button class="btn-pri" onclick="pdfIndir()">PDF indir</button>
+  <button class="btn-wa" onclick="whatsappSiparis()"><svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.78 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.847 9.847 0 0 0 12.04 2zm5.85 14.05c-.25.69-1.45 1.32-2 1.4-.51.08-1.15.11-1.86-.12-.43-.13-.98-.31-1.69-.61-2.97-1.28-4.91-4.27-5.06-4.47-.15-.2-1.21-1.61-1.21-3.07 0-1.46.77-2.18 1.04-2.47.27-.29.59-.36.79-.36.2 0 .39 0 .56.01.18.01.42-.07.66.5.25.6.84 2.06.91 2.21.07.15.12.33.02.53-.1.2-.15.32-.3.49-.15.17-.31.38-.44.51-.15.15-.3.31-.13.6.17.29.77 1.27 1.65 2.06 1.14 1.02 2.1 1.34 2.4 1.49.3.15.47.13.65-.05.18-.18.74-.86.94-1.16.2-.3.4-.25.66-.15.27.1 1.71.81 2 .96.29.15.48.22.55.34.07.13.07.74-.18 1.43z"/></svg>WhatsApp Sipariş</button>
 </div>
 </div>
 
@@ -1049,6 +1052,41 @@ function pngIndir(){
     link.click();
     geriAl(s);
   });
+}
+/* ====== WHATSAPP SİPARİŞ ====== */
+function siparisNoAl(){
+  var bugun=new Date().toISOString().split('T')[0];
+  var v=localStorage.getItem('mn_siparis_no');
+  var d=v?JSON.parse(v):{tarih:'',no:0};
+  if(d.tarih!==bugun){d.tarih=bugun;d.no=0;}
+  d.no++;
+  localStorage.setItem('mn_siparis_no',JSON.stringify(d));
+  return d.no;
+}
+function whatsappSiparis(){
+  var musteri=document.getElementById('musteri').value.trim();
+  if(!musteri){alert('Müşteri adı boş olamaz');return;}
+  var urunler=[];
+  var parca=0;
+  document.querySelectorAll('#tb tr').forEach(function(tr){
+    var qty=tr.querySelector('td:nth-child(1) input').value;
+    var ad=tr.querySelector('td:nth-child(2) input').value;
+    var a=parseFloat(qty)||0;
+    if(a>0&&ad){urunler.push({adet:a,ad:ad});parca+=a;}
+  });
+  if(urunler.length===0){alert('En az 1 ürün girin');return;}
+  var tarihVal=document.getElementById('tarih').value;
+  var tarihStr=tarihVal?(function(){var p=tarihVal.split('-');return p[2]+'.'+p[1]+'.'+p[0];})():'';
+  var no=siparisNoAl();
+  var seri=Math.round(parca/5);
+  var msg='📋 SİPARİŞ #'+no+'\n';
+  msg+='👤 '+musteri+'\n';
+  msg+='📅 '+tarihStr+'\n\n';
+  urunler.forEach(function(u,i){
+    msg+=(i+1)+'. '+u.adet+' ad — '+u.ad+'\n';
+  });
+  msg+='\n📦 Toplam: '+parca+' parça ('+seri+' seri)';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 function raporPdf(){
   var card=document.querySelector('.rapor-card');
