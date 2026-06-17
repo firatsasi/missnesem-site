@@ -192,14 +192,13 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
     <div class="bd">İRSALİYE</div>
   </div>
   <div class="fields">
-    <div>
+    <div style="position:relative">
         <label class="flbl">MÜŞTERİ</label>
-        <input class="finp cell" type="text" id="musteri" placeholder="Müşteri adı veya MN-kodu" 
-          onblur="musteriBakiyeYukle()" 
+        <input class="finp cell" type="text" id="musteri" placeholder="Müşteri adı veya MN-kodu"
+          onblur="musteriBakiyeYukle()"
           oninput="musteriAutocomplete(this.value)"
-          autocomplete="off"
-          list="musteriListesi" />
-        <datalist id="musteriListesi"></datalist>
+          autocomplete="off" />
+        <div id="musteriDropdown" style="display:none;position:absolute;top:100%;left:0;width:100%;z-index:1000;background:#fff;border:1px solid #c8a87a;border-radius:0 0 6px 6px;box-shadow:0 4px 12px rgba(44,36,25,0.15);max-height:220px;overflow-y:auto"></div>
       </div>
     <div><label class="flbl">TARİH</label><input class="finp cell" type="date" id="tarih" /></div>
   </div>
@@ -331,22 +330,58 @@ function login(){
     document.getElementById('err').textContent="Hatalı kullanıcı adı veya şifre";
   }
 }
+var _musteriTimer=null;
 function musteriAutocomplete(val){
+  clearTimeout(_musteriTimer);
+  var dd=document.getElementById('musteriDropdown');
+  if(!val||val.length<2){dd.style.display='none';return;}
+  _musteriTimer=setTimeout(function(){
+    fetch('https://panel.missnesem.com/api/customers/search?q='+encodeURIComponent(val))
+      .then(function(r){return r.json();})
+      .then(function(list){_musteriDropdownGoster(list);})
+      .catch(function(){_musteriDropdownLocal(val);});
+  },250);
+}
+function _musteriDropdownLocal(val){
   cariMigrasyon();
   var d=cariVeriCek();
-  var dl=document.getElementById('musteriListesi');
-  if(!dl)return;
-  dl.innerHTML='';
-  if(!val||val.length<1)return;
   var v=val.toLowerCase();
-  Object.values(d.musteri).forEach(function(m){
-    if(m.isim.toLowerCase().indexOf(v)!==-1||(m.kod&&m.kod.toLowerCase().indexOf(v)!==-1)){
-      var opt=document.createElement('option');
-      opt.value=m.isim;
-      opt.label=(m.kod?m.kod+' · ':'')+m.isim+(m.bakiye>0?' ('+fmtTL(m.bakiye)+')':'');
-      dl.appendChild(opt);
-    }
+  var list=Object.values(d.musteri)
+    .filter(function(m){return m.isim.toLowerCase().indexOf(v)!==-1||(m.kod&&m.kod.toLowerCase().indexOf(v)!==-1);})
+    .slice(0,10)
+    .map(function(m){return{name:m.isim,cariKod:m.kod||'',bakiye:m.bakiye||0};});
+  _musteriDropdownGoster(list);
+}
+function _musteriDropdownGoster(list){
+  var dd=document.getElementById('musteriDropdown');
+  if(!list||!list.length){dd.style.display='none';return;}
+  dd.innerHTML='';
+  list.forEach(function(m){
+    var el=document.createElement('div');
+    el.style.cssText='padding:8px 12px;cursor:pointer;border-bottom:1px solid #f0e4d3;font-size:13px;line-height:1.4';
+    el.onmouseenter=function(){this.style.background='#fdf5e6';};
+    el.onmouseleave=function(){this.style.background='';};
+    var name=m.name;
+    var kod=m.cariKod||'';
+    var bak=parseFloat(m.bakiye)||0;
+    el.innerHTML='<div style="font-weight:600;color:#2c2419">'+name+'</div>'
+      +'<div style="font-size:11px;color:#a64d3e;margin-top:1px">'+kod+(bak>0?' &nbsp;·&nbsp; '+fmtTL(bak):'')+'</div>';
+    el.onmousedown=function(e){e.preventDefault();_musteriSec(name,bak);};
+    dd.appendChild(el);
   });
+  dd.style.display='block';
+}
+function _musteriSec(isim,bakiye){
+  document.getElementById('musteri').value=isim;
+  document.getElementById('musteriDropdown').style.display='none';
+  if(bakiye>0){
+    document.getElementById('eskiBakiye').value=bakiye.toLocaleString('tr-TR');
+    document.getElementById('bakiyeInfo').textContent='💡 "'+isim+'" için bakiye yüklendi.';
+  }else{
+    document.getElementById('eskiBakiye').value='';
+    document.getElementById('bakiyeInfo').textContent='ℹ️ Bu müşteri için kayıtlı bakiye yok.';
+  }
+  bakiyeHesapla();
 }
 
 function goster(){
@@ -1062,6 +1097,12 @@ window.addEventListener('beforeprint',function(){
 window.addEventListener('afterprint',function(){
   var card=document.querySelector('.rapor-card');
   if(card)card.style.zoom='';
+});
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#musteri')&&!e.target.closest('#musteriDropdown')){
+    var dd=document.getElementById('musteriDropdown');
+    if(dd)dd.style.display='none';
+  }
 });
 </script>
 </body>
