@@ -118,15 +118,19 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .date-pick input{padding:7px 10px;font-size:13px;border:1px solid #c8a87a;border-radius:6px;background:#fff;color:#2c2419}
 
 @media print{
-  @page{size:A4 portrait;margin:10mm}
-  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#e8ddc9!important}
+  @page{size:A4 portrait;margin:5mm}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#e8ddc9!important;margin:0!important;padding:0!important}
   #loginOverlay,.tabs,.date-pick,.btns,.si,.rapor-tbl td button{display:none!important}
   .rapor-tbl th:last-child,.rapor-tbl td:last-child{display:none!important}
-  .rapor-tbl td,.rapor-tbl th{padding:4px 7px;font-size:11px}
-  .rapor-cell{padding:9px}
-  .rapor-cell .val{font-size:14px}
-  .rapor-grid{gap:7px;margin:.4rem 0}
-  .rapor-card{padding:1rem;page-break-inside:avoid;break-inside:avoid}
+  .rapor-tbl td,.rapor-tbl th{padding:3px 5px;font-size:10px}
+  .rapor-cell{padding:6px}
+  .rapor-cell .lbl{font-size:8px}
+  .rapor-cell .val{font-size:11px}
+  .rapor-grid{gap:5px;margin:.2rem 0}
+  .rapor-card{padding:.5rem;margin:0;page-break-inside:avoid;break-inside:avoid}
+  .wrap{padding:0;margin:0}
+  .brand{margin-bottom:.4rem}
+  .bn{font-size:16px}
 }
 </style>
 </head>
@@ -770,7 +774,7 @@ function raporListeYap(liste){
     html+='<td>'+sa+'</td>';
     html+='<td>'+k.musteri+'</td>';
     html+='<td>'+k.parca+'</td>';
-    html+='<td class="r">'+fmtTL(k.genel)+'</td>';
+    html+='<td class="r">'+fmtPara(k.genel,k.para)+'</td>';
     html+='<td><select onchange="odemeGuncellele('+k.id+',this)" style="border:1px solid #c8a87a;border-radius:5px;padding:3px 6px;font-size:12px;background:#fff;color:#2c2419;cursor:pointer">'+odemeSecenekleri(k.tur,k.odeme)+'</select></td>';
     html+='<td><span class="tag '+tagCls+'">'+k.tur.toUpperCase()+'</span></td>';
     html+='<td style="white-space:nowrap">';
