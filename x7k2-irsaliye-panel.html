@@ -118,22 +118,34 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .date-pick input{padding:7px 10px;font-size:13px;border:1px solid #c8a87a;border-radius:6px;background:#fff;color:#2c2419}
 
 @media print {
+  @page { margin: 5mm; }
   body { margin: 0 !important; padding: 0 !important; }
-  .tab-container, .tab-btn, #irsaliyeForm, .action-buttons, .rapor-buttons, .no-print,
-  .foot-note, .btns, .date-pick, .tabs, #tabIrs { display: none !important; }
-  #raporContent {
-    display: block !important;
+  .tabs, .date-pick, .foot-note { display: none !important; }
+
+  /* ── İRSALİYE PRINT ── */
+  body[data-print-mode="irs"] .btns,
+  body[data-print-mode="irs"] #addBtn,
+  body[data-print-mode="irs"] #optsRow,
+  body[data-print-mode="irs"] .kargo-toggle,
+  body[data-print-mode="irs"] .td-del,
+  body[data-print-mode="irs"] .del-col { display: none !important; }
+
+  /* ── RAPOR PRINT ── */
+  body[data-print-mode="rap"] .btns { display: none !important; }
+  body[data-print-mode="rap"] .rapor-card {
     transform: scale(0.65);
     transform-origin: top left;
     width: 153%;
     margin: 0;
     padding: 0;
   }
-  .rapor-tbl { width: 100%; }
-  .rapor-tbl td, .rapor-tbl th { font-size: 9px; padding: 3px 5px; }
-  .rapor-tbl td:nth-child(2) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; font-size: 9px; }
-  .rapor-tbl tr { page-break-inside: avoid; break-inside: avoid; }
-  @page { margin: 5mm; }
+  body[data-print-mode="rap"] .rapor-tbl { width: 100%; }
+  body[data-print-mode="rap"] .rapor-tbl td,
+  body[data-print-mode="rap"] .rapor-tbl th { font-size: 9px; padding: 3px 5px; }
+  body[data-print-mode="rap"] .rapor-tbl td:nth-child(2) {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; font-size: 9px;
+  }
+  body[data-print-mode="rap"] .rapor-tbl tr { page-break-inside: avoid; break-inside: avoid; }
 }
 </style>
 </head>
@@ -329,6 +341,7 @@ function musteriAutocomplete(val){
 function goster(){
   document.getElementById('loginOverlay').style.display='none';
   document.getElementById('app').style.display='block';
+  document.body.dataset.printMode='irs';
   var bugun=new Date().toISOString().split('T')[0];
   document.getElementById('tarih').value=bugun;
   document.getElementById('raporBaslangic').value=bugun;
@@ -424,6 +437,7 @@ function tabGoster(t){
   document.getElementById('tabRap').style.display=t==='rap'?'block':'none';
   document.getElementById('tab1').classList.toggle('active',t==='irs');
   document.getElementById('tab2').classList.toggle('active',t==='rap');
+  document.body.dataset.printMode=t;
   if(t==='rap')raporGuncelle();
 }
 
