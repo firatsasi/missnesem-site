@@ -118,16 +118,17 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .date-pick input{padding:7px 10px;font-size:13px;border:1px solid #c8a87a;border-radius:6px;background:#fff;color:#2c2419}
 
 @media print {
-  @page { margin: 5mm; }
+  @page { size: A4 portrait; margin: 10mm; }
   body {
-    margin: 0 !important;
-    padding: 0 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    background: #e8ddc9 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
-  .tabs, .date-pick, .foot-note { display: none !important; }
+  #loginOverlay, .tabs, .date-pick { display: none !important; }
 
-  /* ── İRSALİYE PRINT ── */
+  /* ── İRSALİYE PRINT ── doğal CSS'iyle basılır, override gerekmez ── */
   body[data-print-mode="irs"] .btns,
   body[data-print-mode="irs"] #addBtn,
   body[data-print-mode="irs"] #optsRow,
@@ -135,20 +136,13 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   body[data-print-mode="irs"] .td-del,
   body[data-print-mode="irs"] .del-col { display: none !important; }
   body[data-print-mode="irs"] #irsaliye { margin: 0 auto; width: 90%; }
-  body[data-print-mode="irs"] #irsaliye .card { background: #f0e4d3 !important; border: 1px solid #b8985e !important; }
-  body[data-print-mode="irs"] #irsaliye .cell { background: #fff !important; border: 1px solid #c8a87a !important; border-radius: 6px; }
-  body[data-print-mode="irs"] #irsaliye .fiyat-wrap { background: #fff !important; border: 1px solid #c8a87a !important; }
-  body[data-print-mode="irs"] #irsaliye thead { background: #2c2419 !important; }
-  body[data-print-mode="irs"] #irsaliye th { color: #f0e4d3 !important; }
-  body[data-print-mode="irs"] #irsaliye tbody tr:nth-child(odd) { background: #fff !important; }
-  body[data-print-mode="irs"] #irsaliye tbody tr:nth-child(even) { background: #faf6f0 !important; }
-  body[data-print-mode="irs"] #irsaliye tbody td { border-bottom: 1px solid #e0cdb5 !important; }
-  body[data-print-mode="irs"] #irsaliye .total-box { background: #2c2419 !important; }
-  body[data-print-mode="irs"] #irsaliye .total-val { color: #f0e4d3 !important; }
-  body[data-print-mode="irs"] #irsaliye .total-lbl { color: #b8985e !important; }
 
   /* ── RAPOR PRINT ── */
-  body[data-print-mode="rap"] .btns { display: none !important; }
+  body[data-print-mode="rap"] .btns,
+  body[data-print-mode="rap"] .si,
+  body[data-print-mode="rap"] .rapor-tbl td button { display: none !important; }
+  body[data-print-mode="rap"] .rapor-tbl th:last-child,
+  body[data-print-mode="rap"] .rapor-tbl td:last-child { display: none !important; }
   body[data-print-mode="rap"] .rapor-card {
     transform: scale(0.65);
     transform-origin: top left;
