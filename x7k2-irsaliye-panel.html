@@ -603,6 +603,19 @@ function veriYaz(a){localStorage.setItem('mn_irsaliye',JSON.stringify(a));}
 function syncSunucu(payload){
   try{fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){}
 }
+// GEÇİCİ: localStorage'daki tüm irsaliyeleri panele tek tek gönderir. Konsoldan çağır: tumunuSyncEt()
+async function tumunuSyncEt(){
+  var v=veriCek();
+  var basarili=0,hatali=0;
+  for(var i=0;i<v.length;i++){
+    var kayit=v[i];
+    try{
+      var r=await fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({tip:'irsaliye_kaydet'},kayit))});
+      if(r.ok){basarili++;}else{hatali++;console.error('Hatalı:',kayit.id,kayit.musteri,r.status);}
+    }catch(e){hatali++;console.error('Hatalı:',kayit.id,kayit.musteri,e);}
+  }
+  console.log('tumunuSyncEt tamamlandı → Başarılı: '+basarili+' / Hatalı: '+hatali+' / Toplam: '+v.length);
+}
 function kaydet(sessiz){
   var musteri=document.getElementById('musteri').value.trim();
   if(!musteri){if(!sessiz)alert('Müşteri adı boş olamaz');return false;}
