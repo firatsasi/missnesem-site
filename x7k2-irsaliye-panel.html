@@ -1063,6 +1063,44 @@ function siparisNoAl(){
   localStorage.setItem('mn_siparis_no',JSON.stringify(d));
   return d.no;
 }
+function siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,seri){
+  var satirlar='';
+  urunler.forEach(function(u){
+    satirlar+='<tr>';
+    satirlar+='<td style="padding:6px;border-bottom:1px solid #e0cdb5;background:#fff;vertical-align:middle"><span style="display:block;font-size:15px;padding:9px;text-align:center;background:#fff;border:1px solid #c8a87a;border-radius:6px;color:#2c2419;min-height:38px">'+u.adet+'</span></td>';
+    satirlar+='<td style="padding:6px;border-bottom:1px solid #e0cdb5;background:#fff;vertical-align:middle"><span style="display:block;font-size:15px;padding:9px 10px;background:#fff;border:1px solid #c8a87a;border-radius:6px;color:#2c2419;min-height:38px">'+u.ad+'</span></td>';
+    satirlar+='</tr>';
+  });
+  var el=document.createElement('div');
+  el.style.cssText='background:#f0e4d3;border-radius:10px;border:1px solid #b8985e;padding:2rem;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#2c2419;box-sizing:border-box;width:760px';
+  el.innerHTML=
+    '<div style="text-align:center;margin-bottom:1.5rem">'+
+      '<div style="font-size:24px;font-weight:700;letter-spacing:6px;color:#2c2419">MISS NEŞEM</div>'+
+      '<div style="font-size:10px;letter-spacing:3px;color:#a64d3e;margin-top:4px">MERTER · İSTANBUL</div>'+
+      '<div style="width:70px;height:1px;background:#b8985e;margin:10px auto"></div>'+
+      '<div style="font-size:13px;font-weight:700;letter-spacing:5px;color:#2c2419">SİPARİŞ #'+no+'</div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem">'+
+      '<div><span style="font-size:10px;letter-spacing:1.5px;color:#a64d3e;font-weight:700;display:block;margin-bottom:4px">MÜŞTERİ</span><span style="display:block;font-size:15px;padding:9px 10px;background:#fff;border:1px solid #c8a87a;border-radius:6px;color:#2c2419;min-height:38px">'+musteri+'</span></div>'+
+      '<div><span style="font-size:10px;letter-spacing:1.5px;color:#a64d3e;font-weight:700;display:block;margin-bottom:4px">TARİH</span><span style="display:block;font-size:15px;padding:9px 10px;background:#fff;border:1px solid #c8a87a;border-radius:6px;color:#2c2419;min-height:38px">'+tarihStr+'</span></div>'+
+    '</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed">'+
+      '<colgroup><col style="width:95px"><col></colgroup>'+
+      '<thead><tr style="background:#2c2419">'+
+        '<th style="padding:9px 10px;font-size:10px;font-weight:700;letter-spacing:1px;color:#f0e4d3;text-align:left">ADET</th>'+
+        '<th style="padding:9px 10px;font-size:10px;font-weight:700;letter-spacing:1px;color:#f0e4d3;text-align:left">ÜRÜN / KOD / RENK</th>'+
+      '</tr></thead>'+
+      '<tbody>'+satirlar+'</tbody>'+
+    '</table>'+
+    '<div style="margin-top:1.5rem;display:flex;flex-direction:column;align-items:flex-end;gap:5px">'+
+      '<div style="background:#2c2419;border-radius:8px;padding:13px 22px;display:flex;align-items:center;gap:20px;margin-top:6px">'+
+        '<span style="font-size:10px;letter-spacing:2px;color:#b8985e">TOPLAM</span>'+
+        '<span style="font-size:20px;font-weight:700;color:#f0e4d3">📦 '+parca+' parça ('+seri+' seri)</span>'+
+      '</div>'+
+    '</div>'+
+    '<div style="margin-top:1.5rem;text-align:center;font-size:10px;color:#a64d3e;letter-spacing:1px">MISS NEŞEM · MERTER · İSTANBUL</div>';
+  return el;
+}
 function whatsappSiparis(){
   var musteri=document.getElementById('musteri').value.trim();
   if(!musteri){alert('Müşteri adı boş olamaz');return;}
@@ -1079,14 +1117,18 @@ function whatsappSiparis(){
   var tarihStr=tarihVal?(function(){var p=tarihVal.split('-');return p[2]+'.'+p[1]+'.'+p[0];})():'';
   var no=siparisNoAl();
   var seri=Math.round(parca/5);
-  var msg='📋 SİPARİŞ #'+no+'\n';
-  msg+='👤 '+musteri+'\n';
-  msg+='📅 '+tarihStr+'\n\n';
-  urunler.forEach(function(u,i){
-    msg+=(i+1)+'. '+u.adet+' ad — '+u.ad+'\n';
+  var el=siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,seri);
+  document.body.appendChild(el);
+  var dosyaAdi='Siparis_#'+no+'_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.png';
+  html2canvas(el,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
+    var link=document.createElement('a');
+    link.download=dosyaAdi;
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    el.remove();
+    var msg='📋 SİPARİŞ #'+no+' — '+musteri+' — '+parca+' parça ('+seri+' seri)';
+    window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
   });
-  msg+='\n📦 Toplam: '+parca+' parça ('+seri+' seri)';
-  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 function raporPdf(){
   var card=document.querySelector('.rapor-card');
