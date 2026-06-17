@@ -958,26 +958,15 @@ function geriAl(s){
 }
 function pdfIndir(){
   kaydet(true);
-  var s=hazirla();
-  var musteri=document.getElementById('musteri').value||'irsaliye';
-  var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.pdf';
-  var el=document.getElementById('irsaliye');
-  var opt={margin:[5,5,5,5],filename:dosyaAdi,image:{type:'jpeg',quality:0.98},html2canvas:{scale:3,backgroundColor:'#f0e4d3',windowWidth:el.scrollWidth},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
-  html2pdf().set(opt).from(el).save().then(function(){geriAl(s);});
+  var v=veriCek();
+  if(v.length===0)return;
+  popPdf(v[v.length-1].id);
 }
 function pngIndir(){
   kaydet(true);
-  var s=hazirla();
-  var musteri=document.getElementById('musteri').value||'irsaliye';
-  var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.png';
-  var el=document.getElementById('irsaliye');
-  html2canvas(el,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
-    var link=document.createElement('a');
-    link.download=dosyaAdi;
-    link.href=canvas.toDataURL('image/png');
-    link.click();
-    geriAl(s);
-  });
+  var v=veriCek();
+  if(v.length===0)return;
+  popPng(v[v.length-1].id);
 }
 function raporPdf(){
   var card=document.querySelector('.rapor-card');
