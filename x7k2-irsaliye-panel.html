@@ -1100,7 +1100,7 @@ function seriMetni(parca){
   if(kalan===0)return parca+' parça ('+seri+' seri)';
   return parca+' parça ('+seri+' seri + '+kalan+' adet)';
 }
-function siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca){
+function siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,kargoFirma,kargoKod){
   var satirlar='';
   urunler.forEach(function(u){
     satirlar+='<tr>';
@@ -1135,6 +1135,7 @@ function siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca){
         '<span style="font-size:20px;font-weight:700;color:#f0e4d3">📦 '+seriMetni(parca)+'</span>'+
       '</div>'+
     '</div>'+
+    (kargoFirma&&kargoKod?'<div style="margin-top:1.2rem;text-align:center;font-size:13px;font-weight:700;color:#2c2419">📦 KARGO: '+kargoFirma+' — CODE = '+kargoKod+'</div>':'')+
     '<div style="margin-top:1.5rem;text-align:center;font-size:10px;color:#a64d3e;letter-spacing:1px">MISS NEŞEM · MERTER · İSTANBUL</div>';
   return el;
 }
@@ -1153,7 +1154,9 @@ function whatsappSiparis(){
   var tarihVal=document.getElementById('tarih').value;
   var tarihStr=tarihVal?(function(){var p=tarihVal.split('-');return p[2]+'.'+p[1]+'.'+p[0];})():'';
   var no=siparisNoAl();
-  var el=siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca);
+  var kargoFirma=document.getElementById('kargoChk').checked?document.getElementById('kargoFirma').value.trim():'';
+  var kargoKod=document.getElementById('kargoChk').checked?document.getElementById('kargoKod').value.trim():'';
+  var el=siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,kargoFirma,kargoKod);
   document.body.appendChild(el);
   var dosyaAdi='Siparis_'+no+'_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.png';
   html2canvas(el,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
