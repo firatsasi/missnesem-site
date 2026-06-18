@@ -213,7 +213,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   </div>
   <button class="add-btn" id="addBtn" onclick="ekle()">+ Satır ekle</button>
   <div class="opts" id="optsRow">
-    <div class="opt-grp"><span class="opt-lbl">PARA</span><select class="opt-sel" id="para" onchange="hesapla()"><option value="TL">₺ TL</option><option value="USD">$ USD</option><option value="EUR">€ EUR</option></select></div>
+    <div class="opt-grp"><span class="opt-lbl">PARA</span><select class="opt-sel" id="para" onchange="paraDegisti()"><option value="TL">₺ TL</option><option value="USD">$ USD</option><option value="EUR">€ EUR</option></select></div>
     <div class="opt-grp"><span class="opt-lbl">KDV</span><select class="opt-sel" id="kdvOran" onchange="hesapla()"><option value="0">Yok</option><option value="1">%1</option><option value="5">%5</option><option value="10">%10</option><option value="20">%20</option></select></div>
     <div class="opt-grp"><span class="opt-lbl">ÖDEME</span><select class="opt-sel" id="odeme" onchange="bakiyeGoster()"></select></div>
     <div class="opt-grp"><span class="opt-lbl">TÜR</span><select class="opt-sel" id="tur" onchange="odemeGuncelle()"><option value="Resmi">Resmi</option><option value="Gayri Resmi">Gayri Resmi</option></select></div>
@@ -355,7 +355,7 @@ function _musteriDropdownLocal(val){
   var list=Object.values(d.musteri)
     .filter(function(m){return m.isim.toLowerCase().indexOf(v)!==-1||(m.kod&&m.kod.toLowerCase().indexOf(v)!==-1);})
     .slice(0,10)
-    .map(function(m){return{name:m.isim,cariKod:m.kod||'',bakiye:m.bakiye||0};});
+    .map(function(m){return{name:m.isim,cariKod:m.kod||'',bakiye:m.bakiye||0,bakiyeler:m.bakiyeler||{}};});
   _musteriDropdownGoster(list);
 }
 function _musteriDropdownGoster(list){
@@ -377,19 +377,31 @@ function _musteriDropdownGoster(list){
   });
   dd.style.display='block';
 }
+var _lastMusteriBakiyeler=null;
 function _musteriSec(isim,bakiye,musteriData){
   document.getElementById('musteri').value=isim;
   _lastAutoMusteri=isim; // blur'da localStorage bulamazsa eskiBakiye'yi ezmemesi için
+  _lastMusteriBakiyeler=(musteriData&&musteriData.bakiyeler)||null;
   document.getElementById('musteriDropdown').style.display='none';
-  if(bakiye>0){
-    document.getElementById('eskiBakiye').value=bakiye.toLocaleString('tr-TR');
-    document.getElementById('bakiyeInfo').textContent='💡 "'+isim+'" için bakiye yüklendi.';
-  }else{
-    document.getElementById('eskiBakiye').value='';
-    document.getElementById('bakiyeInfo').textContent='ℹ️ Bu müşteri için kayıtlı bakiye yok.';
-  }
+  _musteriBakiyeKutusunaYaz(isim);
   _musteriDefaultlariUygula(musteriData);
   hesapla(); // GENEL TOPLAM'ı da güncelle (bakiyeHesapla sadece üst kutuyu günceller)
+}
+function _musteriBakiyeKutusunaYaz(isim){
+  var para=document.getElementById('para').value;
+  var bak=(_lastMusteriBakiyeler&&_lastMusteriBakiyeler[para])||0;
+  if(bak>0){
+    document.getElementById('eskiBakiye').value=bak.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('bakiyeInfo').textContent='💡 "'+isim+'" için '+para+' bakiye yüklendi.';
+  }else{
+    document.getElementById('eskiBakiye').value='';
+    document.getElementById('bakiyeInfo').textContent='ℹ️ Bu müşteri için '+para+' bakiye yok.';
+  }
+}
+function paraDegisti(){
+  var m=document.getElementById('musteri').value;
+  if(m&&m===_lastAutoMusteri&&_lastMusteriBakiyeler){_musteriBakiyeKutusunaYaz(m);}
+  hesapla();
 }
 function _musteriDefaultlariUygula(m){
   if(!m)return;
@@ -481,14 +493,17 @@ function musteriBakiyeYukle(){
   // Müşteri autocomplete ile seçildiyse API'den bakiye zaten yüklendi; localStorage araması eskiBakiye'yi ezmesin
   if(m===_lastAutoMusteri){hesapla();return;}
   var cari=cariCek();
-  var key=cariKey(m);
+  var para=document.getElementById('para').value;
+  var key=cariKey(m)+'|'+para;
+  var legacyKey=cariKey(m); // eski TL-only kayıtlar (para son eki olmadan)
   var info=document.getElementById('bakiyeInfo');
-  if(cari[key]!==undefined && cari[key]>0){
-    document.getElementById('eskiBakiye').value=cari[key].toLocaleString('tr-TR');
-    info.textContent='💡 "'+m+'" için kayıtlı bakiye otomatik yüklendi.';
+  var bak=cari[key]!==undefined?cari[key]:(para==='TL'?cari[legacyKey]:undefined);
+  if(bak!==undefined && bak>0){
+    document.getElementById('eskiBakiye').value=bak.toLocaleString('tr-TR');
+    info.textContent='💡 "'+m+'" için kayıtlı '+para+' bakiye otomatik yüklendi.';
   }else{
     document.getElementById('eskiBakiye').value='';
-    info.textContent='ℹ️ Bu müşteri için kayıtlı bakiye yok. Yeni bakiye girin veya boş bırakın.';
+    info.textContent='ℹ️ Bu müşteri için kayıtlı '+para+' bakiye yok. Yeni bakiye girin veya boş bırakın.';
   }
   bakiyeHesapla();
 }
@@ -697,19 +712,19 @@ function kaydet(sessiz){
     var eskiBak=parseFloat((document.getElementById('eskiBakiye').value||'').replace(/\./g,'').replace(',','.'))||0;
     var yeniBakiye=eskiBak+genel;
     var cari=cariCek();
-    cari[cariKey(musteri)]=yeniBakiye;
+    cari[cariKey(musteri)+'|'+kayit.para]=yeniBakiye;
     cariYaz(cari);
     kayit.eskiBakiye=eskiBak;
     kayit.yeniBakiye=yeniBakiye;
     v[v.length-1]=kayit;
     veriYaz(v);
-    bakiyeMsg='\n\n💼 Yeni açık bakiye: '+fmtTL(yeniBakiye);
+    bakiyeMsg='\n\n💼 Yeni açık bakiye: '+fmtPara(yeniBakiye,kayit.para);
   }
   // Cari takibe borç ekle (Açık Hesap ise)
   if(kayit.odeme==='AcikHesap'){
     cariBorc(musteri,genel,kayit.id,tarih,kayit.para);
   }
-  if(!sessiz)alert('✅ Kaydedildi!\n\n'+musteri+' · '+fmtTL(genel)+'\n'+kayit.odeme+' · '+kayit.tur+bakiyeMsg);
+  if(!sessiz)alert('✅ Kaydedildi!\n\n'+musteri+' · '+fmtPara(genel,kayit.para)+'\n'+kayit.odeme+' · '+kayit.tur+bakiyeMsg);
   syncSunucu(Object.assign({tip:'irsaliye_kaydet'},kayit));
   raporGuncelle();
   return true;
@@ -741,26 +756,35 @@ function raporGuncelle(){
     else if(bit){filtreli=v.filter(function(k){return k.tarih<=bit;});}
   }
   document.getElementById('rIrs').textContent=filtreli.length;
-  var parca=0,resmi=0,gayri=0,nakit=0,havale=0,kredi=0,mail=0,acik=0;
+  var parca=0,resmi=_paraBos(),gayri=_paraBos(),nakit=_paraBos(),havale=_paraBos(),kredi=_paraBos(),mail=_paraBos(),acik=_paraBos();
   filtreli.forEach(function(k){
     parca+=k.parca;
-    if(k.tur==='Resmi')resmi+=k.genel;else gayri+=k.genel;
-    if(k.odeme==='Nakit')nakit+=k.genel;
-    else if(k.odeme==='Havale')havale+=k.genel;
-    else if(k.odeme==='KrediKarti'||k.odeme==='POS')kredi+=k.genel;
-    else if(k.odeme==='MailOrder')mail+=k.genel;
-    else if(k.odeme==='AcikHesap'||k.odeme==='Veresiye')acik+=k.genel;
+    var para=k.para||'TL';
+    if(k.tur==='Resmi')resmi[para]+=k.genel;else gayri[para]+=k.genel;
+    if(k.odeme==='Nakit')nakit[para]+=k.genel;
+    else if(k.odeme==='Havale')havale[para]+=k.genel;
+    else if(k.odeme==='KrediKarti'||k.odeme==='POS')kredi[para]+=k.genel;
+    else if(k.odeme==='MailOrder')mail[para]+=k.genel;
+    else if(k.odeme==='AcikHesap'||k.odeme==='Veresiye')acik[para]+=k.genel;
   });
   document.getElementById('rParca').textContent=parca.toLocaleString('tr-TR');
-  document.getElementById('rResmi').textContent=fmtTL(resmi);
-  document.getElementById('rGayri').textContent=fmtTL(gayri);
-  document.getElementById('rGenel').textContent=fmtTL(resmi+gayri);
-  document.getElementById('rNakit').textContent=fmtTL(nakit);
-  document.getElementById('rHavale').textContent=fmtTL(havale);
-  document.getElementById('rKredi').textContent=fmtTL(kredi);
-  document.getElementById('rMail').textContent=fmtTL(mail);
-  document.getElementById('rAcik').textContent=fmtTL(acik);
+  document.getElementById('rResmi').textContent=fmtParaGrup(resmi);
+  document.getElementById('rGayri').textContent=fmtParaGrup(gayri);
+  document.getElementById('rGenel').textContent=fmtParaGrup(_paraTopla(resmi,gayri));
+  document.getElementById('rNakit').textContent=fmtParaGrup(nakit);
+  document.getElementById('rHavale').textContent=fmtParaGrup(havale);
+  document.getElementById('rKredi').textContent=fmtParaGrup(kredi);
+  document.getElementById('rMail').textContent=fmtParaGrup(mail);
+  document.getElementById('rAcik').textContent=fmtParaGrup(acik);
   raporListeYap(filtreli);
+}
+function _paraBos(){return{TL:0,USD:0,EUR:0};}
+function _paraTopla(a,b){return{TL:a.TL+b.TL,USD:a.USD+b.USD,EUR:a.EUR+b.EUR};}
+function fmtParaGrup(g){
+  var parts=[fmtPara(g.TL||0,'TL')];
+  if(g.USD)parts.push(fmtPara(g.USD,'USD'));
+  if(g.EUR)parts.push(fmtPara(g.EUR,'EUR'));
+  return parts.join(' | ');
 }
 function odemeAdi(o){
   if(o==='KrediKarti')return'Kredi Kartı';
@@ -971,16 +995,17 @@ function kayitSil(id){
   var kayit=liste.find(function(k){return k.id===id;});
   veriYaz(liste.filter(function(k){return k.id!==id;}));
   // Açık hesap ise cari hareketi de sil ve bakiyeyi güncelle
-  if(kayit&&kayit.odeme==='AcikHesap'&&(kayit.para==='TL'||!kayit.para)){
+  if(kayit&&kayit.odeme==='AcikHesap'){
     cariMigrasyon();
     var d=cariVeriCek();
     var key=cariKey(kayit.musteri);
+    var para=kayit.para||'TL';
     d.hareketler=d.hareketler.filter(function(h){return h.aciklama!=='İrsaliye #'+id;});
     var bakiye=0;
-    d.hareketler.filter(function(h){return h.key===key;}).forEach(function(h){
+    d.hareketler.filter(function(h){return h.key===key&&(h.para||'TL')===para;}).forEach(function(h){
       if(h.tip==='borc')bakiye+=h.tutar;else bakiye-=h.tutar;
     });
-    if(d.musteri[key])d.musteri[key].bakiye=Math.max(0,bakiye);
+    if(d.musteri[key])_bakiyeAyarla(d.musteri[key],para,Math.max(0,bakiye));
     cariVeriYaz(d);
   }
   syncSunucu({tip:'irsaliye_sil',id:id});
@@ -1135,7 +1160,12 @@ function siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,kargoFirma,kargoKo
         '<span style="font-size:20px;font-weight:700;color:#f0e4d3">📦 '+seriMetni(parca)+'</span>'+
       '</div>'+
     '</div>'+
-    (kargoFirma&&kargoKod?'<div style="margin-top:1.2rem;text-align:center;font-size:13px;font-weight:700;color:#2c2419">📦 KARGO: '+kargoFirma+' — CODE = '+kargoKod+'</div>':'')+
+    (kargoFirma&&kargoKod?
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1.2rem">'+
+        '<div><span style="font-size:10px;letter-spacing:1.5px;color:#a64d3e;font-weight:700;display:block;margin-bottom:4px">KARGO FİRMASI</span><span style="display:block;font-size:15px;padding:9px 10px;background:#fff;border:1px solid #c8a87a;border-radius:6px;color:#2c2419;min-height:38px">'+kargoFirma+'</span></div>'+
+        '<div><span style="font-size:10px;letter-spacing:1.5px;color:#a64d3e;font-weight:700;display:block;margin-bottom:4px">MÜŞTERİ KODU</span><span style="display:block;font-size:15px;padding:9px 10px;background:#fff;border:1px solid #c8a87a;border-radius:6px;color:#2c2419;min-height:38px">'+kargoKod+'</span></div>'+
+      '</div>'
+    :'')+
     '<div style="margin-top:1.5rem;text-align:center;font-size:10px;color:#a64d3e;letter-spacing:1px">MISS NEŞEM · MERTER · İSTANBUL</div>';
   return el;
 }
@@ -1224,16 +1254,28 @@ function cariMigrasyon(){
   cariVeriYaz(yeni);
 }
 
+// Para birimine göre bakiye oku/yaz (eski tek-alan 'bakiye' = TL ile geriye dönük uyumlu)
+function _bakiyeGetir(m,para){
+  para=para||'TL';
+  if(m.bakiyeler&&m.bakiyeler[para]!==undefined)return m.bakiyeler[para];
+  return para==='TL'?(m.bakiye||0):0;
+}
+function _bakiyeAyarla(m,para,val){
+  para=para||'TL';
+  if(para==='TL')m.bakiye=val;
+  if(!m.bakiyeler)m.bakiyeler={};
+  m.bakiyeler[para]=val;
+}
+
 // İrsaliye kaydedilince cari2'ye de borç ekle
 function cariBorc(musteri,tutar,irsaliyeId,tarih,para){
-  if(para&&para!=='TL')return; // Sadece TL irsaliyeleri cari'ye ekle
   cariMigrasyon();
   var d=cariVeriCek();
   var key=cariKey(musteri);
   if(!d.musteri[key])d.musteri[key]={isim:musteri,bakiye:0};
   if(d.hareketler.find(function(h){return h.aciklama==='İrsaliye #'+irsaliyeId;}))return;
-  d.hareketler.push({id:Date.now(),tarih:tarih,musteri:musteri,key:key,tip:'borc',tutar:tutar,aciklama:'İrsaliye #'+irsaliyeId});
-  d.musteri[key].bakiye+=tutar;
+  d.hareketler.push({id:Date.now(),tarih:tarih,musteri:musteri,key:key,tip:'borc',tutar:tutar,para:para||'TL',aciklama:'İrsaliye #'+irsaliyeId});
+  _bakiyeAyarla(d.musteri[key],para,_bakiyeGetir(d.musteri[key],para)+tutar);
   cariVeriYaz(d);
 }
 
