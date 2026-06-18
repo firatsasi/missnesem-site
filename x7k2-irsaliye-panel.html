@@ -214,7 +214,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   <button class="add-btn" id="addBtn" onclick="ekle()">+ Satır ekle</button>
   <div class="opts" id="optsRow">
     <div class="opt-grp"><span class="opt-lbl">PARA</span><select class="opt-sel" id="para" onchange="hesapla()"><option value="TL">₺ TL</option><option value="USD">$ USD</option><option value="EUR">€ EUR</option></select></div>
-    <div class="opt-grp"><span class="opt-lbl">KDV</span><select class="opt-sel" id="kdvOran" onchange="hesapla()"><option value="0">Yok</option><option value="5">%5</option><option value="10">%10</option></select></div>
+    <div class="opt-grp"><span class="opt-lbl">KDV</span><select class="opt-sel" id="kdvOran" onchange="hesapla()"><option value="0">Yok</option><option value="1">%1</option><option value="10">%10</option><option value="20">%20</option></select></div>
     <div class="opt-grp"><span class="opt-lbl">ÖDEME</span><select class="opt-sel" id="odeme" onchange="bakiyeGoster()"></select></div>
     <div class="opt-grp"><span class="opt-lbl">TÜR</span><select class="opt-sel" id="tur" onchange="odemeGuncelle()"><option value="Resmi">Resmi</option><option value="Gayri Resmi">Gayri Resmi</option></select></div>
   </div>
@@ -370,14 +370,14 @@ function _musteriDropdownGoster(list){
     var name=m.name;
     var kod=m.cariKod||'';
     var bak=parseFloat(m.bakiye)||0;
-    el.innerHTML='<div style="font-weight:600;color:#2c2419">'+name+'</div>'
-      +'<div style="font-size:11px;color:#a64d3e;margin-top:1px">'+kod+(bak>0?' &nbsp;·&nbsp; '+fmtTL(bak):'')+'</div>';
-    el.onmousedown=function(e){e.preventDefault();_musteriSec(name,bak);};
+    el.innerHTML='<div style="font-weight:600;color:#2c2419">'+name+(kod?' <span style="color:#a64d3e;font-weight:700">['+kod+']</span>':'')+'</div>'
+      +(bak>0?'<div style="font-size:11px;color:#a64d3e;margin-top:1px">'+fmtTL(bak)+'</div>':'');
+    el.onmousedown=function(e){e.preventDefault();_musteriSec(name,bak,m);};
     dd.appendChild(el);
   });
   dd.style.display='block';
 }
-function _musteriSec(isim,bakiye){
+function _musteriSec(isim,bakiye,musteriData){
   document.getElementById('musteri').value=isim;
   _lastAutoMusteri=isim; // blur'da localStorage bulamazsa eskiBakiye'yi ezmemesi için
   document.getElementById('musteriDropdown').style.display='none';
@@ -388,7 +388,38 @@ function _musteriSec(isim,bakiye){
     document.getElementById('eskiBakiye').value='';
     document.getElementById('bakiyeInfo').textContent='ℹ️ Bu müşteri için kayıtlı bakiye yok.';
   }
+  _musteriDefaultlariUygula(musteriData);
   hesapla(); // GENEL TOPLAM'ı da güncelle (bakiyeHesapla sadece üst kutuyu günceller)
+}
+function _musteriDefaultlariUygula(m){
+  if(!m)return;
+  if(m.defaultTur){
+    var turSel=document.getElementById('tur');
+    var turVal=m.defaultTur==='GayriResmi'?'Gayri Resmi':m.defaultTur;
+    if([].slice.call(turSel.options).some(function(o){return o.value===turVal;})){
+      turSel.value=turVal;
+      odemeGuncelle(); // ödeme seçeneklerini türe göre yeniden oluşturur
+    }
+  }
+  if(m.defaultOdeme){
+    var odemeSel=document.getElementById('odeme');
+    if([].slice.call(odemeSel.options).some(function(o){return o.value===m.defaultOdeme;})){
+      odemeSel.value=m.defaultOdeme;
+    }
+  }
+  if(m.defaultPara){
+    var paraSel=document.getElementById('para');
+    if([].slice.call(paraSel.options).some(function(o){return o.value===m.defaultPara;})){
+      paraSel.value=m.defaultPara;
+    }
+  }
+  if(m.defaultKdv!==undefined&&m.defaultKdv!==null&&m.defaultKdv!==''){
+    var kdvSel=document.getElementById('kdvOran');
+    if([].slice.call(kdvSel.options).some(function(o){return o.value===String(m.defaultKdv);})){
+      kdvSel.value=String(m.defaultKdv);
+    }
+  }
+  bakiyeGoster(); // ödeme Açık Hesap ise bakiye kutusunu göster + hesapla
 }
 
 function goster(){
