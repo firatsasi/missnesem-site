@@ -1092,8 +1092,19 @@ function pdfIndir(){
   var s=hazirla();
   var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.pdf';
   var el=document.getElementById('irsaliye');
+  // Müşteriye giden belgede kargo firması/müşteri kodu görünmesin
+  var kargoToggle=document.getElementById('kargoToggle');
+  var kargoBox=document.getElementById('kargoBox');
+  var prevToggleDisplay=kargoToggle.style.display;
+  var prevBoxDisplay=kargoBox.style.display;
+  kargoToggle.style.display='none';
+  kargoBox.style.display='none';
   var opt={margin:[8,8,8,8],filename:dosyaAdi,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#f0e4d3'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
-  html2pdf().set(opt).from(el).save().then(function(){geriAl(s);});
+  html2pdf().set(opt).from(el).save().then(function(){
+    kargoToggle.style.display=prevToggleDisplay;
+    kargoBox.style.display=prevBoxDisplay;
+    geriAl(s);
+  });
 }
 function pngIndir(){
   var musteri=_pdfUrunKontrol();
@@ -1161,11 +1172,8 @@ function siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,kargoFirma,kargoKo
         '<span style="font-size:20px;font-weight:700;color:#f0e4d3">📦 '+seriMetni(parca)+'</span>'+
       '</div>'+
     '</div>'+
-    (kargoFirma&&kargoKod?
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1.2rem">'+
-        '<div><span style="font-size:10px;letter-spacing:1.5px;color:#a64d3e;font-weight:700;display:block;margin-bottom:4px">KARGO FİRMASI</span><span style="display:block;font-size:15px;padding:9px 10px;background:#fff;border:1px solid #c8a87a;border-radius:6px;color:#2c2419;min-height:38px">'+kargoFirma+'</span></div>'+
-        '<div><span style="font-size:10px;letter-spacing:1.5px;color:#a64d3e;font-weight:700;display:block;margin-bottom:4px">MÜŞTERİ KODU</span><span style="display:block;font-size:15px;padding:9px 10px;background:#fff;border:1px solid #c8a87a;border-radius:6px;color:#2c2419;min-height:38px">'+kargoKod+'</span></div>'+
-      '</div>'
+    (kargoFirma?
+      '<div style="margin-top:1.2rem;text-align:center;font-size:14px;font-weight:700;color:#2c2419">🚚 Kargo: '+kargoFirma+'</div>'
     :'')+
     '<div style="margin-top:1.5rem;text-align:center;font-size:10px;color:#a64d3e;letter-spacing:1px">MISS NEŞEM · MERTER · İSTANBUL</div>';
   return el;
