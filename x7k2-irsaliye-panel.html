@@ -383,13 +383,14 @@ function _musteriSec(isim,bakiye,musteriData){
   _lastAutoMusteri=isim; // blur'da localStorage bulamazsa eskiBakiye'yi ezmemesi için
   _lastMusteriBakiyeler=(musteriData&&musteriData.bakiyeler)||null;
   document.getElementById('musteriDropdown').style.display='none';
-  _musteriBakiyeKutusunaYaz(isim);
-  _musteriDefaultlariUygula(musteriData);
+  _musteriDefaultlariUygula(musteriData); // önce varsayılan PARA/ÖDEME/TÜR uygulanır
+  _musteriBakiyeKutusunaYaz(isim); // sonra güncel PARA'ya göre doğru bakiye yazılır
   hesapla(); // GENEL TOPLAM'ı da güncelle (bakiyeHesapla sadece üst kutuyu günceller)
 }
+function _paraApiAnahtari(para){return para==='TL'?'TRY':para;}
 function _musteriBakiyeKutusunaYaz(isim){
   var para=document.getElementById('para').value;
-  var bak=(_lastMusteriBakiyeler&&_lastMusteriBakiyeler[para])||0;
+  var bak=(_lastMusteriBakiyeler&&_lastMusteriBakiyeler[_paraApiAnahtari(para)])||0;
   if(bak>0){
     document.getElementById('eskiBakiye').value=bak.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
     document.getElementById('bakiyeInfo').textContent='💡 "'+isim+'" için '+para+' bakiye yüklendi.';
@@ -515,16 +516,16 @@ function bakiyeHesapla(){
   var eski=parseFloat(ebRaw)||0;
   var genel=window.sonGenel||0;
   // Üst bakiye kutusu
-  document.getElementById('buIslem').value=fmtTL(genel);
-  document.getElementById('toplamBakiye').textContent=fmtTL(eski+genel);
+  document.getElementById('buIslem').value=fmt(genel);
+  document.getElementById('toplamBakiye').textContent=fmt(eski+genel);
   // Alt satırlar (irsaliye totals kısmında görünür)
   var biRow=document.getElementById('buIslemRow');
   var ebSatir=document.getElementById('eskiBakiyeSatir');
   if(eski>0){
     biRow.style.display='flex';
     ebSatir.style.display='flex';
-    document.getElementById('buIslemSatir').textContent=fmtTL(genel);
-    document.getElementById('eskiBakiyeVal').textContent=fmtTL(eski);
+    document.getElementById('buIslemSatir').textContent=fmt(genel);
+    document.getElementById('eskiBakiyeVal').textContent=fmt(eski);
   }else{
     biRow.style.display='none';
     ebSatir.style.display='none';
