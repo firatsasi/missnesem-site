@@ -1299,7 +1299,7 @@ function siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,kargoFirma,kargoKo
       '</div>'+
     '</div>'+
     (kargoFirma?
-      '<div style="margin-top:1.2rem;text-align:center;font-size:14px;font-weight:700;color:#2c2419">🚚 Kargo: '+kargoFirma+'</div>'
+      '<div style="margin-top:1.2rem;text-align:center;font-size:14px;font-weight:700;color:#2c2419">🚚 Kargo: '+kargoFirma+(kargoKod?' — Kod: '+kargoKod:'')+'</div>'
     :'')+
     '<div style="margin-top:1.5rem;text-align:center;font-size:10px;color:#a64d3e;letter-spacing:1px">MISS NEŞEM · MERTER · İSTANBUL</div>';
   return el;
