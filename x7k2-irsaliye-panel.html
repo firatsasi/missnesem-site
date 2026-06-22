@@ -1423,7 +1423,8 @@ function whatsappSiparis(){
     var chk=tr.querySelector('.iade-chk');
     var isIade=!!(chk&&chk.checked);
     var a=parseFloat(qty)||0;
-    if(a>0&&ad){urunler.push({adet:a,ad:ad,iade:isIade});parca+=a;}
+    if(isIade)return; // İade satırları WhatsApp Sipariş PNG'sine dahil edilmez
+    if(a>0&&ad){urunler.push({adet:a,ad:ad,iade:false});parca+=a;}
   });
   if(urunler.length===0){alert('En az 1 ürün girin');return;}
   var tarihVal=document.getElementById('tarih').value;
