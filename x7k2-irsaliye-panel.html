@@ -570,8 +570,8 @@ var sc=0;
 var _duzenlemeId=null; // düzenlenmekte olan kaydın id'si (null = yeni kayıt modu)
 var _aktifKayitId=null; // formun şu an temsil ettiği kaydedilmiş kaydın id'si (sipariş no bağlamak için)
 var sym={TL:'₺',USD:'$',EUR:'€'};
-function birim(){return sym[document.getElementById('para').value]||'₺';}
-function fmt(n){var p=document.getElementById('para').value;if(p==='TL')return n.toLocaleString('tr-TR')+' ₺';return sym[p]+' '+n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function birim(){var el=document.getElementById('para');var v=el?el.value:'TL';return (sym&&sym[v])||'₺';}
+function fmt(n){var el=document.getElementById('para');var p=el?el.value:'TL';if(p==='TL')return n.toLocaleString('tr-TR')+' ₺';return ((sym&&sym[p])||'')+' '+n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtTL(n){return n.toLocaleString('tr-TR')+' ₺';}
 function ekle(){
   sc++;
@@ -891,12 +891,13 @@ function raporGuncelle(){
   document.getElementById('rAcik').textContent=fmtParaGrup(acik);
   document.getElementById('rSatis').textContent=fmtParaGrup(satis);
   document.getElementById('rIade').textContent=fmtParaGrup(iadeT);
-  document.getElementById('rNet').textContent=fmtParaGrup({TL:satis.TL-iadeT.TL,USD:satis.USD-iadeT.USD,EUR:satis.EUR-iadeT.EUR});
+  document.getElementById('rNet').textContent=fmtParaGrup({TL:(satis.TL||0)-(iadeT.TL||0),USD:(satis.USD||0)-(iadeT.USD||0),EUR:(satis.EUR||0)-(iadeT.EUR||0)});
   raporListeYap(filtreli);
 }
 function _paraBos(){return{TL:0,USD:0,EUR:0};}
-function _paraTopla(a,b){return{TL:a.TL+b.TL,USD:a.USD+b.USD,EUR:a.EUR+b.EUR};}
+function _paraTopla(a,b){a=a||_paraBos();b=b||_paraBos();return{TL:(a.TL||0)+(b.TL||0),USD:(a.USD||0)+(b.USD||0),EUR:(a.EUR||0)+(b.EUR||0)};}
 function fmtParaGrup(g){
+  g=g||_paraBos();
   var parts=[fmtPara(g.TL||0,'TL')];
   if(g.USD)parts.push(fmtPara(g.USD,'USD'));
   if(g.EUR)parts.push(fmtPara(g.EUR,'EUR'));
