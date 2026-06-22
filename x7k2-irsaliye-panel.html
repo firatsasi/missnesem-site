@@ -253,6 +253,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   <div class="totals">
     <div class="ara-row" id="araRow" style="display:none"><span class="ara-lbl">ARA TOPLAM</span><span class="ara-val" id="araToplam">-</span></div>
     <div class="ara-row" id="kdvRow" style="display:none"><span class="ara-lbl" id="kdvLbl">KDV</span><span class="ara-val" id="kdvTutar">-</span></div>
+    <div class="ara-row" id="iadeRow" style="display:none"><span class="ara-lbl" style="color:#c0392b">İADE</span><span class="ara-val" id="iadeTutar" style="color:#c0392b">-</span></div>
     <div class="ara-row" id="buIslemRow" style="display:none"><span class="ara-lbl">BU İŞLEM</span><span class="ara-val" id="buIslemSatir">-</span></div>
     <div class="ara-row" id="eskiBakiyeSatir" style="display:none"><span class="ara-lbl">ESKİ BAKİYE</span><span class="ara-val" id="eskiBakiyeVal">-</span></div>
     <div class="total-box"><span class="total-lbl">GENEL TOPLAM</span><span class="total-val" id="gt">0 ₺</span></div>
@@ -613,7 +614,8 @@ function toggleIadeRow(tr,checked){
 }
 function hesapla(){
   document.querySelectorAll('.fiyat-sym').forEach(function(s){s.textContent=birim();});
-  var ara=0;
+  var ara=0; // sadece normal satış satırları
+  var iadeTutar=0; // iade satırları toplamı (pozitif)
   document.querySelectorAll('#tb tr').forEach(function(tr){
     var qty=tr.querySelector('td:nth-child(1) input');
     var prc=tr.querySelector('.fiyat-wrap input');
@@ -621,24 +623,38 @@ function hesapla(){
     var isIade=!!(chk&&chk.checked);
     var a=parseFloat(qty.value)||0;
     var f=parseFloat((prc.value||'').replace(',','.'))||0;
-    var t=isIade?-(a*f):a*f;
+    var tutar=a*f;
     var h=tr.querySelector('.td-top');
-    if(h)h.textContent=t!==0?fmt(t):'-';
-    ara+=t;
+    if(isIade){
+      iadeTutar+=tutar;
+      if(h)h.textContent=tutar!==0?fmt(-tutar):'-';
+    }else{
+      ara+=tutar;
+      if(h)h.textContent=tutar!==0?fmt(tutar):'-';
+    }
   });
   var oran=parseInt(document.getElementById('kdvOran').value)||0;
   var kdv=Math.round(ara*oran/100*100)/100;
-  var genel=ara+kdv;
+  var genel=ara+kdv-iadeTutar;
   window.sonGenel=genel;
-  if(oran>0){
+  if(oran>0||iadeTutar>0){
     document.getElementById('araRow').style.display='flex';
-    document.getElementById('kdvRow').style.display='flex';
     document.getElementById('araToplam').textContent=fmt(ara);
+  }else{
+    document.getElementById('araRow').style.display='none';
+  }
+  if(oran>0){
+    document.getElementById('kdvRow').style.display='flex';
     document.getElementById('kdvLbl').textContent='KDV (%'+oran+')';
     document.getElementById('kdvTutar').textContent=fmt(kdv);
   }else{
-    document.getElementById('araRow').style.display='none';
     document.getElementById('kdvRow').style.display='none';
+  }
+  if(iadeTutar>0){
+    document.getElementById('iadeRow').style.display='flex';
+    document.getElementById('iadeTutar').textContent=fmt(-iadeTutar);
+  }else{
+    document.getElementById('iadeRow').style.display='none';
   }
   // Açık hesap aktifse Genel Toplam'a eski bakiyeyi ekle
   var gtFinal=genel;
@@ -681,6 +697,7 @@ function temizle(){
   odemeGuncelle();
   document.getElementById('araRow').style.display='none';
   document.getElementById('kdvRow').style.display='none';
+  document.getElementById('iadeRow').style.display='none';
   document.getElementById('gt').textContent='0 ₺';
   sc=0;
 ekle();ekle();ekle();
@@ -729,14 +746,13 @@ function kaydet(sessiz){
       var t=isIade?-tutar:tutar;
       urunler.push({adet:a,ad:ad,fiyat:f,toplam:t,iade:isIade});
       parca+=a;
-      ara+=t;
-      if(isIade)iadeToplam+=tutar;else satisToplam+=tutar;
+      if(isIade){iadeToplam+=tutar;}else{satisToplam+=tutar;ara+=tutar;}
     }
   });
   if(urunler.length===0){if(!sessiz)alert('En az 1 ürün girin');return false;}
   var oran=parseInt(document.getElementById('kdvOran').value)||0;
   var kdv=Math.round(ara*oran/100*100)/100;
-  var genel=ara+kdv;
+  var genel=ara+kdv-iadeToplam;
   var kargoVar=document.getElementById('kargoChk').checked;
   var kargoFirma=kargoVar?document.getElementById('kargoFirma').value.trim():'';
   var kargoKod=kargoVar?document.getElementById('kargoKod').value.trim():'';
@@ -950,8 +966,9 @@ function irsaliyeGoster(id){
       '<tbody>'+satirlarHtml+'</tbody>'+
     '</table>'+
     '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-top:1rem">'+
-      (k.kdvOran>0?'<div style="display:flex;gap:12px;align-items:center;padding:3px 0"><span style="color:#a64d3e;font-size:11px;font-weight:700;min-width:100px;text-align:right">ARA TOPLAM</span><span style="color:#2c2419;font-weight:700;min-width:90px;text-align:right">'+fmtPara(k.ara,k.para)+'</span></div>'+
-        '<div style="display:flex;gap:12px;align-items:center;padding:3px 0"><span style="color:#a64d3e;font-size:11px;font-weight:700;min-width:100px;text-align:right">KDV (%'+k.kdvOran+')</span><span style="color:#2c2419;font-weight:700;min-width:90px;text-align:right">'+fmtPara(k.kdv,k.para)+'</span></div>':'')+
+      ((k.kdvOran>0||(k.iadeToplam||0)>0)?'<div style="display:flex;gap:12px;align-items:center;padding:3px 0"><span style="color:#a64d3e;font-size:11px;font-weight:700;min-width:100px;text-align:right">ARA TOPLAM</span><span style="color:#2c2419;font-weight:700;min-width:90px;text-align:right">'+fmtPara(k.ara,k.para)+'</span></div>':'')+
+      (k.kdvOran>0?'<div style="display:flex;gap:12px;align-items:center;padding:3px 0"><span style="color:#a64d3e;font-size:11px;font-weight:700;min-width:100px;text-align:right">KDV (%'+k.kdvOran+')</span><span style="color:#2c2419;font-weight:700;min-width:90px;text-align:right">'+fmtPara(k.kdv,k.para)+'</span></div>':'')+
+      ((k.iadeToplam||0)>0?'<div style="display:flex;gap:12px;align-items:center;padding:3px 0"><span style="color:#c0392b;font-size:11px;font-weight:700;min-width:100px;text-align:right">İADE</span><span style="color:#c0392b;font-weight:700;min-width:90px;text-align:right">'+fmtPara(-k.iadeToplam,k.para)+'</span></div>':'')+
       '<div style="background:#2c2419;border-radius:7px;padding:11px 18px;display:flex;align-items:center;gap:16px;margin-top:4px">'+
         '<span style="font-size:9px;letter-spacing:2px;color:#b8985e">GENEL TOPLAM</span>'+
         '<span style="font-size:18px;font-weight:700;color:#f0e4d3">'+fmtPara(k.genel,k.para)+'</span>'+
@@ -992,9 +1009,14 @@ function irsaliyeHtmlOlustur(k){
     satirlar+='</tr>';
   });
   var kdvHtml='';
-  if(k.kdvOran>0){
-    kdvHtml='<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#a64d3e;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">ARA TOPLAM</span><span style="color:#2c2419;font-weight:700;min-width:100px;text-align:right">'+fmtPara(k.ara,k.para)+'</span></div>'+
-    '<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#a64d3e;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">KDV (%'+k.kdvOran+')</span><span style="color:#2c2419;font-weight:700;min-width:100px;text-align:right">'+fmtPara(k.kdv,k.para)+'</span></div>';
+  if(k.kdvOran>0||(k.iadeToplam||0)>0){
+    kdvHtml='<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#a64d3e;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">ARA TOPLAM</span><span style="color:#2c2419;font-weight:700;min-width:100px;text-align:right">'+fmtPara(k.ara,k.para)+'</span></div>';
+    if(k.kdvOran>0){
+      kdvHtml+='<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#a64d3e;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">KDV (%'+k.kdvOran+')</span><span style="color:#2c2419;font-weight:700;min-width:100px;text-align:right">'+fmtPara(k.kdv,k.para)+'</span></div>';
+    }
+    if((k.iadeToplam||0)>0){
+      kdvHtml+='<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#c0392b;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">İADE</span><span style="color:#c0392b;font-weight:700;min-width:100px;text-align:right">'+fmtPara(-k.iadeToplam,k.para)+'</span></div>';
+    }
   }
   var genelGoster=k.genel;
   if(k.odeme==='AcikHesap'){
