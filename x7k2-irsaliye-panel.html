@@ -254,6 +254,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
     <div class="ara-row" id="araRow" style="display:none"><span class="ara-lbl">ARA TOPLAM</span><span class="ara-val" id="araToplam">-</span></div>
     <div class="ara-row" id="kdvRow" style="display:none"><span class="ara-lbl" id="kdvLbl">KDV</span><span class="ara-val" id="kdvTutar">-</span></div>
     <div class="ara-row" id="iadeRow" style="display:none"><span class="ara-lbl" style="color:#c0392b">İADE</span><span class="ara-val" id="iadeTutar" style="color:#c0392b">-</span></div>
+    <div class="ara-row" id="kargoUcretRow"><span class="ara-lbl">KARGO ÜCRETİ</span><span class="ara-val" style="display:flex;align-items:center;gap:4px;justify-content:flex-end"><span class="fiyat-sym">₺</span><input type="text" id="kargoUcret" inputmode="decimal" placeholder="0" oninput="kargoUcretGuncelle()" style="background:transparent;border:none;outline:none;text-align:right;font-size:14px;font-weight:700;color:#2c2419;width:90px;font-family:Arial,Helvetica,sans-serif" /></span></div>
     <div class="ara-row" id="buIslemRow" style="display:none"><span class="ara-lbl">BU İŞLEM</span><span class="ara-val" id="buIslemSatir">-</span></div>
     <div class="ara-row" id="eskiBakiyeSatir" style="display:none"><span class="ara-lbl">ESKİ BAKİYE</span><span class="ara-val" id="eskiBakiyeVal">-</span></div>
     <div class="total-box"><span class="total-lbl">GENEL TOPLAM</span><span class="total-val" id="gt">0 ₺</span></div>
@@ -635,9 +636,10 @@ function hesapla(){
   });
   var oran=parseInt(document.getElementById('kdvOran').value)||0;
   var kdv=Math.round(ara*oran/100*100)/100;
-  var genel=ara+kdv-iadeTutar;
+  var kargoUcret=parseFloat((document.getElementById('kargoUcret').value||'').replace(/\./g,'').replace(',','.'))||0;
+  var genel=ara+kdv-iadeTutar+kargoUcret;
   window.sonGenel=genel;
-  if(oran>0||iadeTutar>0){
+  if(oran>0||iadeTutar>0||kargoUcret>0){
     document.getElementById('araRow').style.display='flex';
     document.getElementById('araToplam').textContent=fmt(ara);
   }else{
@@ -668,6 +670,11 @@ function hesapla(){
   document.getElementById('gt').textContent=fmt(gtFinal);
   if(bakBox && bakBox.classList.contains('aktif'))bakiyeHesapla();
 }
+function kargoUcretGuncelle(){
+  var inp=document.getElementById('kargoUcret');
+  inp.value=inp.value.replace(/[^0-9.,]/g,'');
+  hesapla();
+}
 function kargoGoster(){
   var chk=document.getElementById('kargoChk');
   var box=document.getElementById('kargoBox');
@@ -692,6 +699,7 @@ function temizle(){
   document.getElementById('kargoBox').classList.remove('aktif');
   document.getElementById('kargoFirma').value='';
   document.getElementById('kargoKod').value='';
+  document.getElementById('kargoUcret').value='';
   document.getElementById('buIslemRow').style.display='none';
   document.getElementById('eskiBakiyeSatir').style.display='none';
   odemeGuncelle();
@@ -752,7 +760,8 @@ function kaydet(sessiz){
   if(urunler.length===0){if(!sessiz)alert('En az 1 ürün girin');return false;}
   var oran=parseInt(document.getElementById('kdvOran').value)||0;
   var kdv=Math.round(ara*oran/100*100)/100;
-  var genel=ara+kdv-iadeToplam;
+  var kargoUcret=parseFloat((document.getElementById('kargoUcret').value||'').replace(/\./g,'').replace(',','.'))||0;
+  var genel=ara+kdv-iadeToplam+kargoUcret;
   var kargoVar=document.getElementById('kargoChk').checked;
   var kargoFirma=kargoVar?document.getElementById('kargoFirma').value.trim():'';
   var kargoKod=kargoVar?document.getElementById('kargoKod').value.trim():'';
@@ -772,6 +781,7 @@ function kaydet(sessiz){
     iadeToplam:iadeToplam,
     kdvOran:oran,
     kdv:kdv,
+    kargoUcret:kargoUcret,
     genel:genel,
     para:document.getElementById('para').value,
     odeme:document.getElementById('odeme').value,
@@ -966,9 +976,10 @@ function irsaliyeGoster(id){
       '<tbody>'+satirlarHtml+'</tbody>'+
     '</table>'+
     '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-top:1rem">'+
-      ((k.kdvOran>0||(k.iadeToplam||0)>0)?'<div style="display:flex;gap:12px;align-items:center;padding:3px 0"><span style="color:#a64d3e;font-size:11px;font-weight:700;min-width:100px;text-align:right">ARA TOPLAM</span><span style="color:#2c2419;font-weight:700;min-width:90px;text-align:right">'+fmtPara(k.ara,k.para)+'</span></div>':'')+
+      ((k.kdvOran>0||(k.iadeToplam||0)>0||(k.kargoUcret||0)>0)?'<div style="display:flex;gap:12px;align-items:center;padding:3px 0"><span style="color:#a64d3e;font-size:11px;font-weight:700;min-width:100px;text-align:right">ARA TOPLAM</span><span style="color:#2c2419;font-weight:700;min-width:90px;text-align:right">'+fmtPara(k.ara,k.para)+'</span></div>':'')+
       (k.kdvOran>0?'<div style="display:flex;gap:12px;align-items:center;padding:3px 0"><span style="color:#a64d3e;font-size:11px;font-weight:700;min-width:100px;text-align:right">KDV (%'+k.kdvOran+')</span><span style="color:#2c2419;font-weight:700;min-width:90px;text-align:right">'+fmtPara(k.kdv,k.para)+'</span></div>':'')+
       ((k.iadeToplam||0)>0?'<div style="display:flex;gap:12px;align-items:center;padding:3px 0"><span style="color:#c0392b;font-size:11px;font-weight:700;min-width:100px;text-align:right">İADE</span><span style="color:#c0392b;font-weight:700;min-width:90px;text-align:right">'+fmtPara(-k.iadeToplam,k.para)+'</span></div>':'')+
+      ((k.kargoUcret||0)>0?'<div style="display:flex;gap:12px;align-items:center;padding:3px 0"><span style="color:#a64d3e;font-size:11px;font-weight:700;min-width:100px;text-align:right">KARGO</span><span style="color:#2c2419;font-weight:700;min-width:90px;text-align:right">'+fmtPara(k.kargoUcret,k.para)+'</span></div>':'')+
       '<div style="background:#2c2419;border-radius:7px;padding:11px 18px;display:flex;align-items:center;gap:16px;margin-top:4px">'+
         '<span style="font-size:9px;letter-spacing:2px;color:#b8985e">GENEL TOPLAM</span>'+
         '<span style="font-size:18px;font-weight:700;color:#f0e4d3">'+fmtPara(k.genel,k.para)+'</span>'+
@@ -1009,13 +1020,16 @@ function irsaliyeHtmlOlustur(k){
     satirlar+='</tr>';
   });
   var kdvHtml='';
-  if(k.kdvOran>0||(k.iadeToplam||0)>0){
+  if(k.kdvOran>0||(k.iadeToplam||0)>0||(k.kargoUcret||0)>0){
     kdvHtml='<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#a64d3e;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">ARA TOPLAM</span><span style="color:#2c2419;font-weight:700;min-width:100px;text-align:right">'+fmtPara(k.ara,k.para)+'</span></div>';
     if(k.kdvOran>0){
       kdvHtml+='<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#a64d3e;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">KDV (%'+k.kdvOran+')</span><span style="color:#2c2419;font-weight:700;min-width:100px;text-align:right">'+fmtPara(k.kdv,k.para)+'</span></div>';
     }
     if((k.iadeToplam||0)>0){
       kdvHtml+='<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#c0392b;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">İADE</span><span style="color:#c0392b;font-weight:700;min-width:100px;text-align:right">'+fmtPara(-k.iadeToplam,k.para)+'</span></div>';
+    }
+    if((k.kargoUcret||0)>0){
+      kdvHtml+='<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#a64d3e;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">KARGO</span><span style="color:#2c2419;font-weight:700;min-width:100px;text-align:right">'+fmtPara(k.kargoUcret,k.para)+'</span></div>';
     }
   }
   var genelGoster=k.genel;
@@ -1182,6 +1196,7 @@ function irsaliyeDuzenle(id){
   document.getElementById('kargoBox').classList.toggle('aktif',kargoVar);
   document.getElementById('kargoFirma').value=kayit.kargoFirma||'';
   document.getElementById('kargoKod').value=kayit.kargoKod||'';
+  document.getElementById('kargoUcret').value=kayit.kargoUcret?kayit.kargoUcret.toLocaleString('tr-TR'):'';
 
   bakiyeGoster();
   if(kayit.odeme==='AcikHesap'){
@@ -1240,6 +1255,9 @@ function hazirla(){
   var delCols=document.querySelectorAll('.del-col');
   var iadeCells=document.querySelectorAll('.td-iade');
   var iadeCols=document.querySelectorAll('.iade-col');
+  var kargoUcretRow=document.getElementById('kargoUcretRow');
+  var kargoUcretVal=parseFloat((document.getElementById('kargoUcret').value||'').replace(/\./g,'').replace(',','.'))||0;
+  var kargoUcretGizli=kargoUcretVal<=0;
   addBtn.style.display='none';
   optsRow.style.display='none';
   var kargoToggle=document.getElementById('kargoToggle');
@@ -1251,8 +1269,9 @@ function hazirla(){
   delCols.forEach(function(c){c.style.display='none';});
   iadeCells.forEach(function(c){c.style.display='none';});
   iadeCols.forEach(function(c){c.style.display='none';});
+  if(kargoUcretGizli)kargoUcretRow.style.display='none';
   var saved=inputlariMetneCevir();
-  return {addBtn:addBtn,optsRow:optsRow,bakBox:bakBox,bakAktif:bakAktif,delCells:delCells,delCols:delCols,iadeCells:iadeCells,iadeCols:iadeCols,saved:saved};
+  return {addBtn:addBtn,optsRow:optsRow,bakBox:bakBox,bakAktif:bakAktif,delCells:delCells,delCols:delCols,iadeCells:iadeCells,iadeCols:iadeCols,kargoUcretRow:kargoUcretRow,kargoUcretGizli:kargoUcretGizli,saved:saved};
 }
 function geriAl(s){
   s.addBtn.style.display='';
@@ -1264,6 +1283,7 @@ function geriAl(s){
   s.delCols.forEach(function(c){c.style.display='';});
   s.iadeCells.forEach(function(c){c.style.display='';});
   s.iadeCols.forEach(function(c){c.style.display='';});
+  if(s.kargoUcretGizli)s.kargoUcretRow.style.display='';
   inputlariGeriYukle(s.saved);
 }
 function _pdfUrunKontrol(){
