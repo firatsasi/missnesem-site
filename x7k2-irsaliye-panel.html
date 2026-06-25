@@ -193,7 +193,6 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 <div class="tabs">
   <button class="tab active" id="tab1" onclick="tabGoster('irs')">İRSALİYE OLUŞTUR</button>
   <button class="tab" id="tab2" onclick="tabGoster('rap')">GÜNLÜK RAPOR</button>
-  <button class="tab" id="tab3" onclick="tabGoster('cari')">CARİ TAKİP</button>
 </div>
 
 <!-- TAB 1: İRSALİYE -->
@@ -318,7 +317,6 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   <div class="rapor-grid">
     <div class="rapor-cell"><div class="lbl">TOPLAM SATIŞ</div><div class="val" id="rSatis">0 ₺</div></div>
     <div class="rapor-cell"><div class="lbl">TOPLAM İADE</div><div class="val" id="rIade">0 ₺</div></div>
-    <div class="rapor-cell"><div class="lbl">TOPLAM TAHSİLAT</div><div class="val" id="rTahsilat">0 ₺</div></div>
     <div class="rapor-cell dark"><div class="lbl">NET TUTAR</div><div class="val" id="rNet">0 ₺</div></div>
   </div>
 
@@ -332,17 +330,6 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 
   <div id="raporListe"></div>
 
-  <div style="margin-top:1.5rem">
-    <div class="bd" style="font-size:11px;margin-bottom:0.8rem">TAHSİLATLAR</div>
-    <div id="raporTahsilatListe"></div>
-  </div>
-
-  <div style="margin-top:1.5rem">
-    <div class="bd" style="font-size:11px;margin-bottom:0.8rem">AÇIK HESAPLAR</div>
-    <div class="rapor-cell dark" style="max-width:260px;margin-bottom:0.8rem"><div class="lbl">TOPLAM AÇIK HESAP</div><div class="val" id="rAcikToplam">0 ₺</div></div>
-    <div id="acikHesaplarListe"></div>
-  </div>
-
   <div class="btns">
     <button class="btn-sec" onclick="dataIndir()">Yedek indir (JSON)</button>
     <button class="btn-drk" onclick="raporPdf()">Raporu PDF indir</button>
@@ -350,36 +337,6 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 </div>
 </div>
 
-<!-- TAB 3: CARİ TAKİP -->
-<div id="tabCari" style="display:none">
-<div class="rapor-card">
-  <div class="brand">
-    <div class="bn">MISS NEŞEM</div>
-    <div class="bd" style="font-size:11px">CARİ TAKİP</div>
-  </div>
-
-  <div class="date-pick">
-    <input class="finp cell" type="text" id="cariAraVal" placeholder="Müşteri adı veya MN-kodu ara..." oninput="cariListeYap()" style="flex:1;min-width:200px;padding:9px 10px" />
-  </div>
-
-  <div id="cariMusteriListe"></div>
-
-  <div style="margin-top:1.5rem;border-top:1px solid #c8a87a;padding-top:1.2rem">
-    <div class="bd" style="font-size:11px;margin-bottom:0.8rem">CARİ RAPOR</div>
-    <div class="date-pick">
-      <label class="opt-lbl">BAŞLANGIÇ</label>
-      <input type="date" id="cariRaporBaslangic" />
-      <label class="opt-lbl">BİTİŞ</label>
-      <input type="date" id="cariRaporBitis" />
-      <button class="btn-sec" onclick="cariRaporTumZaman()">Tümü</button>
-    </div>
-    <div class="btns" style="justify-content:flex-start">
-      <button class="btn-drk" onclick="cariRaporIndir('png')">Cari Rapor PNG İndir</button>
-      <button class="btn-pri" onclick="cariRaporIndir('pdf')">Cari Rapor PDF İndir</button>
-    </div>
-  </div>
-</div>
-</div>
 
 </div>
 </div>
@@ -602,13 +559,10 @@ function bakiyeHesapla(){
 function tabGoster(t){
   document.getElementById('tabIrs').style.display=t==='irs'?'block':'none';
   document.getElementById('tabRap').style.display=t==='rap'?'block':'none';
-  document.getElementById('tabCari').style.display=t==='cari'?'block':'none';
   document.getElementById('tab1').classList.toggle('active',t==='irs');
   document.getElementById('tab2').classList.toggle('active',t==='rap');
-  document.getElementById('tab3').classList.toggle('active',t==='cari');
   document.body.dataset.printMode=t;
   if(t==='rap')raporGuncelle();
-  if(t==='cari')cariListeYap();
 }
 
 /* ====== İRSALİYE ====== */
@@ -939,8 +893,6 @@ function raporGuncelle(){
   document.getElementById('rIade').textContent=fmtParaGrup(iadeT);
   document.getElementById('rNet').textContent=fmtParaGrup({TL:(satis.TL||0)-(iadeT.TL||0),USD:(satis.USD||0)-(iadeT.USD||0),EUR:(satis.EUR||0)-(iadeT.EUR||0)});
   raporListeYap(filtreli);
-  _tahsilatRaporGuncelle(bas,bit);
-  _acikHesaplarGuncelle();
 }
 function _paraBos(){return{TL:0,USD:0,EUR:0};}
 function _paraTopla(a,b){a=a||_paraBos();b=b||_paraBos();return{TL:(a.TL||0)+(b.TL||0),USD:(a.USD||0)+(b.USD||0),EUR:(a.EUR||0)+(b.EUR||0)};}
@@ -1566,287 +1518,11 @@ function cariBorc(musteri,tutar,irsaliyeId,tarih,para){
   cariMigrasyon();
   var d=cariVeriCek();
   var key=cariKey(musteri);
-  if(!d.musteri[key])d.musteri[key]={isim:musteri,bakiye:0,kod:_yeniMusteriKodu(d)};
+  if(!d.musteri[key])d.musteri[key]={isim:musteri,bakiye:0};
   if(d.hareketler.find(function(h){return h.aciklama==='İrsaliye #'+irsaliyeId;}))return;
   d.hareketler.push({id:Date.now(),tarih:tarih,musteri:musteri,key:key,tip:'borc',tutar:tutar,para:para||'TL',aciklama:'İrsaliye #'+irsaliyeId});
   _bakiyeAyarla(d.musteri[key],para,_bakiyeGetir(d.musteri[key],para)+tutar);
   cariVeriYaz(d);
-}
-
-/* ====== CARİ TAKİP — yeni müşteri kodu ====== */
-function _yeniMusteriKodu(d){
-  var max=0;
-  Object.keys(d.musteri).forEach(function(k){
-    var kod=d.musteri[k].kod||'';
-    var m=kod.match(/^MN-(\d+)$/);
-    if(m)max=Math.max(max,parseInt(m[1]));
-  });
-  return 'MN-'+String(max+1).padStart(3,'0');
-}
-function _musteriBakiyeStr(m){
-  var parts=[];
-  if(Math.abs(m.bakiye||0)>0.009)parts.push(fmtPara(m.bakiye,'TL'));
-  if(Math.abs((m.bakiyeler&&m.bakiyeler.USD)||0)>0.009)parts.push(fmtPara(m.bakiyeler.USD,'USD'));
-  if(Math.abs((m.bakiyeler&&m.bakiyeler.EUR)||0)>0.009)parts.push(fmtPara(m.bakiyeler.EUR,'EUR'));
-  return parts.join(' | ')||'0 ₺';
-}
-
-/* ====== CARİ TAKİP — müşteri listesi ====== */
-var _cariListeAktif=[];
-function cariListeYap(){
-  cariMigrasyon();
-  var d=cariVeriCek();
-  var q=(document.getElementById('cariAraVal').value||'').toLowerCase();
-  var liste=Object.keys(d.musteri).map(function(k){return Object.assign({_key:k},d.musteri[k]);});
-  if(q){
-    liste=liste.filter(function(m){return m.isim.toLowerCase().indexOf(q)!==-1||(m.kod&&m.kod.toLowerCase().indexOf(q)!==-1);});
-  }
-  liste.sort(function(a,b){return a.isim.localeCompare(b.isim,'tr');});
-  _cariListeAktif=liste;
-  var el=document.getElementById('cariMusteriListe');
-  if(!liste.length){el.innerHTML='<div class="bos">Müşteri bulunamadı</div>';return;}
-  var html='<table class="rapor-tbl"><thead><tr><th>KOD</th><th>MÜŞTERİ</th><th class="r">BAKİYE</th><th></th></tr></thead><tbody>';
-  liste.forEach(function(m,i){
-    html+='<tr><td>'+(m.kod||'-')+'</td><td>'+m.isim+'</td><td class="r">'+_musteriBakiyeStr(m)+'</td><td style="white-space:nowrap">'+
-      '<button title="Ekstre" data-act="ekstre" data-idx="'+i+'" style="background:none;border:none;cursor:pointer;color:#2c2419;font-size:15px;padding:2px 4px">📋</button>'+
-      '<button title="Tahsilat Ekle" data-act="tahsilat" data-idx="'+i+'" style="background:none;border:none;cursor:pointer;color:#2c2419;font-size:15px;padding:2px 4px">💰</button>'+
-      '</td></tr>';
-  });
-  html+='</tbody></table>';
-  el.innerHTML=html;
-  el.querySelectorAll('button[data-act]').forEach(function(btn){
-    btn.onclick=function(){
-      var m=_cariListeAktif[parseInt(btn.dataset.idx)];
-      if(btn.dataset.act==='ekstre')cariEkstreGoster(m._key);
-      else cariTahsilatPopAc(m._key,m.isim);
-    };
-  });
-}
-
-/* ====== CARİ TAKİP — ekstre ====== */
-function cariEkstreGoster(key){
-  var d=cariVeriCek();
-  var m=d.musteri[key];
-  if(!m)return;
-  var hareketler=d.hareketler.filter(function(h){return h.key===key;}).sort(function(a,b){return a.id-b.id;});
-  var satirlar='';
-  hareketler.forEach(function(h){
-    var dt=h.tarih?h.tarih.split('-'):['','',''];
-    var tarihStr=dt[2]+'.'+dt[1]+'.'+dt[0];
-    var borc=h.tip==='borc';
-    var renk=borc?'#c0392b':'#2c7a3e';
-    satirlar+='<tr><td style="padding:7px 10px;border-bottom:1px solid #e0cdb5">'+tarihStr+'</td>'+
-      '<td style="padding:7px 10px;border-bottom:1px solid #e0cdb5">'+(h.aciklama||'')+'</td>'+
-      '<td style="padding:7px 10px;border-bottom:1px solid #e0cdb5"><span class="tag" style="background:'+(borc?'#a64d3e':'#2c7a3e')+';color:#fff">'+(borc?'BORÇ':'TAHSİLAT')+'</span></td>'+
-      '<td style="padding:7px 10px;border-bottom:1px solid #e0cdb5;text-align:right;font-weight:700;color:'+renk+'">'+(borc?'+':'-')+fmtPara(h.tutar,h.para)+'</td></tr>';
-  });
-  var pop=document.createElement('div');
-  pop.id='cariEkstrePop';
-  pop.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem';
-  pop.onclick=function(e){if(e.target===pop)pop.remove();};
-  var ic=document.createElement('div');
-  ic.style.cssText='background:#f0e4d3;border-radius:10px;border:1px solid #b8985e;padding:2rem;max-width:640px;width:100%;max-height:85vh;overflow-y:auto';
-  ic.innerHTML='<div style="text-align:center;margin-bottom:1rem"><div style="font-size:18px;font-weight:700;letter-spacing:3px;color:#2c2419">'+m.isim+'</div>'+
-    '<div style="font-size:10px;letter-spacing:2px;color:#a64d3e;margin-top:3px">'+(m.kod||'')+' · CARİ EKSTRE</div></div>'+
-    '<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#2c2419">'+
-    '<th style="padding:8px 10px;font-size:9px;color:#f0e4d3;text-align:left">TARİH</th>'+
-    '<th style="padding:8px 10px;font-size:9px;color:#f0e4d3;text-align:left">AÇIKLAMA</th>'+
-    '<th style="padding:8px 10px;font-size:9px;color:#f0e4d3;text-align:left">TİP</th>'+
-    '<th style="padding:8px 10px;font-size:9px;color:#f0e4d3;text-align:right">TUTAR</th></tr></thead>'+
-    '<tbody>'+(satirlar||'<tr><td colspan="4" style="padding:1.5rem;text-align:center;color:#a64d3e">Hareket yok</td></tr>')+'</tbody></table>'+
-    '<div style="margin-top:1rem;text-align:right;font-weight:700;color:#2c2419">GÜNCEL BAKİYE: '+_musteriBakiyeStr(m)+'</div>';
-  var btns=document.createElement('div');
-  btns.style.cssText='display:flex;justify-content:flex-end;margin-top:12px;width:100%;max-width:640px';
-  btns.innerHTML='<button onclick="document.getElementById(\'cariEkstrePop\').remove()" style="font-size:12px;padding:8px 16px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:#f0e4d3;font-weight:600">Kapat</button>';
-  pop.appendChild(ic);pop.appendChild(btns);
-  document.body.appendChild(pop);
-}
-
-/* ====== CARİ TAKİP — tahsilat girişi ====== */
-function cariTahsilatPopAc(key,isim){
-  var d=cariVeriCek();
-  var m=d.musteri[key];
-  isim=isim||(m?m.isim:'');
-  var bugun=new Date().toISOString().split('T')[0];
-  var pop=document.createElement('div');
-  pop.id='cariTahsilatPop';
-  pop.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9998;display:flex;align-items:center;justify-content:center;padding:1rem';
-  pop.onclick=function(e){if(e.target===pop)pop.remove();};
-  var ic=document.createElement('div');
-  ic.style.cssText='background:#f0e4d3;border-radius:10px;border:1px solid #b8985e;padding:1.6rem;max-width:380px;width:100%';
-  ic.innerHTML='<div style="font-size:13px;font-weight:700;letter-spacing:2px;color:#2c2419;margin-bottom:1rem;text-align:center">TAHSİLAT EKLE</div>'+
-    '<label class="flbl">MÜŞTERİ</label><input class="finp cell" type="text" id="thMusteri" value="'+(isim||'').replace(/"/g,'&quot;')+'" style="margin-bottom:10px" />'+
-    '<label class="flbl">TUTAR</label><input class="finp cell" type="text" id="thTutar" inputmode="decimal" placeholder="0" style="margin-bottom:10px" />'+
-    '<label class="flbl">PARA</label><select class="opt-sel" id="thPara" style="width:100%;margin-bottom:10px"><option value="TL">₺ TL</option><option value="USD">$ USD</option><option value="EUR">€ EUR</option></select>'+
-    '<label class="flbl">TARİH</label><input class="finp cell" type="date" id="thTarih" value="'+bugun+'" style="margin-bottom:10px" />'+
-    '<label class="flbl">AÇIKLAMA</label><input class="finp cell" type="text" id="thAciklama" placeholder="Tahsilat" style="margin-bottom:14px" />'+
-    '<div style="display:flex;gap:10px;justify-content:flex-end">'+
-    '<button onclick="document.getElementById(\'cariTahsilatPop\').remove()" style="font-size:12px;padding:8px 16px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:transparent;font-weight:600">İptal</button>'+
-    '<button onclick="cariTahsilatKaydet()" style="font-size:12px;padding:8px 18px;cursor:pointer;color:#f0e4d3;border:none;border-radius:6px;background:#a64d3e;font-weight:700">Kaydet</button>'+
-    '</div>';
-  pop.appendChild(ic);
-  document.body.appendChild(pop);
-  document.getElementById('thTutar').focus();
-}
-function cariTahsilatKaydet(){
-  var isim=document.getElementById('thMusteri').value.trim();
-  var tutar=parseFloat((document.getElementById('thTutar').value||'').replace(/\./g,'').replace(',','.'))||0;
-  var para=document.getElementById('thPara').value;
-  var tarih=document.getElementById('thTarih').value;
-  var aciklama=document.getElementById('thAciklama').value.trim()||'Tahsilat';
-  if(!isim){alert('Müşteri adı boş olamaz');return;}
-  if(tutar<=0){alert('Tutar 0\'dan büyük olmalı');return;}
-  if(!tarih){alert('Tarih boş olamaz');return;}
-  cariMigrasyon();
-  var d=cariVeriCek();
-  var key=cariKey(isim);
-  if(!d.musteri[key])d.musteri[key]={isim:isim,bakiye:0,kod:_yeniMusteriKodu(d)};
-  _bakiyeAyarla(d.musteri[key],para,_bakiyeGetir(d.musteri[key],para)-tutar);
-  d.hareketler.push({id:Date.now(),tarih:tarih,musteri:d.musteri[key].isim,key:key,tip:'tahsilat',tutar:tutar,para:para,aciklama:aciklama});
-  cariVeriYaz(d);
-  var pop=document.getElementById('cariTahsilatPop');
-  if(pop)pop.remove();
-  cariListeYap();
-  if(document.getElementById('tabRap').style.display!=='none')raporGuncelle();
-  alert('✅ Tahsilat kaydedildi: '+isim+' · '+fmtPara(tutar,para));
-}
-
-/* ====== GÜNLÜK RAPOR — tahsilatlar & açık hesaplar ====== */
-function _tahsilatRaporGuncelle(bas,bit){
-  cariMigrasyon();
-  var d=cariVeriCek();
-  var hareketler=d.hareketler.filter(function(h){return h.tip==='tahsilat';});
-  if(raporFiltre==='gun'){
-    if(bas&&bit)hareketler=hareketler.filter(function(h){return h.tarih>=bas&&h.tarih<=bit;});
-    else if(bas)hareketler=hareketler.filter(function(h){return h.tarih>=bas;});
-    else if(bit)hareketler=hareketler.filter(function(h){return h.tarih<=bit;});
-  }
-  var toplam=_paraBos();
-  hareketler.forEach(function(h){toplam[h.para||'TL']+=h.tutar;});
-  document.getElementById('rTahsilat').textContent=fmtParaGrup(toplam);
-  var el=document.getElementById('raporTahsilatListe');
-  if(!hareketler.length){el.innerHTML='<div class="bos">Bu tarihte tahsilat yok</div>';return;}
-  hareketler.sort(function(a,b){return b.id-a.id;});
-  var html='<table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th class="r">TUTAR</th><th>TARİH</th></tr></thead><tbody>';
-  hareketler.forEach(function(h){
-    var dt=new Date(h.id);
-    var sa=String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
-    var tp=h.tarih?h.tarih.split('-'):['','',''];
-    var tarihKisa=tp[2]+'.'+tp[1]+'.'+tp[0];
-    html+='<tr><td>'+sa+'</td><td>'+h.musteri+'</td><td class="r">'+fmtPara(h.tutar,h.para)+'</td><td>'+tarihKisa+'</td></tr>';
-  });
-  html+='</tbody></table>';
-  el.innerHTML=html;
-}
-function _acikHesaplarGuncelle(){
-  cariMigrasyon();
-  var d=cariVeriCek();
-  var liste=Object.keys(d.musteri).map(function(k){return d.musteri[k];}).filter(function(m){
-    return Math.abs(m.bakiye||0)>0.009||Math.abs((m.bakiyeler&&m.bakiyeler.USD)||0)>0.009||Math.abs((m.bakiyeler&&m.bakiyeler.EUR)||0)>0.009;
-  });
-  var toplam=_paraBos();
-  liste.forEach(function(m){
-    toplam.TL+=m.bakiye||0;
-    toplam.USD+=(m.bakiyeler&&m.bakiyeler.USD)||0;
-    toplam.EUR+=(m.bakiyeler&&m.bakiyeler.EUR)||0;
-  });
-  document.getElementById('rAcikToplam').textContent=fmtParaGrup(toplam);
-  var el=document.getElementById('acikHesaplarListe');
-  if(!liste.length){el.innerHTML='<div class="bos">Açık hesap yok</div>';return;}
-  liste.sort(function(a,b){return (b.bakiye||0)-(a.bakiye||0);});
-  var html='<table class="rapor-tbl"><thead><tr><th>KOD</th><th>MÜŞTERİ</th><th class="r">BAKİYE</th></tr></thead><tbody>';
-  liste.forEach(function(m){
-    html+='<tr><td>'+(m.kod||'-')+'</td><td>'+m.isim+'</td><td class="r">'+_musteriBakiyeStr(m)+'</td></tr>';
-  });
-  html+='</tbody></table>';
-  el.innerHTML=html;
-}
-
-/* ====== CARİ RAPOR ÇIKTISI (PNG/PDF) ====== */
-function cariRaporTumZaman(){
-  document.getElementById('cariRaporBaslangic').value='';
-  document.getElementById('cariRaporBitis').value='';
-}
-function _cariRaporVerisi(){
-  cariMigrasyon();
-  var d=cariVeriCek();
-  var bas=document.getElementById('cariRaporBaslangic').value;
-  var bit=document.getElementById('cariRaporBitis').value;
-  var satirHareket=function(tip,key){
-    return d.hareketler.filter(function(h){
-      if(h.tip!==tip||h.key!==key)return false;
-      if(bas&&h.tarih<bas)return false;
-      if(bit&&h.tarih>bit)return false;
-      return true;
-    });
-  };
-  var liste=Object.keys(d.musteri).map(function(k){return Object.assign({_key:k},d.musteri[k]);})
-    .filter(function(m){
-      return Math.abs(m.bakiye||0)>0.009||Math.abs((m.bakiyeler&&m.bakiyeler.USD)||0)>0.009||Math.abs((m.bakiyeler&&m.bakiyeler.EUR)||0)>0.009;
-    });
-  liste.sort(function(a,b){return a.isim.localeCompare(b.isim,'tr');});
-  return liste.map(function(m){
-    var alis=_paraBos(),tahsilat=_paraBos();
-    satirHareket('borc',m._key).forEach(function(h){alis[h.para||'TL']+=h.tutar;});
-    satirHareket('tahsilat',m._key).forEach(function(h){tahsilat[h.para||'TL']+=h.tutar;});
-    return{isim:m.isim,kod:m.kod||'-',alis:alis,tahsilat:tahsilat,bakiye:{TL:m.bakiye||0,USD:(m.bakiyeler&&m.bakiyeler.USD)||0,EUR:(m.bakiyeler&&m.bakiyeler.EUR)||0}};
-  });
-}
-function cariRaporIndir(format){
-  var liste=_cariRaporVerisi();
-  var bas=document.getElementById('cariRaporBaslangic').value;
-  var bit=document.getElementById('cariRaporBitis').value;
-  var tarihAraligi=bas&&bit?(bas.split('-').reverse().join('.')+' — '+bit.split('-').reverse().join('.')):'TÜM ZAMANLAR';
-  var satirlar='';
-  if(!liste.length){
-    satirlar='<tr><td colspan="5" style="padding:1.5rem;text-align:center;color:#a64d3e">Açık hesap bulunan müşteri yok</td></tr>';
-  }else{
-    liste.forEach(function(r){
-      satirlar+='<tr>'+
-        '<td style="padding:8px 10px;border-bottom:1px solid #e0cdb5">'+r.kod+'</td>'+
-        '<td style="padding:8px 10px;border-bottom:1px solid #e0cdb5">'+r.isim+'</td>'+
-        '<td style="padding:8px 10px;border-bottom:1px solid #e0cdb5;text-align:right">'+fmtParaGrup(r.alis)+'</td>'+
-        '<td style="padding:8px 10px;border-bottom:1px solid #e0cdb5;text-align:right">'+fmtParaGrup(r.tahsilat)+'</td>'+
-        '<td style="padding:8px 10px;border-bottom:1px solid #e0cdb5;text-align:right;font-weight:700;color:#a64d3e">'+fmtParaGrup(r.bakiye)+'</td>'+
-        '</tr>';
-    });
-  }
-  var toplamBakiye=_paraBos();
-  liste.forEach(function(r){toplamBakiye.TL+=r.bakiye.TL;toplamBakiye.USD+=r.bakiye.USD;toplamBakiye.EUR+=r.bakiye.EUR;});
-  var el=document.createElement('div');
-  el.style.cssText='background:#f0e4d3;border-radius:10px;border:1px solid #b8985e;padding:2rem;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#2c2419;box-sizing:border-box;width:760px';
-  el.innerHTML='<div style="text-align:center;margin-bottom:1.2rem">'+
-    '<div style="font-size:22px;font-weight:700;letter-spacing:5px;color:#2c2419">MISS NEŞEM</div>'+
-    '<div style="font-size:10px;letter-spacing:3px;color:#a64d3e;margin-top:4px">MERTER · İSTANBUL</div>'+
-    '<div style="width:60px;height:1px;background:#b8985e;margin:8px auto"></div>'+
-    '<div style="font-size:12px;font-weight:700;letter-spacing:4px;color:#2c2419">CARİ RAPOR</div>'+
-    '<div style="font-size:10px;color:#a64d3e;margin-top:4px;letter-spacing:1px">'+tarihAraligi+'</div></div>'+
-    '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#2c2419">'+
-    '<th style="padding:9px 10px;font-size:9px;color:#f0e4d3;text-align:left">KOD</th>'+
-    '<th style="padding:9px 10px;font-size:9px;color:#f0e4d3;text-align:left">MÜŞTERİ</th>'+
-    '<th style="padding:9px 10px;font-size:9px;color:#f0e4d3;text-align:right">TOPLAM ALIŞ</th>'+
-    '<th style="padding:9px 10px;font-size:9px;color:#f0e4d3;text-align:right">TOPLAM TAHSİLAT</th>'+
-    '<th style="padding:9px 10px;font-size:9px;color:#f0e4d3;text-align:right">BAKİYE</th></tr></thead>'+
-    '<tbody>'+satirlar+'</tbody></table>'+
-    '<div style="margin-top:1.2rem;display:flex;justify-content:flex-end">'+
-    '<div style="background:#2c2419;border-radius:8px;padding:11px 20px;display:flex;align-items:center;gap:16px">'+
-    '<span style="font-size:9px;letter-spacing:2px;color:#b8985e">TOPLAM AÇIK HESAP</span>'+
-    '<span style="font-size:16px;font-weight:700;color:#f0e4d3">'+fmtParaGrup(toplamBakiye)+'</span></div></div>'+
-    '<div style="margin-top:1.2rem;text-align:center;font-size:10px;color:#a64d3e;letter-spacing:1px">MISS NEŞEM · MERTER · İSTANBUL</div>';
-  document.body.appendChild(el);
-  var dosyaAdiTaban='MissNesem_CariRapor_'+new Date().toISOString().split('T')[0];
-  if(format==='pdf'){
-    var opt={margin:[8,8,8,8],filename:dosyaAdiTaban+'.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#f0e4d3'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
-    html2pdf().set(opt).from(el).save().then(function(){el.remove();});
-  }else{
-    html2canvas(el,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
-      var link=document.createElement('a');
-      link.download=dosyaAdiTaban+'.png';
-      link.href=canvas.toDataURL('image/png');
-      link.click();
-      el.remove();
-    });
-  }
 }
 
 ekle();ekle();ekle();
