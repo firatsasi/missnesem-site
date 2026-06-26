@@ -332,6 +332,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 
   <div class="btns">
     <button class="btn-sec" onclick="dataIndir()">Yedek indir (JSON)</button>
+    <button class="btn-drk" onclick="raporPng()">Raporu PNG indir</button>
     <button class="btn-drk" onclick="raporPdf()">Raporu PDF indir</button>
   </div>
 </div>
@@ -1459,6 +1460,18 @@ function raporPdf(){
   };
   html2pdf().set(opt).from(card).save().then(function(){
     hide.forEach(function(el){el.style.display='';});
+  });
+}
+function raporPng(){
+  var card=document.querySelector('.rapor-card');
+  var hide=card.querySelectorAll('.date-pick,.btns,.si,td button');
+  hide.forEach(function(el){el.style.display='none';});
+  html2canvas(card,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
+    hide.forEach(function(el){el.style.display='';});
+    var link=document.createElement('a');
+    link.download='MissNesem_Rapor_'+new Date().toISOString().split('T')[0]+'.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
   });
 }
 
