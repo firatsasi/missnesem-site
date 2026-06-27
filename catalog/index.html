@@ -23,8 +23,8 @@
 :root {
   --bg: #faf7f3;
   --card: #ffffff;
-  --text: #7a5a6b;
-  --text2: #a0889a;
+  --text: #4a3545;
+  --text2: #7a6575;
   --accent: #c4a08a;
   --soft-pink: #edd4cc;
   --deep-pink: #e4c2b8;
@@ -48,7 +48,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: var(--footer-bg);
+  background: var(--bg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -62,7 +62,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-family: 'Cormorant Garamond', serif;
   font-weight: 400;
   font-size: clamp(2.5rem, 8vw, 5rem);
-  color: #faf7f3;
+  color: var(--text);
   letter-spacing: 0.25em;
   text-transform: uppercase;
   position: relative;
@@ -178,7 +178,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .nav-links a {
   font-size: 0.58rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text);
@@ -264,7 +264,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--text);
-  font-weight: 500;
+  font-weight: 600;
 }
 .mobile-menu a.nav-indirim { color: #c44d58; font-weight: 600; }
 .mobile-menu-close {
