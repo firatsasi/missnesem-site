@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Miss Neşem — Wholesale Women's Fashion Catalog | Merter, Istanbul</title>
+<meta name="description" content="Miss Neşem toptan kadın giyim kataloğu. Merter İstanbul'dan dünyaya. Elbise, bluz, takım, etek ve daha fazlası. Wholesale women's fashion from Istanbul." />
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href="https://missnesem.com/catalog/" />
+<meta property="og:title" content="Miss Neşem — Wholesale Women's Fashion Catalog" />
+<meta property="og:description" content="Merter İstanbul toptan kadın giyim. Summer 2026 koleksiyonu." />
+<meta property="og:image" content="https://missnesem.com/assets/missnesem_logo_white.png" />
+<meta property="og:url" content="https://missnesem.com/catalog/" />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Montserrat:wght@100;200;300;400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #faf7f3;
+  --card: #ffffff;
+  --text: #2c2419;
+  --text2: #9e8e80;
+  --accent: #c4a08a;
+  --soft-pink: #edd4cc;
+  --deep-pink: #e4c2b8;
+  --footer-bg: #2c2419;
+  --transition: 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 300;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+a { text-decoration: none; color: inherit; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+/* ===== SPLASH ===== */
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--footer-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+  overflow: hidden;
+}
+#splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.splash-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  color: #faf7f3;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+}
+.splash-sub {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 100;
+  font-size: clamp(0.6rem, 2vw, 0.75rem);
+  color: var(--accent);
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+}
+.splash-season {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 200;
+  font-size: clamp(0.55rem, 1.5vw, 0.65rem);
+  color: var(--text2);
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+  margin-top: 0.25rem;
+}
+.splash-enter {
+  margin-top: 2.5rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.35em;
+  color: var(--text2);
+  text-transform: uppercase;
+  font-weight: 200;
+  position: relative;
+  z-index: 1;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+/* blobs */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  animation: blobFloat 8s ease-in-out infinite;
+}
+.blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, var(--accent), var(--soft-pink)); top: -150px; left: -150px; animation-delay: 0s; }
+.blob-2 { width: 400px; height: 400px; background: radial-gradient(circle, var(--deep-pink), var(--accent)); bottom: -100px; right: -100px; animation-delay: -3s; }
+.blob-3 { width: 300px; height: 300px; background: radial-gradient(circle, var(--soft-pink), transparent); top: 50%; left: 60%; animation-delay: -5s; }
+@keyframes blobFloat {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(30px,-20px) scale(1.05); }
+  66% { transform: translate(-20px,30px) scale(0.95); }
+}
+
+/* particles */
+.particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+  animation: particleFloat linear infinite;
+}
+@keyframes particleFloat {
+  0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.3; }
+  100% { transform: translateY(-100px) translateX(var(--drift)); opacity: 0; }
+}
+
+/* ===== NAV ===== */
+#nav {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(250,247,243,0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  transition: var(--transition);
+}
+#nav.scrolled {
+  border-bottom-color: rgba(196,160,138,0.3);
+  box-shadow: 0 2px 20px rgba(44,36,25,0.06);
+}
+.nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 72px;
+  transition: height var(--transition);
+}
+#nav.scrolled .nav-inner { height: 56px; }
+.nav-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: 1.35rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text);
+  white-space: nowrap;
+}
+.nav-links {
+  display: flex;
+  gap: 2.5rem;
+  list-style: none;
+}
+.nav-links a {
+  font-size: 0.6rem;
+  font-weight: 300;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text);
+  position: relative;
+  padding-bottom: 2px;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 0; height: 1px;
+  background: linear-gradient(90deg, var(--accent), var(--soft-pink));
+  transition: width var(--transition);
+}
+.nav-links a:hover::after { width: 100%; }
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+.nav-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text);
+  position: relative;
+  transition: color var(--transition);
+}
+.nav-btn:hover { color: var(--accent); }
+.nav-btn .ti { font-size: 1.1rem; }
+#fav-count {
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 16px; height: 16px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 0.5rem;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 400;
+  display: none;
+}
+/* gradient underline */
+#nav::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--soft-pink), var(--accent), transparent);
+  opacity: 0.5;
+}
+/* hamburger */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  padding: 4px;
+  cursor: pointer;
+}
+.nav-hamburger span {
+  display: block;
+  width: 22px; height: 1.5px;
+  background: var(--text);
+  transition: var(--transition);
+}
+.mobile-menu {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(250,247,243,0.98);
+  z-index: 999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.mobile-menu-close {
+  position: absolute;
+  top: 1.5rem; right: 1.5rem;
+  font-size: 1.5rem;
+  color: var(--text2);
+}
+
+/* ===== HERO SLIDER ===== */
+#hero {
+  position: relative;
+  height: 90vh;
+  min-height: 600px;
+  overflow: hidden;
+}
+.slide {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  opacity: 0;
+  transition: opacity 1s ease;
+  pointer-events: none;
+}
+.slide.active { opacity: 1; pointer-events: auto; }
+.slide-visual {
+  position: relative;
+  overflow: hidden;
+}
+.slide-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+.slide-placeholder .ti { font-size: 3rem; opacity: 0.4; }
+.slide-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 5rem 4rem;
+}
+.slide-tag {
+  font-size: 0.55rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  font-weight: 300;
+}
+.slide-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
+}
+.slide-title-en {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  color: var(--text2);
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+.slide-desc {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--text2);
+  line-height: 1.8;
+  max-width: 320px;
+  margin-bottom: 2.5rem;
+}
+.slide-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--text);
+  font-weight: 300;
+  border-bottom: 1px solid var(--accent);
+  padding-bottom: 4px;
+  width: fit-content;
+  transition: color var(--transition), gap var(--transition);
+}
+.slide-cta:hover { color: var(--accent); gap: 1.25rem; }
+
+/* slide 1 */
+.slide-1 .slide-visual { background: linear-gradient(135deg, var(--soft-pink) 0%, var(--deep-pink) 50%, var(--accent) 100%); }
+.slide-1 .slide-content { background: var(--bg); }
+/* slide 2 */
+.slide-2 { grid-template-columns: 1fr 1fr; }
+.slide-2 .slide-content { background: var(--bg); order: -1; }
+.slide-2 .slide-visual { background: linear-gradient(135deg, var(--accent) 0%, var(--deep-pink) 60%, var(--soft-pink) 100%); }
+/* slide 3 */
+.slide-3 .slide-visual { background: linear-gradient(135deg, #3d2e22 0%, #2c2419 100%); }
+.slide-3 .slide-content { background: var(--footer-bg); }
+.slide-3 .slide-content .slide-title,
+.slide-3 .slide-content .slide-tag,
+.slide-3 .slide-content .slide-desc { color: var(--bg); }
+.slide-3 .slide-content .slide-title-en { color: var(--text2); }
+.slide-3 .slide-content .slide-cta { color: var(--accent); border-color: var(--accent); }
+
+/* hero controls */
+.hero-arrows {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+.hero-arrow {
+  width: 44px; height: 44px;
+  border: 1px solid rgba(196,160,138,0.4);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  transition: var(--transition);
+  font-size: 1rem;
+}
+.hero-arrow:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.hero-dots {
+  position: absolute;
+  bottom: 2.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+.hero-dot {
+  width: 24px; height: 2px;
+  background: rgba(196,160,138,0.3);
+  transition: var(--transition);
+}
+.hero-dot.active { background: var(--accent); width: 40px; }
+
+/* ===== SECTION BASE ===== */
+.section-wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 5rem 2rem;
+}
+.section-header {
+  margin-bottom: 3rem;
+}
+.section-tag {
+  font-size: 0.55rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 300;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  letter-spacing: 0.05em;
+}
+.section-divider {
+  width: 60px; height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  margin-top: 1rem;
+}
+
+/* ===== PRODUCT GRID ===== */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+/* ===== PRODUCT CARD ===== */
+.product-card {
+  cursor: pointer;
+  position: relative;
+}
+.product-card-visual {
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  position: relative;
+  background: var(--card);
+}
+.product-img-placeholder {
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: transform var(--transition);
+  position: relative;
+}
+.product-img-placeholder .ti {
+  font-size: 2.5rem;
+  opacity: 0.25;
+  color: var(--text2);
+}
+.product-code-overlay {
+  font-size: 0.55rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--text2);
+  opacity: 0.5;
+}
+.product-card:hover .product-img-placeholder { transform: scale(1.03); }
+.product-card:hover .product-card-visual {
+  box-shadow: 0 12px 40px rgba(44,36,25,0.12);
+}
+.card-fav {
+  position: absolute;
+  top: 0.75rem; right: 0.75rem;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 5;
+  color: var(--text2);
+  transition: color var(--transition), transform var(--transition);
+}
+.card-fav .ti { font-size: 1rem; }
+.card-fav:hover { color: var(--accent); transform: scale(1.2); }
+.card-fav.active { color: var(--accent); }
+.card-fav.active .ti::before { content: '\ea29'; } /* filled heart */
+
+.product-card-info {
+  padding: 1rem 0 0;
+}
+.card-code {
+  font-size: 0.55rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 300;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+.card-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  font-size: 1rem;
+  margin-bottom: 0.15rem;
+}
+.card-name-en {
+  font-size: 0.6rem;
+  color: var(--text2);
+  font-weight: 200;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
+.card-colors {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+.color-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.5);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+/* gradient for each category */
+.cat-elbiseler .product-img-placeholder { background: linear-gradient(145deg, #f5e8df 0%, #edd4cc 100%); }
+.cat-takimlar .product-img-placeholder { background: linear-gradient(145deg, #e8e0d5 0%, #d4c9b8 100%); }
+.cat-bluzlar .product-img-placeholder { background: linear-gradient(145deg, #f0ebe0 0%, #e4d8c8 100%); }
+.cat-korseler .product-img-placeholder { background: linear-gradient(145deg, #2c2419 0%, #4a3828 100%); }
+.cat-korseler .product-img-placeholder .ti { color: var(--accent); opacity: 0.4; }
+.cat-yelekler .product-img-placeholder { background: linear-gradient(145deg, #ddd5c8 0%, #c8bfb0 100%); }
+.cat-pantolonlar .product-img-placeholder { background: linear-gradient(145deg, #e0dcd5 0%, #ccc5b8 100%); }
+.cat-etekler .product-img-placeholder { background: linear-gradient(145deg, #f5ddd5 0%, #e8c8be 100%); }
+
+/* ===== CATEGORY SECTIONS ===== */
+.cat-section {
+  border-top: 1px solid rgba(196,160,138,0.2);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.cat-section.revealed { opacity: 1; transform: translateY(0); }
+
+/* ===== MODAL ===== */
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,36,25,0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+#modal-overlay.open { opacity: 1; visibility: visible; }
+.modal {
+  background: var(--card);
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  transform: translateY(20px) scale(0.97);
+  transition: transform 0.35s ease;
+}
+#modal-overlay.open .modal { transform: translateY(0) scale(1); }
+.modal-visual {
+  position: relative;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+}
+.modal-img-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+  color: var(--text2);
+}
+.modal-img-placeholder .ti { font-size: 4rem; opacity: 0.25; }
+.modal-body {
+  padding: 2.5rem 2rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.modal-close {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text2);
+  z-index: 10;
+  background: rgba(250,247,243,0.8);
+  transition: var(--transition);
+}
+.modal-close:hover { color: var(--text); background: var(--bg); }
+.modal-code {
+  font-size: 0.6rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+}
+.modal-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  font-size: 1.6rem;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+}
+.modal-name-en {
+  font-size: 0.75rem;
+  color: var(--text2);
+  font-style: italic;
+  margin-bottom: 1.5rem;
+}
+.modal-divider {
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  margin-bottom: 1.5rem;
+}
+.modal-section-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--text2);
+  font-weight: 300;
+  margin-bottom: 0.75rem;
+}
+.modal-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.modal-color-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.modal-color-dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.6);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+.modal-color-name {
+  font-size: 0.6rem;
+  color: var(--text2);
+  font-weight: 200;
+}
+.modal-sizes {
+  font-size: 0.65rem;
+  color: var(--text);
+  letter-spacing: 0.15em;
+  font-weight: 300;
+  margin-bottom: 1.5rem;
+}
+.modal-fav-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+.modal-fav-btn {
+  width: 40px; height: 40px;
+  border: 1px solid rgba(196,160,138,0.4);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text2);
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.modal-fav-btn:hover, .modal-fav-btn.active { color: var(--accent); border-color: var(--accent); }
+.modal-fav-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text2);
+  font-weight: 200;
+}
+.btn-whatsapp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-weight: 300;
+  transition: var(--transition);
+  margin-top: auto;
+}
+.btn-whatsapp:hover { background: #b8906a; }
+.btn-whatsapp .ti { font-size: 1.1rem; }
+
+/* ===== FAVORITES PANEL ===== */
+#fav-panel {
+  position: fixed;
+  top: 0; right: 0;
+  width: 380px;
+  height: 100vh;
+  background: var(--card);
+  z-index: 2001;
+  transform: translateX(100%);
+  transition: transform var(--transition);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 40px rgba(44,36,25,0.12);
+}
+#fav-panel.open { transform: translateX(0); }
+.fav-panel-header {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid rgba(196,160,138,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fav-panel-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+}
+.fav-panel-close {
+  color: var(--text2);
+  font-size: 1.1rem;
+  transition: color var(--transition);
+}
+.fav-panel-close:hover { color: var(--text); }
+.fav-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.5rem;
+}
+.fav-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(196,160,138,0.1);
+}
+.fav-item-visual {
+  width: 56px; height: 74px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.fav-item-visual .ti { font-size: 1.5rem; color: var(--text2); opacity: 0.3; }
+.fav-item-info { flex: 1; }
+.fav-item-code {
+  font-size: 0.5rem;
+  letter-spacing: 0.35em;
+  color: var(--accent);
+  text-transform: uppercase;
+  font-weight: 300;
+}
+.fav-item-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+}
+.fav-item-remove {
+  color: var(--text2);
+  font-size: 0.8rem;
+  transition: color var(--transition);
+}
+.fav-item-remove:hover { color: var(--accent); }
+.fav-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text2);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.fav-panel-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(196,160,138,0.2);
+}
+.btn-fav-wa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.9rem;
+  background: var(--footer-bg);
+  color: #faf7f3;
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-weight: 200;
+  transition: background var(--transition);
+}
+.btn-fav-wa:hover { background: var(--accent); }
+.btn-fav-wa .ti { font-size: 1rem; }
+
+/* ===== SEARCH ===== */
+#search-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1500;
+  background: var(--bg);
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(196,160,138,0.3);
+  transform: translateY(-100%);
+  transition: transform var(--transition);
+}
+#search-bar.open { transform: translateY(0); }
+#search-input {
+  flex: 1;
+  border: none;
+  background: none;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  color: var(--text);
+  outline: none;
+}
+#search-input::placeholder { color: var(--text2); }
+
+/* ===== FOOTER ===== */
+footer {
+  background: var(--footer-bg);
+  color: rgba(250,247,243,0.7);
+  padding: 4rem 2rem 2rem;
+}
+.footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.footer-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: 1.5rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #faf7f3;
+  margin-bottom: 1.5rem;
+}
+.footer-divider {
+  width: 100%; height: 1px;
+  background: rgba(196,160,138,0.25);
+  margin-bottom: 2rem;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+.footer-col-title {
+  font-size: 0.55rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 300;
+  margin-bottom: 1rem;
+}
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.footer-links a {
+  font-size: 0.65rem;
+  color: rgba(250,247,243,0.55);
+  letter-spacing: 0.1em;
+  transition: color var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.footer-links a:hover { color: var(--accent); }
+.footer-links .ti { font-size: 0.9rem; }
+.footer-social {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+.footer-social a {
+  width: 40px; height: 40px;
+  border: 1px solid rgba(196,160,138,0.3);
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(250,247,243,0.5);
+  font-size: 1rem;
+  transition: var(--transition);
+}
+.footer-social a:hover { border-color: var(--accent); color: var(--accent); }
+.footer-bottom {
+  border-top: 1px solid rgba(196,160,138,0.15);
+  padding-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.footer-location {
+  font-size: 0.55rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(250,247,243,0.4);
+}
+.footer-copy {
+  font-size: 0.55rem;
+  color: rgba(250,247,243,0.3);
+  letter-spacing: 0.15em;
+}
+
+/* ===== REVEAL ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .nav-links { gap: 1.5rem; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-inner { grid-template-columns: 1fr auto; }
+  .nav-actions { gap: 0.5rem; }
+  .slide { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+  .slide-visual { min-height: 55vw; }
+  .slide-content { padding: 2rem 1.5rem; }
+  .slide-title { font-size: 1.8rem; }
+  .slide-2 .slide-content { order: 0; }
+  .slide-2 .slide-visual { order: -1; }
+  #hero { height: auto; min-height: 100vh; }
+  .product-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .modal { grid-template-columns: 1fr; max-height: 95vh; overflow-y: auto; }
+  .modal-visual { aspect-ratio: 4/3; }
+  .footer-grid { grid-template-columns: 1fr; }
+  #fav-panel { width: 100%; }
+  .section-wrap { padding: 3rem 1rem; }
+}
+@media (max-width: 480px) {
+  .product-grid { grid-template-columns: 1fr; }
+  .nav-logo { font-size: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SPLASH ===== -->
+<div id="splash">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="splash-logo">Miss Neşem</div>
+  <div class="splash-sub">Wholesale Women's Fashion</div>
+  <div class="splash-season">Summer · 2026</div>
+  <div class="splash-enter">Tıklayın veya bekleyin</div>
+</div>
+
+<!-- ===== NAV ===== -->
+<header id="nav">
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">Miss Neşem</a>
+    <nav>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#elbiseler">Elbiseler</a></li>
+        <li><a href="#takimlar">Takımlar</a></li>
+        <li><a href="#bluzlar">Bluzlar</a></li>
+        <li><a href="#korseler">Korseler</a></li>
+        <li><a href="#yelekler">Yelekler</a></li>
+        <li><a href="#pantolonlar">Pantolonlar</a></li>
+        <li><a href="#etekler">Etekler</a></li>
+      </ul>
+    </nav>
+    <div class="nav-actions">
+      <button class="nav-btn" id="search-toggle" title="Ara"><i class="ti ti-search"></i></button>
+      <button class="nav-btn" id="fav-toggle" title="Favoriler">
+        <i class="ti ti-heart"></i>
+        <span id="fav-count">0</span>
+      </button>
+      <button class="nav-hamburger" id="hamburger" title="Menü">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- mobile menu -->
+<div class="mobile-menu" id="mobile-menu">
+  <button class="mobile-menu-close" id="mobile-close"><i class="ti ti-x"></i></button>
+  <a href="#elbiseler" class="mobile-link">Elbiseler</a>
+  <a href="#takimlar" class="mobile-link">Takımlar</a>
+  <a href="#bluzlar" class="mobile-link">Bluzlar</a>
+  <a href="#korseler" class="mobile-link">Korseler</a>
+  <a href="#yelekler" class="mobile-link">Yelekler</a>
+  <a href="#pantolonlar" class="mobile-link">Pantolonlar</a>
+  <a href="#etekler" class="mobile-link">Etekler</a>
+</div>
+
+<!-- search bar -->
+<div id="search-bar">
+  <i class="ti ti-search" style="color:var(--text2);font-size:1rem;"></i>
+  <input type="text" id="search-input" placeholder="Ürün kodu veya isim ara..." autocomplete="off" />
+  <button id="search-close" style="color:var(--text2);font-size:1rem;"><i class="ti ti-x"></i></button>
+</div>
+
+<!-- ===== HERO SLIDER ===== -->
+<section id="hero">
+  <!-- Slide 1 -->
+  <div class="slide slide-1 active">
+    <div class="slide-visual">
+      <div class="slide-placeholder">
+        <i class="ti ti-camera"></i>
+        <span>Yaz Koleksiyonu</span>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="slide-tag">Summer 2026 · Yeni Sezon</span>
+      <h1 class="slide-title">Yaz<br>Koleksiyonu</h1>
+      <p class="slide-title-en">The Summer Edit</p>
+      <p class="slide-desc">Merter'den dünyaya — en taze renkler, en özel kesimler. Yaz 2026 koleksiyonumuz şimdi kataloğumuzda.</p>
+      <a href="#elbiseler" class="slide-cta">Koleksiyonu Keşfet <i class="ti ti-arrow-right"></i></a>
+    </div>
+  </div>
+  <!-- Slide 2 -->
+  <div class="slide slide-2">
+    <div class="slide-content">
+      <span class="slide-tag">Best Sellers · En Çok Sevilenler</span>
+      <h2 class="slide-title">En Çok<br>Sevilenler</h2>
+      <p class="slide-title-en">Most Popular</p>
+      <p class="slide-desc">Dünya genelinde toptan müşterilerimizin en çok tercih ettiği parçaları keşfedin.</p>
+      <a href="#bluzlar" class="slide-cta">Görüntüle <i class="ti ti-arrow-right"></i></a>
+    </div>
+    <div class="slide-visual">
+      <div class="slide-placeholder">
+        <i class="ti ti-camera"></i>
+        <span>Most Popular</span>
+      </div>
+    </div>
+  </div>
+  <!-- Slide 3 -->
+  <div class="slide slide-3">
+    <div class="slide-visual">
+      <div class="slide-placeholder" style="color:rgba(196,160,138,0.5)">
+        <i class="ti ti-diamond"></i>
+        <span>Exclusive</span>
+      </div>
+    </div>
+    <div class="slide-content">
+      <span class="slide-tag" style="color:var(--accent)">Özel Tasarım · Exclusive</span>
+      <h2 class="slide-title" style="color:var(--bg)">Özel<br>Tasarımlar</h2>
+      <p class="slide-title-en" style="color:var(--text2)">Exclusive Pieces</p>
+      <p class="slide-desc" style="color:rgba(250,247,243,0.5)">Sadece Miss Neşem'e özel, sınırlı üretim koleksiyonlar. Her parça için WhatsApp'tan bilgi alın.</p>
+      <a href="#korseler" class="slide-cta" style="color:var(--accent);border-color:var(--accent)">Keşfet <i class="ti ti-arrow-right"></i></a>
+    </div>
+  </div>
+
+  <!-- controls -->
+  <div class="hero-dots">
+    <div class="hero-dot active" data-idx="0"></div>
+    <div class="hero-dot" data-idx="1"></div>
+    <div class="hero-dot" data-idx="2"></div>
+  </div>
+  <div class="hero-arrows">
+    <button class="hero-arrow" id="hero-prev"><i class="ti ti-chevron-left"></i></button>
+    <button class="hero-arrow" id="hero-next"><i class="ti ti-chevron-right"></i></button>
+  </div>
+</section>
+
+<!-- ===== CATALOG SECTIONS (JS render) ===== -->
+<main id="catalog"></main>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">Miss Neşem</div>
+    <div class="footer-divider"></div>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-col-title">İletişim</div>
+        <ul class="footer-links">
+          <li><a href="https://wa.me/905344644221" target="_blank"><i class="ti ti-brand-whatsapp"></i> WhatsApp</a></li>
+          <li><a href="https://t.me/missnesemwholesale" target="_blank"><i class="ti ti-brand-telegram"></i> Telegram</a></li>
+          <li><a href="mailto:info@missnesem.com"><i class="ti ti-mail"></i> info@missnesem.com</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Sosyal Medya</div>
+        <div class="footer-social">
+          <a href="https://wa.me/905344644221" target="_blank" title="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>
+          <a href="https://t.me/missnesemwholesale" target="_blank" title="Telegram"><i class="ti ti-brand-telegram"></i></a>
+          <a href="https://instagram.com/missnesemtoptan" target="_blank" title="Instagram"><i class="ti ti-brand-instagram"></i></a>
+          <a href="mailto:info@missnesem.com" title="Email"><i class="ti ti-mail"></i></a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Katalog</div>
+        <ul class="footer-links">
+          <li><a href="#elbiseler">Elbiseler</a></li>
+          <li><a href="#takimlar">Takımlar</a></li>
+          <li><a href="#bluzlar">Bluzlar</a></li>
+          <li><a href="#korseler">Korseler</a></li>
+          <li><a href="https://missnesem.com">Ana Sayfa</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-location">Merter · İstanbul · Türkiye</span>
+      <span class="footer-copy">&copy; 2026 Miss Neşem. Tüm hakları saklıdır.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== MODAL ===== -->
+<div id="modal-overlay">
+  <div class="modal" id="modal" role="dialog" aria-modal="true">
+    <div class="modal-visual" id="modal-visual">
+      <button class="modal-close" id="modal-close"><i class="ti ti-x"></i></button>
+      <div class="modal-img-placeholder" id="modal-img">
+        <i class="ti ti-camera"></i>
+      </div>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ===== FAV PANEL ===== -->
+<div id="fav-panel">
+  <div class="fav-panel-header">
+    <span class="fav-panel-title">Favorilerim</span>
+    <button class="fav-panel-close" id="fav-panel-close"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="fav-panel-body" id="fav-panel-body"></div>
+  <div class="fav-panel-footer">
+    <button class="btn-fav-wa" id="fav-wa-btn">
+      <i class="ti ti-brand-whatsapp"></i> Favorilerimi WhatsApp ile Gönder
+    </button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== SPLASH =====
+  const splash = document.getElementById('splash');
+  let splashDone = false;
+  function hideSplash() {
+    if (splashDone) return;
+    splashDone = true;
+    splash.classList.add('hidden');
+  }
+  splash.addEventListener('click', hideSplash);
+  setTimeout(hideSplash, 3000);
+
+  // particles
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
+    p.style.animationDuration = (6 + Math.random() * 8) + 's';
+    p.style.animationDelay = (Math.random() * 8) + 's';
+    p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
+    splash.appendChild(p);
+  }
+
+  // ===== NAV SCROLL =====
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  }, { passive: true });
+
+  // ===== MOBILE MENU =====
+  document.getElementById('hamburger').addEventListener('click', () => {
+    document.getElementById('mobile-menu').classList.add('open');
+  });
+  document.getElementById('mobile-close').addEventListener('click', () => {
+    document.getElementById('mobile-menu').classList.remove('open');
+  });
+  document.querySelectorAll('.mobile-link').forEach(a => {
+    a.addEventListener('click', () => document.getElementById('mobile-menu').classList.remove('open'));
+  });
+
+  // ===== SEARCH =====
+  const searchBar = document.getElementById('search-bar');
+  const searchInput = document.getElementById('search-input');
+  document.getElementById('search-toggle').addEventListener('click', () => {
+    searchBar.classList.toggle('open');
+    if (searchBar.classList.contains('open')) searchInput.focus();
+  });
+  document.getElementById('search-close').addEventListener('click', () => {
+    searchBar.classList.remove('open');
+    searchInput.value = '';
+    filterProducts('');
+  });
+  searchInput.addEventListener('input', () => filterProducts(searchInput.value));
+
+  function filterProducts(q) {
+    const query = q.toLowerCase().trim();
+    document.querySelectorAll('.product-card').forEach(card => {
+      const name = (card.dataset.name || '').toLowerCase();
+      const code = (card.dataset.code || '').toLowerCase();
+      const cat = (card.dataset.cat || '').toLowerCase();
+      const match = !query || name.includes(query) || code.includes(query) || cat.includes(query);
+      card.style.display = match ? '' : 'none';
+    });
+  }
+
+  // ===== HERO SLIDER =====
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.hero-dot');
+  let current = 0;
+  let autoInterval;
+
+  function goTo(idx) {
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = (idx + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+  }
+
+  function startAuto() {
+    autoInterval = setInterval(() => goTo(current + 1), 5000);
+  }
+  function resetAuto() {
+    clearInterval(autoInterval);
+    startAuto();
+  }
+
+  document.getElementById('hero-prev').addEventListener('click', () => { goTo(current - 1); resetAuto(); });
+  document.getElementById('hero-next').addEventListener('click', () => { goTo(current + 1); resetAuto(); });
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => { goTo(+dot.dataset.idx); resetAuto(); });
+  });
+  startAuto();
+
+  // ===== FAVORITES =====
+  let favorites = JSON.parse(localStorage.getItem('mn_favorites') || '[]');
+
+  function saveFavs() {
+    localStorage.setItem('mn_favorites', JSON.stringify(favorites));
+    updateFavCount();
+    renderFavPanel();
+  }
+
+  function isFav(code) { return favorites.includes(code); }
+
+  function toggleFav(code) {
+    if (isFav(code)) {
+      favorites = favorites.filter(c => c !== code);
+    } else {
+      favorites.push(code);
+    }
+    saveFavs();
+    updateCardFavUI(code);
+    updateModalFavUI(code);
+  }
+
+  function updateFavCount() {
+    const el = document.getElementById('fav-count');
+    el.textContent = favorites.length;
+    el.style.display = favorites.length > 0 ? 'flex' : 'none';
+  }
+
+  function updateCardFavUI(code) {
+    document.querySelectorAll(`.card-fav[data-code="${code}"]`).forEach(btn => {
+      btn.classList.toggle('active', isFav(code));
+      const icon = btn.querySelector('.ti');
+      icon.className = isFav(code) ? 'ti ti-heart-filled' : 'ti ti-heart';
+    });
+  }
+
+  function updateModalFavUI(code) {
+    const btn = document.getElementById('modal-fav-btn');
+    if (!btn || btn.dataset.code !== code) return;
+    btn.classList.toggle('active', isFav(code));
+    btn.querySelector('.ti').className = isFav(code) ? 'ti ti-heart-filled' : 'ti ti-heart';
+  }
+
+  // fav panel
+  const favPanel = document.getElementById('fav-panel');
+  document.getElementById('fav-toggle').addEventListener('click', () => {
+    favPanel.classList.toggle('open');
+  });
+  document.getElementById('fav-panel-close').addEventListener('click', () => {
+    favPanel.classList.remove('open');
+  });
+
+  function renderFavPanel() {
+    const body = document.getElementById('fav-panel-body');
+    if (favorites.length === 0) {
+      body.innerHTML = '<div class="fav-empty"><i class="ti ti-heart" style="font-size:2rem;display:block;margin-bottom:1rem;opacity:0.3;"></i>Henüz favori eklemediniz.</div>';
+      return;
+    }
+    body.innerHTML = favorites.map(code => {
+      const p = allProducts.find(x => x.code === code);
+      if (!p) return '';
+      return `<div class="fav-item">
+        <div class="fav-item-visual cat-${p.category}">
+          <i class="ti ti-hanger"></i>
+        </div>
+        <div class="fav-item-info">
+          <div class="fav-item-code">${p.code}</div>
+          <div class="fav-item-name">${p.name}</div>
+        </div>
+        <button class="fav-item-remove" onclick="window._toggleFav('${p.code}')"><i class="ti ti-x"></i></button>
+      </div>`;
+    }).join('');
+  }
+
+  window._toggleFav = toggleFav;
+
+  document.getElementById('fav-wa-btn').addEventListener('click', () => {
+    if (favorites.length === 0) return;
+    const text = 'Merhaba, aşağıdaki ürünler hakkında bilgi almak istiyorum:\n\n' +
+      favorites.map(code => {
+        const p = allProducts.find(x => x.code === code);
+        return p ? `• ${p.code} – ${p.name}` : `• ${code}`;
+      }).join('\n');
+    window.open('https://wa.me/905344644221?text=' + encodeURIComponent(text), '_blank');
+  });
+
+  // ===== MODAL =====
+  const overlay = document.getElementById('modal-overlay');
+  const modalBody = document.getElementById('modal-body');
+  const modalImg = document.getElementById('modal-img');
+
+  function openModal(product) {
+    const catGradients = {
+      elbiseler: 'linear-gradient(145deg,#f5e8df,#edd4cc)',
+      takimlar: 'linear-gradient(145deg,#e8e0d5,#d4c9b8)',
+      bluzlar: 'linear-gradient(145deg,#f0ebe0,#e4d8c8)',
+      korseler: 'linear-gradient(145deg,#2c2419,#4a3828)',
+      yelekler: 'linear-gradient(145deg,#ddd5c8,#c8bfb0)',
+      pantolonlar: 'linear-gradient(145deg,#e0dcd5,#ccc5b8)',
+      etekler: 'linear-gradient(145deg,#f5ddd5,#e8c8be)',
+    };
+    modalImg.style.background = catGradients[product.category] || 'var(--soft-pink)';
+    modalImg.innerHTML = `<i class="ti ti-camera" style="font-size:4rem;opacity:0.25;color:var(--text2);"></i>`;
+
+    const favActive = isFav(product.code);
+    modalBody.innerHTML = `
+      <div class="modal-code">${product.code}</div>
+      <div class="modal-name">${product.name}</div>
+      <div class="modal-name-en">${product.nameEn}</div>
+      <div class="modal-divider"></div>
+      <div class="modal-section-label">Renk Seçenekleri</div>
+      <div class="modal-colors">
+        ${product.colors.map(c => `
+          <div class="modal-color-item">
+            <div class="modal-color-dot" style="background:${c.hex}"></div>
+            <span class="modal-color-name">${c.name}</span>
+          </div>`).join('')}
+      </div>
+      <div class="modal-section-label">Beden Dağılımı</div>
+      <div class="modal-sizes">${product.sizes}</div>
+      <div class="modal-fav-row">
+        <button class="modal-fav-btn ${favActive ? 'active' : ''}" id="modal-fav-btn" data-code="${product.code}">
+          <i class="ti ${favActive ? 'ti-heart-filled' : 'ti-heart'}"></i>
+        </button>
+        <span class="modal-fav-label">Favorilere Ekle</span>
+      </div>
+      <a href="https://wa.me/905344644221?text=${encodeURIComponent('Merhaba, ' + product.code + ' – ' + product.name + ' ürünü hakkında bilgi almak istiyorum.')}" target="_blank" class="btn-whatsapp">
+        <i class="ti ti-brand-whatsapp"></i> Sipariş için WhatsApp
+      </a>`;
+
+    document.getElementById('modal-fav-btn').addEventListener('click', () => {
+      toggleFav(product.code);
+    });
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // ===== PRODUCTS =====
+  let allProducts = [];
+
+  function buildCategorySection(cat, products) {
+    const catProducts = products.filter(p => p.category === cat.id);
+    if (catProducts.length === 0) return '';
+
+    const cards = catProducts.map(p => {
+      const favActive = isFav(p.code);
+      const colorDots = p.colors.map(c =>
+        `<div class="color-dot" style="background:${c.hex}" title="${c.name}"></div>`
+      ).join('');
+      return `
+        <div class="product-card cat-${p.category} reveal"
+             data-code="${p.code}" data-name="${p.name} ${p.nameEn}" data-cat="${cat.name}"
+             role="button" tabindex="0" aria-label="${p.name} - ${p.code}">
+          <div class="product-card-visual">
+            <div class="product-img-placeholder">
+              <i class="ti ti-hanger"></i>
+              <span class="product-code-overlay">${p.code}</span>
+            </div>
+            <button class="card-fav ${favActive ? 'active' : ''}" data-code="${p.code}" title="Favorilere ekle" aria-label="Favori">
+              <i class="ti ${favActive ? 'ti-heart-filled' : 'ti-heart'}"></i>
+            </button>
+          </div>
+          <div class="product-card-info">
+            <span class="card-code">${p.code}</span>
+            <div class="card-name">${p.name}</div>
+            <div class="card-name-en">${p.nameEn}</div>
+            <div class="card-colors">${colorDots}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <section class="cat-section" id="${cat.id}">
+        <div class="section-wrap">
+          <div class="section-header reveal">
+            <span class="section-tag">${cat.nameEn}</span>
+            <h2 class="section-title">${cat.name}</h2>
+            <div class="section-divider"></div>
+          </div>
+          <div class="product-grid">${cards}</div>
+        </div>
+      </section>`;
+  }
+
+  function renderCatalog(data) {
+    allProducts = data.products;
+    const catalog = document.getElementById('catalog');
+    catalog.innerHTML = data.categories
+      .map(cat => buildCategorySection(cat, data.products))
+      .join('');
+
+    // card click
+    catalog.addEventListener('click', e => {
+      const favBtn = e.target.closest('.card-fav');
+      if (favBtn) { e.stopPropagation(); toggleFav(favBtn.dataset.code); return; }
+      const card = e.target.closest('.product-card');
+      if (card) {
+        const p = allProducts.find(x => x.code === card.dataset.code);
+        if (p) openModal(p);
+      }
+    });
+    catalog.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const card = e.target.closest('.product-card');
+        if (card) {
+          const p = allProducts.find(x => x.code === card.dataset.code);
+          if (p) openModal(p);
+        }
+      }
+    });
+
+    initReveal();
+    updateFavCount();
+    renderFavPanel();
+  }
+
+  // fetch products
+  fetch('./products.json')
+    .then(r => r.json())
+    .then(renderCatalog)
+    .catch(() => {
+      document.getElementById('catalog').innerHTML =
+        '<div style="text-align:center;padding:4rem;color:var(--text2);font-size:0.7rem;letter-spacing:0.3em;text-transform:uppercase;">Katalog yüklenemedi. Lütfen sayfayı yenileyin.</div>';
+    });
+
+  // ===== INTERSECTION OBSERVER (reveal) =====
+  function initReveal() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            entry.target.classList.add('visible', 'revealed');
+          }, (i % 6) * 80);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.reveal, .cat-section').forEach(el => observer.observe(el));
+  }
+
+  updateFavCount();
+})();
+</script>
+</body>
+</html>
