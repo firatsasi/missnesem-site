@@ -1516,7 +1516,7 @@ footer {
 
     const cards = catProducts.map(p => {
       const favActive = isFav(p.code);
-      const colorDots = p.colors.map(c =>
+      const colorDots = (p.colors || []).map(c =>
         `<div class="color-dot" style="background:${c.hex}" title="${c.name}"></div>`
       ).join('');
       return `
@@ -1555,11 +1555,20 @@ footer {
   }
 
   function renderCatalog(data) {
+    if (!data || !Array.isArray(data.products) || !Array.isArray(data.categories)) {
+      console.error('[MissNesem] Geçersiz data yapısı:', data);
+      document.getElementById('catalog').innerHTML =
+        '<div style="text-align:center;padding:4rem;color:var(--text2);">Veri yapısı hatalı. Konsolu kontrol edin.</div>';
+      return;
+    }
+    console.log('[MissNesem] Render başlıyor:', data.products.length, 'ürün,', data.categories.length, 'kategori');
     allProducts = data.products;
     const catalog = document.getElementById('catalog');
-    catalog.innerHTML = data.categories
+    const html = data.categories
       .map(cat => buildCategorySection(cat, data.products))
       .join('');
+    catalog.innerHTML = html;
+    console.log('[MissNesem] DOM güncellendi. Catalog children:', catalog.children.length);
 
     // card click
     catalog.addEventListener('click', e => {
@@ -1587,16 +1596,38 @@ footer {
   }
 
   // fetch products
-  fetch('products.json')
-    .then(r => r.json())
-    .then(renderCatalog)
-    .catch(() => {
+  const PRODUCTS_URL = '/catalog/products.json';
+  console.log('[MissNesem] Fetch:', PRODUCTS_URL);
+  fetch(PRODUCTS_URL)
+    .then(r => {
+      console.log('[MissNesem] Response:', r.status, r.url);
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' — ' + r.url);
+      return r.json();
+    })
+    .then(data => {
+      console.log('[MissNesem] JSON parse OK. Keys:', Object.keys(data));
+      renderCatalog(data);
+    })
+    .catch(err => {
+      console.error('[MissNesem] FETCH/RENDER HATASI:', err);
       document.getElementById('catalog').innerHTML =
-        '<div style="text-align:center;padding:4rem;color:var(--text2);font-size:0.7rem;letter-spacing:0.3em;text-transform:uppercase;">Katalog yüklenemedi. Lütfen sayfayı yenileyin.</div>';
+        '<div style="text-align:center;padding:4rem 2rem;color:var(--text2);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;">'
+        + 'Katalog yüklenemedi. Lütfen sayfayı yenileyin.<br>'
+        + '<span style="font-size:0.65rem;opacity:0.6;letter-spacing:0.1em;text-transform:none;display:block;margin-top:1rem">' + err.message + '</span>'
+        + '</div>';
     });
 
   // ===== INTERSECTION OBSERVER (reveal) =====
   function initReveal() {
+    const els = document.querySelectorAll('.reveal, .cat-section');
+    console.log('[MissNesem] initReveal:', els.length, 'element gözlemleniyor');
+
+    if (!('IntersectionObserver' in window)) {
+      // Fallback: tarayıcı desteklemiyorsa hepsini hemen göster
+      els.forEach(el => el.classList.add('visible', 'revealed'));
+      return;
+    }
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry, i) => {
         if (entry.isIntersecting) {
@@ -1606,9 +1637,16 @@ footer {
           observer.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    }, { threshold: 0.05, rootMargin: '0px 0px 0px 0px' });
 
-    document.querySelectorAll('.reveal, .cat-section').forEach(el => observer.observe(el));
+    els.forEach(el => observer.observe(el));
+
+    // Güvenlik: 2 saniye sonra hâlâ invisible kalan elementleri zorla göster
+    setTimeout(() => {
+      document.querySelectorAll('.reveal:not(.visible), .cat-section:not(.revealed)').forEach(el => {
+        el.classList.add('visible', 'revealed');
+      });
+    }, 2000);
   }
 
   updateFavCount();
