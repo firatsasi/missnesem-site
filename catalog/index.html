@@ -23,7 +23,7 @@
 :root {
   --bg: #faf7f3;
   --card: #ffffff;
-  --text: #2c2419;
+  --text: #1a1a1a;
   --text2: #9e8e80;
   --accent: #c4a08a;
   --soft-pink: #edd4cc;
@@ -34,7 +34,7 @@
 html { scroll-behavior: smooth; }
 body {
   font-family: 'Montserrat', sans-serif;
-  font-weight: 300;
+  font-weight: 400;
   background: var(--bg);
   color: var(--text);
   overflow-x: hidden;
@@ -60,7 +60,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 #splash.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 .splash-logo {
   font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
+  font-weight: 400;
   font-size: clamp(2.5rem, 8vw, 5rem);
   color: #faf7f3;
   letter-spacing: 0.25em;
@@ -70,7 +70,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .splash-sub {
   font-family: 'Montserrat', sans-serif;
-  font-weight: 100;
+  font-weight: 200;
   font-size: clamp(0.6rem, 2vw, 0.75rem);
   color: var(--accent);
   letter-spacing: 0.4em;
@@ -80,7 +80,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .splash-season {
   font-family: 'Montserrat', sans-serif;
-  font-weight: 200;
+  font-weight: 300;
   font-size: clamp(0.55rem, 1.5vw, 0.65rem);
   color: var(--text2);
   letter-spacing: 0.5em;
@@ -95,7 +95,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   letter-spacing: 0.35em;
   color: var(--text2);
   text-transform: uppercase;
-  font-weight: 200;
+  font-weight: 300;
   position: relative;
   z-index: 1;
   animation: pulse 2s ease-in-out infinite;
@@ -149,7 +149,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 #nav.scrolled {
   border-bottom-color: rgba(196,160,138,0.3);
-  box-shadow: 0 2px 20px rgba(44,36,25,0.06);
+  box-shadow: 0 2px 20px rgba(0,0,0,0.06);
 }
 .nav-inner {
   max-width: 1400px;
@@ -164,7 +164,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 #nav.scrolled .nav-inner { height: 56px; }
 .nav-logo {
   font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
+  font-weight: 400;
   font-size: 1.35rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -178,7 +178,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .nav-links a {
   font-size: 0.6rem;
-  font-weight: 300;
+  font-weight: 400;
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--text);
@@ -313,18 +313,18 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 1.5rem;
-  font-weight: 300;
+  font-weight: 400;
 }
 .slide-title {
   font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
+  font-weight: 400;
   font-size: clamp(2rem, 4vw, 3.5rem);
   line-height: 1.1;
   margin-bottom: 0.5rem;
 }
 .slide-title-en {
   font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
+  font-weight: 400;
   font-size: clamp(1rem, 2vw, 1.5rem);
   color: var(--text2);
   margin-bottom: 2rem;
@@ -346,7 +346,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   letter-spacing: 0.35em;
   text-transform: uppercase;
   color: var(--text);
-  font-weight: 300;
+  font-weight: 400;
   border-bottom: 1px solid var(--accent);
   padding-bottom: 4px;
   width: fit-content;
@@ -355,14 +355,14 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .slide-cta:hover { color: var(--accent); gap: 1.25rem; }
 
 /* slide 1 */
-.slide-1 .slide-visual { background: linear-gradient(135deg, var(--soft-pink) 0%, var(--deep-pink) 50%, var(--accent) 100%); }
+.slide-1 .slide-visual { background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); }
 .slide-1 .slide-content { background: var(--bg); }
 /* slide 2 */
 .slide-2 { grid-template-columns: 1fr 1fr; }
 .slide-2 .slide-content { background: var(--bg); order: -1; }
-.slide-2 .slide-visual { background: linear-gradient(135deg, var(--accent) 0%, var(--deep-pink) 60%, var(--soft-pink) 100%); }
+.slide-2 .slide-visual { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
 /* slide 3 */
-.slide-3 .slide-visual { background: linear-gradient(135deg, #3d2e22 0%, #2c2419 100%); }
+.slide-3 .slide-visual { background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%); }
 .slide-3 .slide-content { background: var(--footer-bg); }
 .slide-3 .slide-content .slide-title,
 .slide-3 .slide-content .slide-tag,
@@ -418,13 +418,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   letter-spacing: 0.5em;
   text-transform: uppercase;
   color: var(--accent);
-  font-weight: 300;
+  font-weight: 400;
   display: block;
   margin-bottom: 0.75rem;
 }
 .section-title {
   font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
+  font-weight: 400;
   font-size: clamp(1.8rem, 4vw, 3rem);
   letter-spacing: 0.05em;
 }
@@ -476,7 +476,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .product-card:hover .product-img-placeholder { transform: scale(1.03); }
 .product-card:hover .product-card-visual {
-  box-shadow: 0 12px 40px rgba(44,36,25,0.12);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
 }
 .card-fav {
   position: absolute;
@@ -500,7 +500,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   letter-spacing: 0.4em;
   text-transform: uppercase;
   color: var(--accent);
-  font-weight: 300;
+  font-weight: 400;
   display: block;
   margin-bottom: 0.4rem;
 }
@@ -513,7 +513,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .card-name-en {
   font-size: 0.6rem;
   color: var(--text2);
-  font-weight: 200;
+  font-weight: 300;
   margin-bottom: 0.75rem;
   font-style: italic;
 }
@@ -531,14 +531,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* gradient for each category */
-.cat-elbiseler .product-img-placeholder { background: linear-gradient(145deg, #f5e8df 0%, #edd4cc 100%); }
-.cat-takimlar .product-img-placeholder { background: linear-gradient(145deg, #e8e0d5 0%, #d4c9b8 100%); }
-.cat-bluzlar .product-img-placeholder { background: linear-gradient(145deg, #f0ebe0 0%, #e4d8c8 100%); }
-.cat-korseler .product-img-placeholder { background: linear-gradient(145deg, #2c2419 0%, #4a3828 100%); }
-.cat-korseler .product-img-placeholder .ti { color: var(--accent); opacity: 0.4; }
-.cat-yelekler .product-img-placeholder { background: linear-gradient(145deg, #ddd5c8 0%, #c8bfb0 100%); }
-.cat-pantolonlar .product-img-placeholder { background: linear-gradient(145deg, #e0dcd5 0%, #ccc5b8 100%); }
-.cat-etekler .product-img-placeholder { background: linear-gradient(145deg, #f5ddd5 0%, #e8c8be 100%); }
+.cat-elbiseler .product-img-placeholder { background: linear-gradient(145deg, #fce4ec 0%, #f8bbd0 100%); }
+.cat-takimlar .product-img-placeholder { background: linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 100%); }
+.cat-bluzlar .product-img-placeholder { background: linear-gradient(145deg, #e8eaf6 0%, #c5cae9 100%); }
+.cat-korseler .product-img-placeholder { background: linear-gradient(145deg, #fff9c4 0%, #fff176 100%); }
+.cat-yelekler .product-img-placeholder { background: linear-gradient(145deg, #fce4ec 0%, #f8bbd0 100%); }
+.cat-pantolonlar .product-img-placeholder { background: linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 100%); }
+.cat-etekler .product-img-placeholder { background: linear-gradient(145deg, #e8eaf6 0%, #c5cae9 100%); }
 
 /* ===== CATEGORY SECTIONS ===== */
 .cat-section {
@@ -553,7 +552,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 #modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(44,36,25,0.6);
+  background: rgba(0,0,0,0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 2000;
@@ -613,7 +612,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   letter-spacing: 0.5em;
   text-transform: uppercase;
   color: var(--accent);
-  font-weight: 300;
+  font-weight: 400;
   margin-bottom: 0.5rem;
 }
 .modal-name {
@@ -639,7 +638,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   letter-spacing: 0.4em;
   text-transform: uppercase;
   color: var(--text2);
-  font-weight: 300;
+  font-weight: 400;
   margin-bottom: 0.75rem;
 }
 .modal-colors {
@@ -663,13 +662,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .modal-color-name {
   font-size: 0.6rem;
   color: var(--text2);
-  font-weight: 200;
+  font-weight: 300;
 }
 .modal-sizes {
   font-size: 0.65rem;
   color: var(--text);
   letter-spacing: 0.15em;
-  font-weight: 300;
+  font-weight: 400;
   margin-bottom: 1.5rem;
 }
 .modal-fav-row {
@@ -692,7 +691,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--text2);
-  font-weight: 200;
+  font-weight: 300;
 }
 .btn-whatsapp {
   display: flex;
@@ -705,7 +704,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-size: 0.65rem;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  font-weight: 300;
+  font-weight: 400;
   transition: var(--transition);
   margin-top: auto;
 }
@@ -724,7 +723,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   transition: transform var(--transition);
   display: flex;
   flex-direction: column;
-  box-shadow: -8px 0 40px rgba(44,36,25,0.12);
+  box-shadow: -8px 0 40px rgba(0,0,0,0.12);
 }
 #fav-panel.open { transform: translateX(0); }
 .fav-panel-header {
@@ -736,7 +735,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .fav-panel-title {
   font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
+  font-weight: 400;
   font-size: 1.2rem;
   letter-spacing: 0.1em;
 }
@@ -770,7 +769,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   letter-spacing: 0.35em;
   color: var(--accent);
   text-transform: uppercase;
-  font-weight: 300;
+  font-weight: 400;
 }
 .fav-item-name {
   font-family: 'Cormorant Garamond', serif;
@@ -807,7 +806,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-size: 0.6rem;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  font-weight: 200;
+  font-weight: 300;
   transition: background var(--transition);
 }
 .btn-fav-wa:hover { background: var(--accent); }
@@ -852,7 +851,7 @@ footer {
 }
 .footer-logo {
   font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
+  font-weight: 400;
   font-size: 1.5rem;
   letter-spacing: 0.25em;
   text-transform: uppercase;
@@ -875,7 +874,7 @@ footer {
   letter-spacing: 0.4em;
   text-transform: uppercase;
   color: var(--accent);
-  font-weight: 300;
+  font-weight: 400;
   margin-bottom: 1rem;
 }
 .footer-links {
@@ -1049,23 +1048,23 @@ footer {
   <!-- Slide 2 -->
   <div class="slide slide-2">
     <div class="slide-content">
-      <span class="slide-tag">Best Sellers · En Çok Sevilenler</span>
-      <h2 class="slide-title">En Çok<br>Sevilenler</h2>
-      <p class="slide-title-en">Most Popular</p>
+      <span class="slide-tag">Best Sellers · En Çok Satanlar</span>
+      <h2 class="slide-title">En Çok<br>Satanlar</h2>
+      <p class="slide-title-en">Best Sellers</p>
       <p class="slide-desc">Dünya genelinde toptan müşterilerimizin en çok tercih ettiği parçaları keşfedin.</p>
       <a href="#bluzlar" class="slide-cta">Görüntüle <i class="ti ti-arrow-right"></i></a>
     </div>
     <div class="slide-visual">
       <div class="slide-placeholder">
         <i class="ti ti-camera"></i>
-        <span>Most Popular</span>
+        <span>Best Sellers</span>
       </div>
     </div>
   </div>
   <!-- Slide 3 -->
   <div class="slide slide-3">
     <div class="slide-visual">
-      <div class="slide-placeholder" style="color:rgba(196,160,138,0.5)">
+      <div class="slide-placeholder" style="color:rgba(100,80,160,0.4)">
         <i class="ti ti-diamond"></i>
         <span>Exclusive</span>
       </div>
@@ -1353,13 +1352,13 @@ footer {
 
   function openModal(product) {
     const catGradients = {
-      elbiseler: 'linear-gradient(145deg,#f5e8df,#edd4cc)',
-      takimlar: 'linear-gradient(145deg,#e8e0d5,#d4c9b8)',
-      bluzlar: 'linear-gradient(145deg,#f0ebe0,#e4d8c8)',
-      korseler: 'linear-gradient(145deg,#2c2419,#4a3828)',
-      yelekler: 'linear-gradient(145deg,#ddd5c8,#c8bfb0)',
-      pantolonlar: 'linear-gradient(145deg,#e0dcd5,#ccc5b8)',
-      etekler: 'linear-gradient(145deg,#f5ddd5,#e8c8be)',
+      elbiseler: 'linear-gradient(145deg,#fce4ec,#f8bbd0)',
+      takimlar: 'linear-gradient(145deg,#e8f5e9,#c8e6c9)',
+      bluzlar: 'linear-gradient(145deg,#e8eaf6,#c5cae9)',
+      korseler: 'linear-gradient(145deg,#fff9c4,#fff176)',
+      yelekler: 'linear-gradient(145deg,#fce4ec,#f8bbd0)',
+      pantolonlar: 'linear-gradient(145deg,#e8f5e9,#c8e6c9)',
+      etekler: 'linear-gradient(145deg,#e8eaf6,#c5cae9)',
     };
     modalImg.style.background = catGradients[product.category] || 'var(--soft-pink)';
     modalImg.innerHTML = `<i class="ti ti-camera" style="font-size:4rem;opacity:0.25;color:var(--text2);"></i>`;
