@@ -61,12 +61,14 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .splash-logo {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 400;
-  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-size: clamp(1.6rem, 6vw, 5rem);
   color: #1a1018;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   position: relative;
   z-index: 1;
+  text-align: center;
+  padding: 0 1rem;
 }
 .splash-sub {
   font-family: 'Montserrat', sans-serif;
@@ -980,6 +982,78 @@ footer {
 @media (max-width: 480px) {
   .product-grid { grid-template-columns: 1fr; }
   .nav-logo { font-size: 1rem; }
+}
+
+/* ===== MOBILE ENHANCEMENTS ===== */
+@media (max-width: 768px) {
+  /* Nav: hide <nav> so grid is 2-column (logo=1fr, actions=auto) */
+  .nav-inner > nav { display: none; }
+
+  /* Splash - prevent overflow */
+  .splash-sub { font-size: 0.75rem; letter-spacing: 0.25em; }
+  .splash-season { font-size: 0.7rem; letter-spacing: 0.3em; }
+  .splash-enter { font-size: 0.7rem; }
+
+  /* Hero - remove forced min-height on mobile */
+  #hero { min-height: unset; }
+  .slide-content { background: var(--bg); }
+
+  /* Modal - full screen, scrollable */
+  #modal-overlay { padding: 0; align-items: flex-end; }
+  .modal { max-height: 100vh; overflow: auto; border-radius: 0; }
+  .modal-visual { aspect-ratio: 3/2; min-height: unset; }
+  .modal-body { overflow-y: visible; }
+
+  /* Color dots - stay tappable on touch */
+  .color-dot { width: 18px; height: 18px; }
+  .modal-color-dot { width: 20px; height: 20px; }
+
+  /* Font minimums — hiçbir yazı 12px'den küçük olmasın */
+  .card-code { font-size: 0.75rem; letter-spacing: 0.2em; }
+  .card-name-en { font-size: 0.75rem; letter-spacing: 0.05em; }
+  .product-code-overlay { font-size: 0.75rem; letter-spacing: 0.2em; }
+  .section-tag { font-size: 0.75rem; letter-spacing: 0.3em; }
+  .slide-tag { font-size: 0.75rem; letter-spacing: 0.3em; }
+  .slide-desc { font-size: 0.75rem; }
+  .slide-cta { font-size: 0.75rem; letter-spacing: 0.25em; }
+  .modal-code { font-size: 0.75rem; letter-spacing: 0.3em; }
+  .modal-section-label { font-size: 0.75rem; letter-spacing: 0.25em; }
+  .modal-color-name { font-size: 0.75rem; }
+  .modal-sizes { font-size: 0.75rem; letter-spacing: 0.1em; }
+  .modal-fav-label { font-size: 0.75rem; letter-spacing: 0.15em; }
+  .modal-name-en { font-size: 0.75rem; }
+  .fav-item-code { font-size: 0.75rem; letter-spacing: 0.2em; }
+  .fav-empty { font-size: 0.75rem; }
+  .btn-whatsapp { font-size: 0.75rem; letter-spacing: 0.2em; }
+  .btn-fav-wa { font-size: 0.75rem; letter-spacing: 0.2em; }
+  .footer-col-title { font-size: 0.75rem; letter-spacing: 0.3em; }
+  .footer-links a { font-size: 0.75rem; }
+  .footer-location { font-size: 0.75rem; letter-spacing: 0.25em; }
+  .footer-copy { font-size: 0.75rem; }
+
+  /* Footer - stack bottom row */
+  .footer-bottom { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+
+  /* Fav panel - full width */
+  #fav-panel { width: 100%; }
+}
+
+@media (max-width: 480px) {
+  /* Splash further shrink on very small screens */
+  .splash-logo { font-size: clamp(1.4rem, 8vw, 2.5rem); letter-spacing: 0.15em; }
+
+  /* Hero text stays readable */
+  .slide-title { font-size: 1.5rem; }
+  .slide-content { padding: 1.5rem 1rem; }
+
+  /* Modal tighter */
+  .modal-body { padding: 1.5rem 1rem; }
+
+  /* Product grid single col */
+  .product-grid { gap: 0.75rem; }
+
+  /* Section wrap */
+  .section-wrap { padding: 2rem 0.75rem; }
 }
 </style>
 </head>
