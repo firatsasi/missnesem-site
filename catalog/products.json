@@ -1,365 +1,5354 @@
 {
   "categories": [
-    { "id": "elbiseler", "name": "Elbiseler",  "nameEn": "Dresses" },
-    { "id": "takimlar",  "name": "Takımlar",   "nameEn": "Suits & Sets" },
-    { "id": "bluzlar",   "name": "Bluzlar",    "nameEn": "Blouses" },
-    { "id": "gomlek",    "name": "Gömlekler",  "nameEn": "Shirts" },
-    { "id": "ceket",     "name": "Ceketler",   "nameEn": "Jackets & Vests" },
-    { "id": "pantolon",  "name": "Pantolonlar","nameEn": "Trousers" },
-    { "id": "etek",      "name": "Etekler",    "nameEn": "Skirts" },
-    { "id": "sort",      "name": "Şortlar",    "nameEn": "Shorts" }
+    {
+      "id": "elbiseler",
+      "name": "Elbiseler",
+      "nameEn": "Dresses"
+    },
+    {
+      "id": "takimlar",
+      "name": "Takımlar",
+      "nameEn": "Suits & Sets"
+    },
+    {
+      "id": "bluzlar",
+      "name": "Bluzlar",
+      "nameEn": "Blouses"
+    },
+    {
+      "id": "gomlek",
+      "name": "Gömlekler",
+      "nameEn": "Shirts"
+    },
+    {
+      "id": "ceket",
+      "name": "Ceketler",
+      "nameEn": "Jackets & Vests"
+    },
+    {
+      "id": "pantolon",
+      "name": "Pantolonlar",
+      "nameEn": "Trousers"
+    },
+    {
+      "id": "etek",
+      "name": "Etekler",
+      "nameEn": "Skirts"
+    },
+    {
+      "id": "sort",
+      "name": "Şortlar",
+      "nameEn": "Shorts"
+    }
   ],
   "products": [
     {
-      "code": "9141",
-      "name": "Lara Saten Midi Elbise",
-      "nameEn": "Satin Midi Wrap Dress",
-      "category": "elbiseler",
-      "colors": [
-        { "name": "Bordo", "hex": "#722f37" },
-        { "name": "Haki",  "hex": "#8b8560" },
-        { "name": "Siyah", "hex": "#1a1a1a" }
-      ],
-      "sizes": "2S · 2M · 1L · 1XL",
-      "images": []
-    },
-    {
-      "code": "8901",
-      "name": "Luna Askılı Midi Elbise",
-      "nameEn": "Strappy Satin Slip Dress",
-      "category": "elbiseler",
-      "colors": [
-        { "name": "Ekru",     "hex": "#f0ebe0" },
-        { "name": "Rose Gold","hex": "#c4a08a" },
-        { "name": "Siyah",   "hex": "#1a1a1a" }
-      ],
-      "sizes": "2S · 2M · 1L",
-      "images": []
-    },
-    {
-      "code": "8123",
-      "name": "Riva Çiçekli Maxi Elbise",
-      "nameEn": "Floral Print Maxi Dress",
-      "category": "elbiseler",
-      "colors": [
-        { "name": "Yeşil-Çiçekli", "hex": "#7a9e7e" },
-        { "name": "Pembe-Çiçekli", "hex": "#e8b4b8" }
-      ],
-      "sizes": "2S · 2M · 2L",
-      "images": []
-    },
-    {
-      "code": "9455",
-      "name": "Mila Nakışlı Mini Elbise",
-      "nameEn": "Embroidered Mini Dress",
-      "category": "elbiseler",
-      "colors": [
-        { "name": "Beyaz", "hex": "#f5f5f0" },
-        { "name": "Bej",   "hex": "#d4b896" }
-      ],
-      "sizes": "2S · 2M · 1L",
-      "images": []
-    },
-    {
-      "code": "7754",
-      "name": "Aylin Keten Takım",
-      "nameEn": "Linen Co-ord Set",
+      "code": "1019",
+      "name": "Şeritli Takım",
+      "nameEn": "Striped Set",
       "category": "takimlar",
       "colors": [
-        { "name": "Krem",     "hex": "#e8dcc8" },
-        { "name": "Açık Mavi","hex": "#aac4d0" }
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 2L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "7668",
-      "name": "Alfa Keten Blazer Takım",
-      "nameEn": "Oversized Linen Blazer Set",
-      "category": "takimlar",
+      "code": "1024",
+      "name": "Tokalı Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
       "colors": [
-        { "name": "Bej",   "hex": "#d4b896" },
-        { "name": "Siyah", "hex": "#1a1a1a" },
-        { "name": "Haki",  "hex": "#8b8560" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 2L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "9312",
-      "name": "Nisa Şalvarlı Takım",
-      "nameEn": "Harem Trouser Co-ord",
+      "code": "10258",
+      "name": "Dantel Ceket",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "1026",
+      "name": "Dantel Saten Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "1029",
+      "name": "Drape Detaylı Bluz",
+      "nameEn": "Drape Detail Blouse",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "1030",
+      "name": "Şal Pelerin Bluz",
+      "nameEn": "Shawl Cape Blouse",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Vizon",
+          "hex": "#c4a08a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "1032",
+      "name": "Puantiye Sıfır Kol Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "1033",
+      "name": "Saten Dantel Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "1037",
+      "name": "Puantiye Balenli Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "1037-1",
+      "name": "Fularlı Korse",
+      "nameEn": "Scarf Corset",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "1038",
+      "name": "Puantiye Yarasa Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "1046",
+      "name": "Puantiye Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "1047",
+      "name": "Halka Korse",
+      "nameEn": "Ring Corset",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "26001",
+      "name": "Döğmele Şort",
+      "nameEn": "",
+      "category": "sort",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "27002",
+      "name": "Keten Şort Kemerle",
+      "nameEn": "",
+      "category": "sort",
+      "colors": [
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "28003",
+      "name": "Kemersiz Şort",
+      "nameEn": "",
+      "category": "sort",
+      "colors": [
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "4380",
+      "name": "Kemerle Şort",
+      "nameEn": "",
+      "category": "sort",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Mint",
+          "hex": "#b2dfdb"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "5001",
+      "name": "Karpuz Kol Bluz",
+      "nameEn": "Puff Sleeve Blouse",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "5002",
+      "name": "Napolyon Gömlek",
+      "nameEn": "",
+      "category": "gomlek",
+      "colors": [
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "5003",
+      "name": "Mng Tokalı Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Vizon",
+          "hex": "#c4a08a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "5004",
+      "name": "V Yaka Modal Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "5016",
+      "name": "Dantel Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "5201",
+      "name": "Vatkalı Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "5293",
+      "name": "Saten Çizgili Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "5294",
+      "name": "Çizgili Saten Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6003",
+      "name": "Çok Dgm Yelek",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6076",
+      "name": "Yüksek Bel Palazzo Pantolon",
+      "nameEn": "High Waist Palazzo Trousers",
+      "category": "pantolon",
+      "colors": [
+        {
+          "name": "Acı Kahve",
+          "hex": "#8b6041"
+        },
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Mint",
+          "hex": "#b2dfdb"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6076-1",
+      "name": "Çizgili Zr Palazzo",
+      "nameEn": "",
+      "category": "pantolon",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6116",
+      "name": "Düğmeli Takım",
+      "nameEn": "Button Detail Set",
       "category": "takimlar",
       "colors": [
-        { "name": "Taş",   "hex": "#b8a99a" },
-        { "name": "Siyah", "hex": "#1a1a1a" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 2L · 1XL",
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6150",
+      "name": "Çizgili Halter Yaka Maxi Elbise",
+      "nameEn": "Striped Halter Neck Maxi Dress",
+      "category": "elbiseler",
+      "colors": [],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6266",
+      "name": "Straplez Yelek",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6269",
+      "name": "Katkat Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6300",
+      "name": "Atlas Kemerli Yelek",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6301",
+      "name": "Pv Yelek",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Gri",
+          "hex": "#9e9e9e"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6405",
+      "name": "Kancalı Şort",
+      "nameEn": "",
+      "category": "sort",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6424",
+      "name": "Ekose Pantolon",
+      "nameEn": "",
+      "category": "pantolon",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6427",
+      "name": "Yan Kemerli Twill Pantolon",
+      "nameEn": "",
+      "category": "pantolon",
+      "colors": [
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Vizon",
+          "hex": "#c4a08a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6429",
+      "name": "Saten Şallı Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "6430",
+      "name": "Saten Pantolon",
+      "nameEn": "",
+      "category": "pantolon",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "7026",
+      "name": "Katkat Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "7029",
+      "name": "Çiçek Desenli Bustier Takım",
+      "nameEn": "Floral Bustier Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8103",
+      "name": "Broşlu Gömlek",
+      "nameEn": "",
+      "category": "gomlek",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8154",
+      "name": "Çizgili Pv Ckt",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Antrasit",
+          "hex": "#464646"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8155",
+      "name": "Pv Çizgili Ceket",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Gri",
+          "hex": "#9e9e9e"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8206",
+      "name": "Pv Pantolon",
+      "nameEn": "",
+      "category": "pantolon",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Gri",
+          "hex": "#9e9e9e"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8235",
+      "name": "Ads Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8279",
+      "name": "Tül Askılı Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8280",
+      "name": "Saten Detay Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8281",
+      "name": "Yanları Açık Ceket",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8285",
+      "name": "Deri Ceket",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8286",
+      "name": "Karpuz Kol Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8288",
+      "name": "Bolera Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8293",
+      "name": "Pv Pantolon Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Gri",
+          "hex": "#9e9e9e"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8295",
+      "name": "İkili Pantolon",
+      "nameEn": "",
+      "category": "pantolon",
+      "colors": [
+        {
+          "name": "Gri",
+          "hex": "#9e9e9e"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8298",
+      "name": "Kaplama Düğme Ceket",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8299",
+      "name": "Ads Leopar Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8307",
+      "name": "Tül Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8311",
+      "name": "Degaje Crop Büzgülü Balık Etek Takım",
+      "nameEn": "Off-Shoulder Crop Ruched Fishtail Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8314",
+      "name": "Balenli Ceket",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8315",
+      "name": "Vatkalı Gömlek",
+      "nameEn": "",
+      "category": "gomlek",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8317",
+      "name": "Kaplamasız Ckt",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8322",
+      "name": "Pv Etekli Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Gri",
+          "hex": "#9e9e9e"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8325",
+      "name": "Pelerinli Takım",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8326",
+      "name": "Pv Anvelop Takım",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Antrasit",
+          "hex": "#464646"
+        },
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8328",
+      "name": "Bglm Atlas Etek",
+      "nameEn": "",
+      "category": "etek",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8329",
+      "name": "Kuşaklı Blazer",
+      "nameEn": "Belted Blazer",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Ekru",
+          "hex": "#f0ebe0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8330",
+      "name": "Çizgili Kuğu Takım",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "83301",
+      "name": "Şallı Ceket",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8332",
+      "name": "Beyaz Yaka Gömlek",
+      "nameEn": "",
+      "category": "gomlek",
+      "colors": [
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8334",
+      "name": "Çizgili Gfr Takım",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8335",
+      "name": "Üçlü Twil Takım",
+      "nameEn": "Three-Piece Twill Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8338",
+      "name": "Pitikare Gömlek",
+      "nameEn": "",
+      "category": "gomlek",
+      "colors": [],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8339",
+      "name": "Şalvar Takım",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8340",
+      "name": "Twill Pantolon",
+      "nameEn": "",
+      "category": "pantolon",
+      "colors": [
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Vizon",
+          "hex": "#c4a08a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8343",
+      "name": "Değişik Düğme Gömlek",
+      "nameEn": "",
+      "category": "gomlek",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8346",
+      "name": "Volanlı Gömlek",
+      "nameEn": "",
+      "category": "gomlek",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8348",
+      "name": "Kolsuz Yelek Takım",
+      "nameEn": "Sleeveless Vest Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Vizon",
+          "hex": "#c4a08a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8352",
+      "name": "Bağlamalı Gömlek",
+      "nameEn": "",
+      "category": "gomlek",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8354",
+      "name": "Napolyon Ceket",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8355",
+      "name": "Pv Çizgili 3 Lü Takım",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Gri",
+          "hex": "#9e9e9e"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8357",
+      "name": "Pelerinli Bağlamalı Gömlek",
+      "nameEn": "",
+      "category": "gomlek",
+      "colors": [
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8358",
+      "name": "Pv Çizgili Ceket",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Gri",
+          "hex": "#9e9e9e"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8359",
+      "name": "Bglm Twill Pant",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Vizon",
+          "hex": "#c4a08a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8360",
+      "name": "Çzg Napolyon Yelek",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8361",
+      "name": "Ekose Şortlu Etek",
+      "nameEn": "",
+      "category": "etek",
+      "colors": [
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8363",
+      "name": "Fırfırlı Ckt",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8364",
+      "name": "Gold Düğme Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8365",
+      "name": "Etekli Ckt Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8366",
+      "name": "Düğmeli Peplum Takım",
+      "nameEn": "Button Peplum Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8367",
+      "name": "V Kemerli Takım",
+      "nameEn": "V Belt Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8368",
+      "name": "Gül Düğme Ckt",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8369",
+      "name": "Kruvaze Yelek",
+      "nameEn": "Wrap Vest",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8370",
+      "name": "Kemerli Yelek",
+      "nameEn": "Belted Vest",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8372",
+      "name": "Dantelli Gümlek",
+      "nameEn": "",
+      "category": "gomlek",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8373",
+      "name": "Dantelli Takım",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8374",
+      "name": "Güllü Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Vizon",
+          "hex": "#c4a08a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8376",
+      "name": "Yanbglm Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Gri",
+          "hex": "#9e9e9e"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8377",
+      "name": "Twill Yelek Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Haki",
+          "hex": "#8b8560"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8378",
+      "name": "Tasarım Gömlek",
+      "nameEn": "",
+      "category": "gomlek",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8381",
+      "name": "Tokalı Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
       "images": []
     },
     {
       "code": "8382",
       "name": "Sharmi Dantel Bluz",
-      "nameEn": "Lace Detail Drape Blouse",
+      "nameEn": "",
       "category": "bluzlar",
       "colors": [
-        { "name": "Bej",   "hex": "#d4b896" },
-        { "name": "Siyah", "hex": "#1a1a1a" },
-        { "name": "Ekru",  "hex": "#f0ebe0" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mint",
+          "hex": "#b2dfdb"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        }
       ],
-      "sizes": "2S · 2M · 1L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "9207",
-      "name": "Ceren Omuz Detaylı Bluz",
-      "nameEn": "Cold Shoulder Ruched Blouse",
+      "code": "8384",
+      "name": "Askılı Bluz",
+      "nameEn": "",
       "category": "bluzlar",
       "colors": [
-        { "name": "Beyaz", "hex": "#f5f5f0" },
-        { "name": "Pembe", "hex": "#e8b4b8" },
-        { "name": "Siyah", "hex": "#1a1a1a" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 1L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "7932",
-      "name": "Peri Transparan Bluz",
-      "nameEn": "Sheer Chiffon Detail Blouse",
-      "category": "bluzlar",
-      "colors": [
-        { "name": "Ekru",  "hex": "#f0ebe0" },
-        { "name": "Siyah", "hex": "#1a1a1a" },
-        { "name": "Pembe", "hex": "#e8b4b8" }
-      ],
-      "sizes": "2S · 2M · 1L",
-      "images": []
-    },
-    {
-      "code": "8810",
-      "name": "Selin Crop Korset Bluz",
-      "nameEn": "Boned Crop Corset Top",
-      "category": "bluzlar",
-      "colors": [
-        { "name": "Siyah", "hex": "#1a1a1a" },
-        { "name": "Ekru",  "hex": "#f0ebe0" },
-        { "name": "Bordo", "hex": "#722f37" }
-      ],
-      "sizes": "2S · 2M · 1L",
-      "images": []
-    },
-    {
-      "code": "6890",
-      "name": "Vera Saten Crop Bluz",
-      "nameEn": "Satin Strapless Top",
-      "category": "bluzlar",
-      "colors": [
-        { "name": "Ekru",  "hex": "#f0ebe0" },
-        { "name": "Siyah", "hex": "#1a1a1a" }
-      ],
-      "sizes": "2S · 2M · 1L",
-      "images": []
-    },
-    {
-      "code": "8276",
-      "name": "Sena Bağcıklı Crop Bluz",
-      "nameEn": "Lace-Up Corset Crop Top",
-      "category": "bluzlar",
-      "colors": [
-        { "name": "Siyah", "hex": "#1a1a1a" },
-        { "name": "Bordo", "hex": "#722f37" },
-        { "name": "Ekru",  "hex": "#f0ebe0" }
-      ],
-      "sizes": "2S · 2M · 1L",
-      "images": []
-    },
-    {
-      "code": "9601",
-      "name": "Aria Oversize Gömlek",
-      "nameEn": "Oversized Cotton Shirt",
+      "code": "8386",
+      "name": "Tasarım Gömlek",
+      "nameEn": "",
       "category": "gomlek",
       "colors": [
-        { "name": "Beyaz", "hex": "#f5f5f0" },
-        { "name": "Haki",  "hex": "#8b8560" },
-        { "name": "Siyah", "hex": "#1a1a1a" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 2L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "9602",
-      "name": "Nova Saten Gömlek",
-      "nameEn": "Satin Silky Shirt",
+      "code": "8387",
+      "name": "Napolyon Keten Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8388",
+      "name": "Dantelli Ceket",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8389",
+      "name": "Kot Pantolon",
+      "nameEn": "",
+      "category": "pantolon",
+      "colors": [],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8390",
+      "name": "Dantel Peplum Bluz",
+      "nameEn": "Lace Peplum Blouse",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8391",
+      "name": "Yan Pileli Ylk Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8394",
+      "name": "Gnş Düğme Yelek Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8395",
+      "name": "Straplez Bağcıklı Korse",
+      "nameEn": "Strapless Lace-Up Corset",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8396",
+      "name": "Kemerli Gömlek Takım",
+      "nameEn": "Belted Shirt Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Haki",
+          "hex": "#8b8560"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Vizon",
+          "hex": "#c4a08a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8398",
+      "name": "Kalp Yaka Peplum",
+      "nameEn": "Heart Neck Peplum",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8399",
+      "name": "Omuz Düğme Ckt",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8402",
+      "name": "Kancalı Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8404",
+      "name": "Pileli Yelek Takım",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Mint",
+          "hex": "#b2dfdb"
+        },
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8406",
+      "name": "Pitikare Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Haki",
+          "hex": "#8b8560"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Taş",
+          "hex": "#b8a99a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8407",
+      "name": "Mao Takım",
+      "nameEn": "Mao Collar Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Haki",
+          "hex": "#8b8560"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8409",
+      "name": "Balık Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8411",
+      "name": "Ekose Etek Takım",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Haki",
+          "hex": "#8b8560"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8412",
+      "name": "Gold Ckt Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8413",
+      "name": "Poplin  Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8418",
+      "name": "Pelerinli Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8419",
+      "name": "Poplin Yelek",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8420",
+      "name": "Tek Omuz Düğmeli Takım",
+      "nameEn": "One Shoulder Button Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8422",
+      "name": "Güldüğme Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Taş",
+          "hex": "#b8a99a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8423",
+      "name": "Çzg Ylk Pnt",
+      "nameEn": "",
+      "category": "pantolon",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8424",
+      "name": "YELEK KARGO PANT TAKIM",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8425",
+      "name": "Bolero Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8427",
+      "name": "Balon Mao Takım",
+      "nameEn": "Balloon Mao Collar Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Taş",
+          "hex": "#b8a99a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8428",
+      "name": "Kimono",
+      "nameEn": "Kimono",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Vizon",
+          "hex": "#c4a08a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8429",
+      "name": "Peplum Büstiyer",
+      "nameEn": "Peplum Bustier",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8430",
+      "name": "Çizgili Yelek Pnt Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8433",
+      "name": "Puantiye Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8433-1",
+      "name": "Peplum Bluz",
+      "nameEn": "Peplum Blouse",
+      "category": "bluzlar",
+      "colors": [],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8434",
+      "name": "Puantiye Gömlek",
+      "nameEn": "",
       "category": "gomlek",
       "colors": [
-        { "name": "Ekru",  "hex": "#f0ebe0" },
-        { "name": "Bej",   "hex": "#d4b896" },
-        { "name": "Siyah", "hex": "#1a1a1a" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 1L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "9603",
-      "name": "Rena Keten Gömlek",
-      "nameEn": "Linen Button-Down Shirt",
+      "code": "8435",
+      "name": "Fiyonk Puantiye Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8436",
+      "name": "Puantiye Dilimli Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8436-1",
+      "name": "Puantiyeli Korse",
+      "nameEn": "Polka Dot Corset",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8437",
+      "name": "Puantiye Yelek Pantolon Takım",
+      "nameEn": "Polka Dot Vest Trouser Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8442",
+      "name": "Dantelli Şort",
+      "nameEn": "",
+      "category": "sort",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8443",
+      "name": "Fırfır Yarasa Elbise",
+      "nameEn": "Ruffle Batwing Dress",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Haki",
+          "hex": "#8b8560"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Taş",
+          "hex": "#b8a99a"
+        },
+        {
+          "name": "Vizon",
+          "hex": "#c4a08a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8444",
+      "name": "Etek Büstiyer Takım",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8445",
+      "name": "Tokalı Takım",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Taş",
+          "hex": "#b8a99a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8447",
+      "name": "Body Tulum",
+      "nameEn": "Bodysuit Jumpsuit",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Vizon",
+          "hex": "#c4a08a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8448",
+      "name": "Top Dgm Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Taş",
+          "hex": "#b8a99a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8449",
+      "name": "Uzun Kol Bolera",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8450",
+      "name": "Fırfır Elbise",
+      "nameEn": "Ruffle Dress",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Haki",
+          "hex": "#8b8560"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Taş",
+          "hex": "#b8a99a"
+        },
+        {
+          "name": "Turkuaz",
+          "hex": "#40bfb0"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8452",
+      "name": "Tasarım Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8453",
+      "name": "Volanlı Tül Gömlek",
+      "nameEn": "",
       "category": "gomlek",
       "colors": [
-        { "name": "Açık Mavi", "hex": "#aac4d0" },
-        { "name": "Beyaz",     "hex": "#f5f5f0" }
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Turkuaz",
+          "hex": "#40bfb0"
+        }
       ],
-      "sizes": "2S · 2M · 2L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "7291",
-      "name": "Melisa Deri Yelek Ceket",
-      "nameEn": "Faux Leather Crop Vest",
+      "code": "8454",
+      "name": "Drape Şifon Gömlek",
+      "nameEn": "Drape Chiffon Shirt",
+      "category": "gomlek",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8456",
+      "name": "Dilimli Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8457",
+      "name": "Altın Düğme Maxi Elbise",
+      "nameEn": "Gold Button Maxi Dress",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Bebe Mavi",
+          "hex": "#aac4d0"
+        },
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8465",
+      "name": "Atlet Yaka Geniş Paça Tulum",
+      "nameEn": "Tank Top Wide Leg Jumpsuit",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8466",
+      "name": "V Yaka Maxi Elbise",
+      "nameEn": "V Neck Maxi Dress",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8470",
+      "name": "Kruvaze Halter Tulum",
+      "nameEn": "Wrap Halter Jumpsuit",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Mürdüm",
+          "hex": "#6b3a6b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8471",
+      "name": "Puantiye Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8471-1",
+      "name": "Fermuarlı Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8471-11",
+      "name": "Fermuarlı Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8474",
+      "name": "Klasik Yelek",
+      "nameEn": "Classic Vest",
       "category": "ceket",
       "colors": [
-        { "name": "Siyah", "hex": "#1a1a1a" },
-        { "name": "Kahve", "hex": "#6b4226" }
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
       ],
-      "sizes": "2S · 2M · 1L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "7445",
-      "name": "Iris Oversize Yelek",
-      "nameEn": "Knit Oversized Vest",
+      "code": "8475",
+      "name": "Çok Dgm Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8480",
+      "name": "Twill Düğmeli Tulum",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8481",
+      "name": "Puantiyeli Maxi Etek",
+      "nameEn": "Polka Dot Maxi Skirt",
+      "category": "etek",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8488",
+      "name": "Trençkot Yelek",
+      "nameEn": "Trench Vest",
       "category": "ceket",
       "colors": [
-        { "name": "Krem",  "hex": "#e8dcc8" },
-        { "name": "Gri",   "hex": "#9e9e9e" },
-        { "name": "Siyah", "hex": "#1a1a1a" }
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Taba",
+          "hex": "#c19a6b"
+        },
+        {
+          "name": "Taş",
+          "hex": "#b8a99a"
+        }
       ],
-      "sizes": "2S · 2M · 1L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "9701",
-      "name": "Soho Blazer Ceket",
-      "nameEn": "Tailored Blazer Jacket",
+      "code": "8494",
+      "name": "Gnş Düğme Yelek Tkm",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8496",
+      "name": "Gabardin Yelek",
+      "nameEn": "",
       "category": "ceket",
       "colors": [
-        { "name": "Krem",  "hex": "#e8dcc8" },
-        { "name": "Siyah", "hex": "#1a1a1a" },
-        { "name": "Kamel", "hex": "#c19a6b" }
+        {
+          "name": "Gümüş",
+          "hex": "#c0c0c0"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 2L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "9033",
-      "name": "Deniz Geniş Paça Pantolon",
-      "nameEn": "Wide Leg Flowing Trousers",
-      "category": "pantolon",
+      "code": "8498",
+      "name": "Puantiyeli Halter Korse Büstiyer",
+      "nameEn": "Polka Dot Halter Corset Bustier",
+      "category": "bluzlar",
       "colors": [
-        { "name": "Kamel", "hex": "#c19a6b" },
-        { "name": "Siyah", "hex": "#1a1a1a" },
-        { "name": "Ekru",  "hex": "#f0ebe0" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 2L · 1XL",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "9088",
-      "name": "Bora Yüksek Bel Pantolon",
-      "nameEn": "High-Waist Cigarette Trousers",
-      "category": "pantolon",
+      "code": "8500",
+      "name": "Dik Yaka Crop Blazer",
+      "nameEn": "Stand Collar Crop Blazer",
+      "category": "ceket",
       "colors": [
-        { "name": "Ekru",  "hex": "#f0ebe0" },
-        { "name": "Siyah", "hex": "#1a1a1a" },
-        { "name": "Camel", "hex": "#c19a6b" }
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 2L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "9801",
-      "name": "Kira Kargo Pantolon",
-      "nameEn": "Linen Cargo Trousers",
-      "category": "pantolon",
+      "code": "8500-1",
+      "name": "Puantiye Crop Blazer",
+      "nameEn": "Polka Dot Crop Blazer",
+      "category": "ceket",
       "colors": [
-        { "name": "Haki",  "hex": "#8b8560" },
-        { "name": "Ekru",  "hex": "#f0ebe0" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 2L · 1XL",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "6623",
-      "name": "Neva Fırfırlı Mini Etek",
-      "nameEn": "Ruffle Hem Mini Skirt",
-      "category": "etek",
+      "code": "8501",
+      "name": "Straplez Balenli Korse Büstiyer",
+      "nameEn": "Strapless Boned Corset Bustier",
+      "category": "bluzlar",
       "colors": [
-        { "name": "Rose",  "hex": "#e8b4b8" },
-        { "name": "Bej",   "hex": "#d4b896" },
-        { "name": "Siyah", "hex": "#1a1a1a" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 1L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "8547",
-      "name": "Zara Balık Etek",
-      "nameEn": "Mermaid Flare Midi Skirt",
-      "category": "etek",
+      "code": "8506",
+      "name": "Straplez Sivri V Korse Büstiyer",
+      "nameEn": "Strapless V-Cut Corset Bustier",
+      "category": "bluzlar",
       "colors": [
-        { "name": "Siyah", "hex": "#1a1a1a" },
-        { "name": "Kahve", "hex": "#6b4226" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 1L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "8664",
-      "name": "Nora Deri Midi Etek",
-      "nameEn": "Faux Leather Midi Skirt",
-      "category": "etek",
+      "code": "8507",
+      "name": "Straplez Peplum Saten Korse",
+      "nameEn": "Strapless Peplum Satin Corset",
+      "category": "bluzlar",
       "colors": [
-        { "name": "Siyah", "hex": "#1a1a1a" },
-        { "name": "Kahve", "hex": "#6b4226" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 1L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "9901",
-      "name": "Mia Denim Şort",
-      "nameEn": "High-Waist Denim Shorts",
+      "code": "8509",
+      "name": "Sırt Bağcıklı Korse Bluz",
+      "nameEn": "Back Lace-Up Corset Blouse",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8510",
+      "name": "Balenli Peplum Korse Büstiyer",
+      "nameEn": "Boned Peplum Corset Bustier",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8511",
+      "name": "Bağcıklı Kare Yaka Korse Bluz",
+      "nameEn": "Lace-Up Square Neck Corset Blouse",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8512",
+      "name": "Edwan Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Taş",
+          "hex": "#b8a99a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8513",
+      "name": "Fularlı Korse Askılı Elbise",
+      "nameEn": "Scarf Corset Strap Dress",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8514",
+      "name": "Çiçek Desenli Degaje Şifon Elbise",
+      "nameEn": "Floral Off-Shoulder Chiffon Dress",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8515",
+      "name": "Yırtmaçlı Salaş Ferace",
+      "nameEn": "Slit Loose Abaya",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8518",
+      "name": "Sandy Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8521",
+      "name": "Atlas Midi Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8522",
+      "name": "Sandy Bzg Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8531",
+      "name": "Straplez Bağcıklı Korse",
+      "nameEn": "Strapless Lace-Up Corset",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8534",
+      "name": "Puantiye Şort",
+      "nameEn": "Polka Dot Shorts",
       "category": "sort",
       "colors": [
-        { "name": "Açık Mavi", "hex": "#aac4d0" },
-        { "name": "Koyu Mavi", "hex": "#4a6fa5" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 1L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "9902",
-      "name": "Ela Kumaş Şort",
-      "nameEn": "Tailored Linen Shorts",
+      "code": "8534-1",
+      "name": "Twill Şort",
+      "nameEn": "",
       "category": "sort",
       "colors": [
-        { "name": "Ekru",  "hex": "#f0ebe0" },
-        { "name": "Siyah", "hex": "#1a1a1a" },
-        { "name": "Haki",  "hex": "#8b8560" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 2L",
+      "sizes": "S · M · L",
       "images": []
     },
     {
-      "code": "9903",
-      "name": "Sia Saten Şort",
-      "nameEn": "Satin High-Waist Shorts",
-      "category": "sort",
+      "code": "8535",
+      "name": "Puantiyeli Halter Bluz",
+      "nameEn": "Polka Dot Halter Blouse",
+      "category": "bluzlar",
       "colors": [
-        { "name": "Rose Gold", "hex": "#c4a08a" },
-        { "name": "Siyah",     "hex": "#1a1a1a" }
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
       ],
-      "sizes": "2S · 2M · 1L",
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8536",
+      "name": "Kare Yaka Düğmeli Korse Takım",
+      "nameEn": "Square Neck Button Corset Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8537",
+      "name": "Straplez Kuşaklı Çiçek Desenli Maxi Elbise",
+      "nameEn": "Strapless Belted Floral Maxi Dress",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8540",
+      "name": "Limon Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [
+        {
+          "name": "Limon",
+          "hex": "#f4d03f"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8542",
+      "name": "Tül Crop Takım",
+      "nameEn": "Tulle Crop Set",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Haki",
+          "hex": "#8b8560"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Mint",
+          "hex": "#b2dfdb"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8545",
+      "name": "Piliseli Sıfır Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8554",
+      "name": "Kloş Maxi Etek",
+      "nameEn": "Flared Maxi Skirt",
+      "category": "etek",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Haki",
+          "hex": "#8b8560"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Mint",
+          "hex": "#b2dfdb"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Sarı",
+          "hex": "#f0c040"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "8565",
+      "name": "Piliseli Yarım Kol Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "9993",
+      "name": "Keten Etek",
+      "nameEn": "",
+      "category": "etek",
+      "colors": [
+        {
+          "name": "Lacivert",
+          "hex": "#2c3e6b"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "9994",
+      "name": "Pucci Desen Elbise",
+      "nameEn": "",
+      "category": "elbiseler",
+      "colors": [],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "9995",
+      "name": "Saten Takım",
+      "nameEn": "",
+      "category": "takimlar",
+      "colors": [
+        {
+          "name": "Mavi",
+          "hex": "#4a6fa5"
+        },
+        {
+          "name": "Pembe",
+          "hex": "#e8b4b8"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "9997",
+      "name": "Çapraz Bluz",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Kırmızı",
+          "hex": "#c0392b"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "9998",
+      "name": "Saten Dantelli Atlet",
+      "nameEn": "",
+      "category": "bluzlar",
+      "colors": [
+        {
+          "name": "Bej",
+          "hex": "#d4b896"
+        },
+        {
+          "name": "Beyaz",
+          "hex": "#f5f5f0"
+        },
+        {
+          "name": "Bordo",
+          "hex": "#722f37"
+        },
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        },
+        {
+          "name": "Yeşil",
+          "hex": "#7a9e7e"
+        }
+      ],
+      "sizes": "S · M · L",
+      "images": []
+    },
+    {
+      "code": "9999",
+      "name": "Çzg Şallı Ckt",
+      "nameEn": "",
+      "category": "ceket",
+      "colors": [
+        {
+          "name": "Kahve",
+          "hex": "#6b4226"
+        },
+        {
+          "name": "Siyah",
+          "hex": "#1a1a1a"
+        }
+      ],
+      "sizes": "S · M · L",
       "images": []
     }
   ]
