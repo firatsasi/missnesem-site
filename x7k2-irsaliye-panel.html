@@ -587,7 +587,7 @@ function ekle(){
   td2.style.cssText='display:flex;align-items:center;gap:4px';
   var iadeTag=document.createElement('span');iadeTag.className='iade-tag';iadeTag.textContent='İADE:';
   var i2=document.createElement('input');
-  i2.type='text';i2.placeholder='Ürün adı / kod / renk';i2.className='ri cell';i2.style.flex='1';i2.style.minWidth='0';
+  i2.type='text';i2.placeholder='Ürün adı / kod / renk';i2.className='ri cell urun-adi';i2.autocomplete='off';i2.style.flex='1';i2.style.minWidth='0';
   td2.appendChild(iadeTag);td2.appendChild(i2);
   var td3=document.createElement('td');
   var fw=document.createElement('div');fw.className='fiyat-wrap';
@@ -744,7 +744,8 @@ function kaydet(sessiz){
   var iadeToplam=0;
   document.querySelectorAll('#tb tr').forEach(function(tr){
     var qty=tr.querySelector('td:nth-child(1) input').value;
-    var ad=tr.querySelector('td:nth-child(2) input').value;
+    var adInp=tr.querySelector('.urun-adi');
+    var ad=adInp?adInp.value:'';
     var fi=tr.querySelector('.fiyat-wrap input').value;
     var chk=tr.querySelector('.iade-chk');
     var isIade=!!(chk&&chk.checked);
@@ -1183,7 +1184,7 @@ function irsaliyeDuzenle(id){
     var rows=document.querySelectorAll('#tb tr');
     var tr=rows[rows.length-1];
     tr.querySelector('td:nth-child(1) input').value=u.adet;
-    tr.querySelector('td:nth-child(2) input').value=u.ad;
+    var adInp2=tr.querySelector('.urun-adi');if(adInp2)adInp2.value=u.ad;
     tr.querySelector('.fiyat-wrap input').value=u.fiyat;
     var chk=tr.querySelector('.iade-chk');
     if(chk)chk.checked=!!u.iade;
@@ -1294,7 +1295,7 @@ function _pdfUrunKontrol(){
   var hasUrun=false;
   document.querySelectorAll('#tb tr').forEach(function(tr){
     var qty=tr.querySelector('td:nth-child(1) input');
-    var ad=tr.querySelector('td:nth-child(2) input');
+    var ad=tr.querySelector('.urun-adi');
     if(qty&&ad&&parseFloat(qty.value)>0&&ad.value.trim())hasUrun=true;
   });
   if(!hasUrun){alert('En az 1 ürün girin');return null;}
@@ -1420,7 +1421,8 @@ function whatsappSiparis(){
   var parca=0;
   document.querySelectorAll('#tb tr').forEach(function(tr){
     var qty=tr.querySelector('td:nth-child(1) input').value;
-    var ad=tr.querySelector('td:nth-child(2) input').value;
+    var adInp3=tr.querySelector('.urun-adi');
+    var ad=adInp3?adInp3.value:'';
     var chk=tr.querySelector('.iade-chk');
     var isIade=!!(chk&&chk.checked);
     var a=parseFloat(qty)||0;
