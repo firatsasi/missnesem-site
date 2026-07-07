@@ -1610,6 +1610,7 @@ footer {
       <div class="modal-name">${product.name}</div>
       <div class="modal-name-en">${product.nameEn}</div>
       <div class="modal-divider"></div>
+      ${product.colors && product.colors.length > 1 ? `
       <div class="modal-section-label">Renk Seçenekleri</div>
       <div class="modal-colors">
         ${product.colors.map(c => `
@@ -1617,7 +1618,7 @@ footer {
             <div class="modal-color-dot" style="background:${c.hex}"></div>
             <span class="modal-color-name">${c.name}</span>
           </div>`).join('')}
-      </div>
+      </div>` : ''}
       <div class="modal-section-label">Beden Dağılımı</div>
       <div class="modal-sizes">${product.sizes}</div>
       <div class="modal-fav-row">
@@ -1666,9 +1667,9 @@ footer {
 
     const cards = catProducts.map(p => {
       const favActive = isFav(p.code);
-      const colorDots = (p.colors || []).map(c =>
-        `<div class="color-dot" style="background:${c.hex}" title="${c.name}"></div>`
-      ).join('');
+      const colorDots = (p.colors && p.colors.length > 1)
+        ? p.colors.map(c => `<div class="color-dot" style="background:${c.hex}" title="${c.name}"></div>`).join('')
+        : '';
       const coverPhoto = p.colors && p.colors[0] && p.colors[0].kapakFoto;
       const visualInner = coverPhoto
         ? `<img class="product-card-img" src="${coverPhoto}" alt="${p.name}" loading="lazy">`
@@ -1690,7 +1691,7 @@ footer {
             <span class="card-code">${p.code}</span>
             <div class="card-name">${p.name}</div>
             <div class="card-name-en">${p.nameEn}</div>
-            <div class="card-colors">${colorDots}</div>
+            ${colorDots ? `<div class="card-colors">${colorDots}</div>` : ''}
           </div>
         </div>`;
     }).join('');
