@@ -825,7 +825,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 #fullscreen-overlay {
   position: fixed;
   inset: 0;
-  background: #1a1a1a;
+  background: #ffffff;
   z-index: 3000;
   display: flex;
   align-items: center;
@@ -838,45 +838,31 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 #fullscreen-photo {
   width: 100vw;
   max-height: calc(100vh - 100px);
-  background: #1a1a1a;
+  background: #ffffff;
   object-fit: contain;
   transform: scale(0.9);
   transition: transform 0.3s ease, max-height 0.2s ease;
 }
 #fullscreen-overlay.open #fullscreen-photo { transform: scale(1); }
-/* Tek fotoğraflı ürünlerde koyu çerçeve yerine beyaz zemin (fotoğraf zaten genelde beyaz fonlu) */
-#fullscreen-overlay.fullscreen-light { background: #fff; }
-#fullscreen-overlay.fullscreen-light #fullscreen-photo { background: #fff; }
-#fullscreen-overlay.fullscreen-light .fullscreen-close,
-#fullscreen-overlay.fullscreen-light .fullscreen-nav-prev,
-#fullscreen-overlay.fullscreen-light .fullscreen-nav-next {
-  color: #1a1a1a;
-  background: rgba(0,0,0,0.08);
-}
-#fullscreen-overlay.fullscreen-light .fullscreen-close:hover,
-#fullscreen-overlay.fullscreen-light .fullscreen-nav-prev:hover,
-#fullscreen-overlay.fullscreen-light .fullscreen-nav-next:hover {
-  background: rgba(0,0,0,0.15);
-}
 .fullscreen-close {
   position: absolute;
   top: 1.25rem; right: 1.25rem;
   width: 44px; height: 44px;
   display: flex; align-items: center; justify-content: center;
-  color: #fff;
-  background: rgba(255,255,255,0.15);
+  color: #333;
+  background: rgba(0,0,0,0.06);
   border-radius: 50%;
   z-index: 10;
   transition: background 0.2s ease;
 }
-.fullscreen-close:hover { background: rgba(255,255,255,0.3); }
+.fullscreen-close:hover { background: rgba(0,0,0,0.12); }
 .fullscreen-close .ti { font-size: 1.3rem; }
 .fullscreen-nav-prev, .fullscreen-nav-next {
   width: 52px; height: 52px;
-  background: rgba(255,255,255,0.15);
-  color: #fff;
+  background: rgba(0,0,0,0.06);
+  color: #333;
 }
-.fullscreen-nav-prev:hover, .fullscreen-nav-next:hover { background: rgba(255,255,255,0.3); }
+.fullscreen-nav-prev:hover, .fullscreen-nav-next:hover { background: rgba(0,0,0,0.12); }
 .fullscreen-nav-prev .ti, .fullscreen-nav-next .ti { font-size: 1.6rem; }
 .fullscreen-nav-prev { left: 1.5rem; }
 .fullscreen-nav-next { right: 1.5rem; }
@@ -892,14 +878,14 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   gap: 0.6rem;
   padding: 0.5rem 0.75rem;
   justify-content: center;
-  background: rgba(0,0,0,0.5);
+  background: #f0f0f0;
 }
 .fullscreen-swatches:empty { display: none; }
 .fullscreen-swatch {
   width: 22px; height: 22px;
   border-radius: 50%;
   border: 2px solid transparent;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.35);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
   cursor: pointer;
   flex-shrink: 0;
   transition: border-color 0.2s ease;
@@ -910,7 +896,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   gap: 0.5rem;
   padding: 0.75rem;
   overflow-x: auto;
-  background: rgba(0,0,0,0.5);
+  background: #f0f0f0;
 }
 .fullscreen-thumb-strip:empty { display: none; }
 
@@ -1839,11 +1825,6 @@ footer {
     fullscreenPhoto.style.maxHeight = 'calc(100vh - ' + (barHeight + 24) + 'px)';
   }
 
-  // Galerisi olmayan (tek fotoğraflı) ürünlerde koyu çerçeve yerine beyaz zemin kullan
-  function updateFullscreenBackground() {
-    fullscreenOverlay.classList.toggle('fullscreen-light', currentPhotos.length <= 1);
-  }
-
   function renderFullscreenSwatches() {
     if (!currentProduct || !currentProduct.colors || currentProduct.colors.length <= 1) {
       fullscreenSwatches.innerHTML = '';
@@ -1870,7 +1851,6 @@ footer {
       renderFullscreenSwatches();
       updateFullscreenView();
       adjustFullscreenPhotoHeight();
-      updateFullscreenBackground();
     }
   }
 
@@ -1914,7 +1894,6 @@ footer {
     renderFullscreenSwatches();
     updateFullscreenView();
     adjustFullscreenPhotoHeight();
-    updateFullscreenBackground();
     fullscreenOverlay.classList.add('open');
   }
 
@@ -2032,7 +2011,7 @@ footer {
       const colorDots = (p.colors && p.colors.length > 1)
         ? p.colors.map(c => `<div class="color-dot" style="background:${c.hex}" title="${c.name}"></div>`).join('')
         : '';
-      const coverPhoto = p.colors && p.colors[0] && (p.colors[0].kapakFotoThumb || p.colors[0].kapakFoto);
+      const coverPhoto = p.colors && p.colors[0] && p.colors[0].kapakFoto;
       const visualInner = coverPhoto
         ? `<img class="product-card-img" src="${coverPhoto}" alt="${p.name}" loading="lazy">`
         : `<div class="product-img-placeholder">
