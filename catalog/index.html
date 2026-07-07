@@ -612,10 +612,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .modal-photo {
   display: none;
   width: 100%;
-  max-height: 70vh;
+  max-height: 80vh;
   object-fit: contain;
   opacity: 0;
   transition: opacity 0.3s ease;
+  cursor: zoom-in;
 }
 .modal-color-item { cursor: pointer; }
 
@@ -814,6 +815,61 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .btn-whatsapp:hover { background: #b8906a; }
 .btn-whatsapp .ti { font-size: 1.1rem; }
+
+/* ===== FULLSCREEN GÖRSEL MODU ===== */
+#fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.95);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+#fullscreen-overlay.open { opacity: 1; visibility: visible; }
+#fullscreen-photo {
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+#fullscreen-overlay.open #fullscreen-photo { transform: scale(1); }
+.fullscreen-close {
+  position: absolute;
+  top: 1.25rem; right: 1.25rem;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  background: rgba(255,255,255,0.15);
+  border-radius: 50%;
+  z-index: 10;
+  transition: background 0.2s ease;
+}
+.fullscreen-close:hover { background: rgba(255,255,255,0.3); }
+.fullscreen-close .ti { font-size: 1.3rem; }
+.fullscreen-nav-prev, .fullscreen-nav-next {
+  width: 52px; height: 52px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+.fullscreen-nav-prev:hover, .fullscreen-nav-next:hover { background: rgba(255,255,255,0.3); }
+.fullscreen-nav-prev .ti, .fullscreen-nav-next .ti { font-size: 1.6rem; }
+.fullscreen-nav-prev { left: 1.5rem; }
+.fullscreen-nav-next { right: 1.5rem; }
+.fullscreen-thumb-strip {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  overflow-x: auto;
+  background: rgba(0,0,0,0.5);
+  z-index: 5;
+}
 
 /* ===== FAVORITES PANEL ===== */
 #fav-panel {
@@ -1352,6 +1408,15 @@ footer {
   </div>
 </div>
 
+<!-- ===== FULLSCREEN GÖRSEL MODU ===== -->
+<div id="fullscreen-overlay">
+  <button class="fullscreen-close" id="fullscreen-close" aria-label="Kapat"><i class="ti ti-x"></i></button>
+  <img id="fullscreen-photo" alt="" />
+  <button class="modal-nav fullscreen-nav-prev" id="fullscreen-nav-prev" aria-label="Önceki fotoğraf"><i class="ti ti-chevron-left"></i></button>
+  <button class="modal-nav fullscreen-nav-next" id="fullscreen-nav-next" aria-label="Sonraki fotoğraf"><i class="ti ti-chevron-right"></i></button>
+  <div class="fullscreen-thumb-strip" id="fullscreen-thumb-strip"></div>
+</div>
+
 <!-- ===== FAV PANEL ===== -->
 <div id="fav-panel">
   <div class="fav-panel-header">
@@ -1645,21 +1710,24 @@ footer {
   function goToPhoto(idx) {
     if (idx < 0 || idx >= currentPhotos.length) return;
     currentPhotoIndex = idx;
-    setModalPhoto(currentPhotos[idx], false);
+    const p = currentPhotos[idx];
+    setModalPhoto(p.medium || p.full, false);
     updateThumbActive(idx);
     updateNavArrows();
+    if (fullscreenOverlay.classList.contains('open')) updateFullscreenView();
   }
 
   function renderThumbStrip(color) {
     const galeri = (color && color.galeriFotolar) || [];
-    currentPhotos = [color && color.kapakFoto, ...galeri].filter(Boolean);
+    const cover = color ? { medium: color.kapakFoto, thumb: color.kapakFotoThumb, full: color.kapakFotoFull } : null;
+    currentPhotos = [cover, ...galeri].filter(p => p && (p.medium || p.thumb || p.full));
     currentPhotoIndex = 0;
 
     if (galeri.length === 0) {
       modalThumbStrip.innerHTML = '';
     } else {
       modalThumbStrip.innerHTML = currentPhotos
-        .map((url, idx) => `<img class="modal-thumb${idx === 0 ? ' active' : ''}" src="${url}" alt="" data-idx="${idx}" loading="lazy">`)
+        .map((p, idx) => `<img class="modal-thumb${idx === 0 ? ' active' : ''}" src="${p.thumb || p.medium}" alt="" data-idx="${idx}" loading="lazy">`)
         .join('');
 
       modalThumbStrip.querySelectorAll('.modal-thumb').forEach(thumb => {
@@ -1676,6 +1744,7 @@ footer {
   // Mobil: parmakla kaydırarak fotoğraf değiştir
   let touchStartX = 0;
   let touchStartY = 0;
+  let suppressNextClick = false;
   modalMainPhoto.addEventListener('touchstart', e => {
     touchStartX = e.changedTouches[0].clientX;
     touchStartY = e.changedTouches[0].clientY;
@@ -1683,6 +1752,87 @@ footer {
   modalMainPhoto.addEventListener('touchend', e => {
     const dx = e.changedTouches[0].clientX - touchStartX;
     const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      suppressNextClick = true;
+      goToPhoto(currentPhotoIndex + (dx < 0 ? 1 : -1));
+      setTimeout(() => { suppressNextClick = false; }, 400);
+    }
+  }, { passive: true });
+
+  // ===== FULLSCREEN GÖRSEL MODU =====
+  const fullscreenOverlay = document.getElementById('fullscreen-overlay');
+  const fullscreenPhoto = document.getElementById('fullscreen-photo');
+  const fullscreenThumbStrip = document.getElementById('fullscreen-thumb-strip');
+  const fullscreenNavPrev = document.getElementById('fullscreen-nav-prev');
+  const fullscreenNavNext = document.getElementById('fullscreen-nav-next');
+
+  function updateFullscreenView() {
+    const p = currentPhotos[currentPhotoIndex];
+    const mediumUrl = p && (p.medium || p.full);
+    const fullUrl = p && (p.full || p.medium);
+
+    // Orijinal (full) fotoğraf birkaç MB olabilir; kullanıcı boş/yarım ekran görmesin diye
+    // modaldan zaten yüklü olan medium anında gösterilir, full arka planda hazır olunca değiştirilir.
+    fullscreenPhoto.src = mediumUrl || '';
+    if (fullUrl && fullUrl !== mediumUrl) {
+      const preload = new Image();
+      preload.onload = () => {
+        if (currentPhotos[currentPhotoIndex] === p) {
+          fullscreenPhoto.src = fullUrl;
+        }
+      };
+      preload.src = fullUrl;
+    }
+
+    fullscreenNavPrev.style.display = currentPhotoIndex > 0 ? 'flex' : 'none';
+    fullscreenNavNext.style.display = currentPhotoIndex < currentPhotos.length - 1 ? 'flex' : 'none';
+    fullscreenThumbStrip.querySelectorAll('.modal-thumb').forEach((t, i) => {
+      t.classList.toggle('active', i === currentPhotoIndex);
+    });
+  }
+
+  function renderFullscreenThumbs() {
+    fullscreenThumbStrip.innerHTML = currentPhotos
+      .map((p, idx) => `<img class="modal-thumb${idx === currentPhotoIndex ? ' active' : ''}" src="${p.thumb || p.medium}" alt="" data-idx="${idx}" loading="lazy">`)
+      .join('');
+    fullscreenThumbStrip.querySelectorAll('.modal-thumb').forEach(thumb => {
+      thumb.addEventListener('click', () => goToPhoto(Number(thumb.dataset.idx)));
+    });
+  }
+
+  function openFullscreen() {
+    if (currentPhotos.length === 0) return;
+    renderFullscreenThumbs();
+    updateFullscreenView();
+    fullscreenOverlay.classList.add('open');
+  }
+
+  function closeFullscreen() {
+    fullscreenOverlay.classList.remove('open');
+  }
+
+  modalMainPhoto.addEventListener('click', e => {
+    if (suppressNextClick) { suppressNextClick = false; return; }
+    if (e.target.closest('.modal-nav')) return;
+    openFullscreen();
+  });
+
+  document.getElementById('fullscreen-close').addEventListener('click', closeFullscreen);
+  fullscreenNavPrev.addEventListener('click', () => goToPhoto(currentPhotoIndex - 1));
+  fullscreenNavNext.addEventListener('click', () => goToPhoto(currentPhotoIndex + 1));
+  fullscreenOverlay.addEventListener('click', e => {
+    if (e.target === fullscreenOverlay) closeFullscreen();
+  });
+
+  let fsTouchStartX = 0;
+  let fsTouchStartY = 0;
+  fullscreenOverlay.addEventListener('touchstart', e => {
+    fsTouchStartX = e.changedTouches[0].clientX;
+    fsTouchStartY = e.changedTouches[0].clientY;
+  }, { passive: true });
+  fullscreenOverlay.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - fsTouchStartX;
+    const dy = e.changedTouches[0].clientY - fsTouchStartY;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
       goToPhoto(currentPhotoIndex + (dx < 0 ? 1 : -1));
     }
@@ -1741,6 +1891,12 @@ footer {
   document.getElementById('modal-close').addEventListener('click', closeModal);
   overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
   document.addEventListener('keydown', e => {
+    if (fullscreenOverlay.classList.contains('open')) {
+      if (e.key === 'Escape') closeFullscreen();
+      if (e.key === 'ArrowLeft') goToPhoto(currentPhotoIndex - 1);
+      if (e.key === 'ArrowRight') goToPhoto(currentPhotoIndex + 1);
+      return;
+    }
     if (e.key === 'Escape') closeModal();
     if (overlay.classList.contains('open')) {
       if (e.key === 'ArrowLeft') goToPhoto(currentPhotoIndex - 1);
@@ -1760,7 +1916,7 @@ footer {
       const colorDots = (p.colors && p.colors.length > 1)
         ? p.colors.map(c => `<div class="color-dot" style="background:${c.hex}" title="${c.name}"></div>`).join('')
         : '';
-      const coverPhoto = p.colors && p.colors[0] && p.colors[0].kapakFoto;
+      const coverPhoto = p.colors && p.colors[0] && (p.colors[0].kapakFotoThumb || p.colors[0].kapakFoto);
       const visualInner = coverPhoto
         ? `<img class="product-card-img" src="${coverPhoto}" alt="${p.name}" loading="lazy">`
         : `<div class="product-img-placeholder">
@@ -1861,6 +2017,14 @@ footer {
     'Tesettür': 'tesettur', 'Diğer': 'diger',
   };
 
+  // Galeri elemanı ya eski API/fallback'te düz URL string'i ya da yeni API'de
+  // {medium,thumb,full} objesi olabilir — ikisini de tek bir tier objesine indirger.
+  function photoTier(entry) {
+    if (!entry) return null;
+    if (typeof entry === 'string') return { medium: entry, thumb: entry, full: entry };
+    return { medium: entry.medium || null, thumb: entry.thumb || null, full: entry.full || null };
+  }
+
   function mapApiProduct(p) {
     return {
       code: p.kod,
@@ -1871,7 +2035,9 @@ footer {
         name: r.renk,
         hex: r.hex || '#CCCCCC',
         kapakFoto: r.kapakFoto || null,
-        galeriFotolar: r.galeriFotolar || [],
+        kapakFotoThumb: r.kapakFotoThumb || r.kapakFoto || null,
+        kapakFotoFull: r.kapakFotoFull || r.kapakFoto || null,
+        galeriFotolar: (r.galeriFotolar || []).map(photoTier).filter(Boolean),
       })),
       sizes: p.bedenler || '',
       stokta: p.stokta !== false,
@@ -1890,7 +2056,9 @@ footer {
         name: c.name,
         hex: c.hex,
         kapakFoto: c.kapakFoto || null,
-        galeriFotolar: c.galeriFotolar || [],
+        kapakFotoThumb: c.kapakFoto || null,
+        kapakFotoFull: c.kapakFoto || null,
+        galeriFotolar: (c.galeriFotolar || []).map(photoTier).filter(Boolean),
       })),
     }));
     return raw;
