@@ -620,6 +620,38 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .modal-color-item { cursor: pointer; }
 
+/* ===== MODAL GALLERY THUMBNAIL STRIP ===== */
+.modal-main-photo {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.modal-thumb-strip {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  overflow-x: auto;
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.03);
+}
+.modal-thumb-strip:empty { display: none; }
+.modal-thumb {
+  width: 60px; height: 80px;
+  flex-shrink: 0;
+  object-fit: cover;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  opacity: 0.65;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+.modal-thumb:hover { opacity: 0.9; }
+.modal-thumb.active {
+  opacity: 1;
+  border-color: #c4a08a;
+}
+
 /* ===== CATEGORY SECTIONS ===== */
 .cat-section {
   border-top: 1px solid rgba(196,160,138,0.2);
@@ -662,6 +694,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   position: relative;
   aspect-ratio: 3/4;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .modal-img-placeholder {
   width: 100%; height: 100%;
@@ -1319,10 +1353,13 @@ footer {
   <div class="modal" id="modal" role="dialog" aria-modal="true">
     <div class="modal-visual" id="modal-visual">
       <button class="modal-close" id="modal-close"><i class="ti ti-x"></i></button>
-      <img class="modal-photo" id="modal-photo" alt="" />
-      <div class="modal-img-placeholder" id="modal-img">
-        <i class="ti ti-camera"></i>
+      <div class="modal-main-photo" id="modal-main-photo">
+        <img class="modal-photo" id="modal-photo" alt="" />
+        <div class="modal-img-placeholder" id="modal-img">
+          <i class="ti ti-camera"></i>
+        </div>
       </div>
+      <div class="modal-thumb-strip" id="modal-thumb-strip"></div>
     </div>
     <div class="modal-body" id="modal-body"></div>
   </div>
@@ -1565,6 +1602,7 @@ footer {
   const modalBody = document.getElementById('modal-body');
   const modalImg = document.getElementById('modal-img');
   const modalPhoto = document.getElementById('modal-photo');
+  const modalThumbStrip = document.getElementById('modal-thumb-strip');
 
   const CAT_GRADIENTS = {
     elbiseler: 'linear-gradient(145deg,#fce4ec,#f8bbd0)',
@@ -1598,6 +1636,27 @@ footer {
     if (immediate) { apply(); return; }
     modalPhoto.style.opacity = '0';
     setTimeout(apply, 300);
+  }
+
+  function renderThumbStrip(color) {
+    const galeri = (color && color.galeriFotolar) || [];
+    if (galeri.length === 0) {
+      modalThumbStrip.innerHTML = '';
+      return;
+    }
+
+    const photos = [color.kapakFoto, ...galeri].filter(Boolean);
+    modalThumbStrip.innerHTML = photos
+      .map((url, idx) => `<img class="modal-thumb${idx === 0 ? ' active' : ''}" src="${url}" alt="" data-idx="${idx}">`)
+      .join('');
+
+    modalThumbStrip.querySelectorAll('.modal-thumb').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        modalThumbStrip.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
+        thumb.classList.add('active');
+        setModalPhoto(thumb.getAttribute('src'), false);
+      });
+    });
   }
 
   function openModal(product) {
@@ -1639,11 +1698,13 @@ footer {
       el.addEventListener('click', () => {
         const c = product.colors[idx];
         setModalPhoto(c && c.kapakFoto, false);
+        renderThumbStrip(c);
       });
     });
 
-    const initialPhoto = product.colors[0] && product.colors[0].kapakFoto;
-    setModalPhoto(initialPhoto, true);
+    const initialColor = product.colors[0];
+    setModalPhoto(initialColor && initialColor.kapakFoto, true);
+    renderThumbStrip(initialColor);
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
