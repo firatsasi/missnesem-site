@@ -599,9 +599,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .cat-etek      .product-img-placeholder { background: linear-gradient(145deg, #fce4ec 0%, #f8bbd0 100%); }
 .cat-sort      .product-img-placeholder { background: linear-gradient(145deg, #fff8e1 0%, #ffecb3 100%); }
 .cat-yelek     .product-img-placeholder { background: linear-gradient(145deg, #ffe0b2 0%, #ffcc80 100%); }
-.cat-korse     .product-img-placeholder { background: linear-gradient(145deg, #f8bbd0 0%, #f48fb1 100%); }
-.cat-tulum     .product-img-placeholder { background: linear-gradient(145deg, #b3e5fc 0%, #81d4fa 100%); }
-.cat-dis-giyim .product-img-placeholder { background: linear-gradient(145deg, #d7ccc8 0%, #bcaaa4 100%); }
+.cat-tesettur  .product-img-placeholder { background: linear-gradient(145deg, #d7ccc8 0%, #bcaaa4 100%); }
 .cat-diger     .product-img-placeholder { background: linear-gradient(145deg, #eceff1 0%, #cfd8dc 100%); }
 
 /* ===== PRODUCT / MODAL PHOTOS (API kapakFoto) ===== */
@@ -1159,9 +1157,7 @@ footer {
         <li><a href="#etek">Etekler</a></li>
         <li><a href="#sort">Şortlar</a></li>
         <li><a href="#yelek">Yelekler</a></li>
-        <li><a href="#korse">Korseler</a></li>
-        <li><a href="#tulum">Tulumlar</a></li>
-        <li><a href="#dis-giyim">Dış Giyim</a></li>
+        <li><a href="#tesettur">Tesettür</a></li>
         <li><a href="#diger">Diğer</a></li>
         <li><a href="#catalog" class="nav-indirim">İndirim</a></li>
       </ul>
@@ -1192,9 +1188,7 @@ footer {
   <a href="#etek" class="mobile-link">Etekler</a>
   <a href="#sort" class="mobile-link">Şortlar</a>
   <a href="#yelek" class="mobile-link">Yelekler</a>
-  <a href="#korse" class="mobile-link">Korseler</a>
-  <a href="#tulum" class="mobile-link">Tulumlar</a>
-  <a href="#dis-giyim" class="mobile-link">Dış Giyim</a>
+  <a href="#tesettur" class="mobile-link">Tesettür</a>
   <a href="#diger" class="mobile-link">Diğer</a>
   <a href="#catalog" class="mobile-link nav-indirim">İndirim</a>
 </div>
@@ -1307,9 +1301,7 @@ footer {
           <li><a href="#etek">Etekler</a></li>
           <li><a href="#sort">Şortlar</a></li>
           <li><a href="#yelek">Yelekler</a></li>
-          <li><a href="#korse">Korseler</a></li>
-          <li><a href="#tulum">Tulumlar</a></li>
-          <li><a href="#dis-giyim">Dış Giyim</a></li>
+          <li><a href="#tesettur">Tesettür</a></li>
           <li><a href="#diger">Diğer</a></li>
           <li><a href="https://missnesem.com">Ana Sayfa</a></li>
         </ul>
@@ -1579,9 +1571,7 @@ footer {
     etek:      'linear-gradient(145deg,#fce4ec,#f8bbd0)',
     sort:      'linear-gradient(145deg,#fff8e1,#ffecb3)',
     yelek:     'linear-gradient(145deg,#ffe0b2,#ffcc80)',
-    korse:     'linear-gradient(145deg,#f8bbd0,#f48fb1)',
-    tulum:     'linear-gradient(145deg,#b3e5fc,#81d4fa)',
-    'dis-giyim': 'linear-gradient(145deg,#d7ccc8,#bcaaa4)',
+    tesettur:  'linear-gradient(145deg,#d7ccc8,#bcaaa4)',
     diger:     'linear-gradient(145deg,#eceff1,#cfd8dc)',
   };
 
@@ -1765,17 +1755,14 @@ footer {
     { id: 'etek', name: 'Etekler', nameEn: 'Skirts' },
     { id: 'sort', name: 'Şortlar', nameEn: 'Shorts' },
     { id: 'yelek', name: 'Yelekler', nameEn: 'Vests' },
-    { id: 'korse', name: 'Korseler', nameEn: 'Corsets' },
-    { id: 'tulum', name: 'Tulumlar', nameEn: 'Jumpsuits' },
-    { id: 'dis-giyim', name: 'Dış Giyim', nameEn: 'Outerwear' },
+    { id: 'tesettur', name: 'Tesettür', nameEn: 'Modest Wear' },
     { id: 'diger', name: 'Diğer', nameEn: 'Other' },
   ];
   const CATEGORY_SLUG_MAP = {
     'Elbiseler': 'elbiseler', 'Takımlar': 'takimlar', 'Bluzlar': 'bluzlar',
     'Gömlekler': 'gomlek', 'Ceketler': 'ceket', 'Pantolonlar': 'pantolon',
     'Etekler': 'etek', 'Şortlar': 'sort', 'Yelekler': 'yelek',
-    'Korseler': 'korse', 'Tulumlar': 'tulum', 'Dış Giyim': 'dis-giyim',
-    'Diğer': 'diger',
+    'Tesettür': 'tesettur', 'Diğer': 'diger',
   };
 
   function mapApiProduct(p) {
