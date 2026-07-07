@@ -1431,12 +1431,17 @@ footer {
 
   function filterProducts(q) {
     const query = q.toLowerCase().trim();
-    document.querySelectorAll('.product-card').forEach(card => {
-      const name = (card.dataset.name || '').toLowerCase();
-      const code = (card.dataset.code || '').toLowerCase();
-      const cat = (card.dataset.cat || '').toLowerCase();
-      const match = !query || name.includes(query) || code.includes(query) || cat.includes(query);
-      card.style.display = match ? '' : 'none';
+    document.querySelectorAll('.cat-section').forEach(section => {
+      let anyVisible = false;
+      section.querySelectorAll('.product-card').forEach(card => {
+        const name = (card.dataset.name || '').toLowerCase();
+        const code = (card.dataset.code || '').toLowerCase();
+        const cat = (card.dataset.cat || '').toLowerCase();
+        const match = !query || name.includes(query) || code.includes(query) || cat.includes(query);
+        card.style.display = match ? '' : 'none';
+        if (match) anyVisible = true;
+      });
+      section.style.display = anyVisible ? '' : 'none';
     });
   }
 
