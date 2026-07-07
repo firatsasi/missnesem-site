@@ -844,6 +844,20 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   transition: transform 0.3s ease, max-height 0.2s ease;
 }
 #fullscreen-overlay.open #fullscreen-photo { transform: scale(1); }
+/* Tek fotoğraflı ürünlerde koyu çerçeve yerine beyaz zemin (fotoğraf zaten genelde beyaz fonlu) */
+#fullscreen-overlay.fullscreen-light { background: #fff; }
+#fullscreen-overlay.fullscreen-light #fullscreen-photo { background: #fff; }
+#fullscreen-overlay.fullscreen-light .fullscreen-close,
+#fullscreen-overlay.fullscreen-light .fullscreen-nav-prev,
+#fullscreen-overlay.fullscreen-light .fullscreen-nav-next {
+  color: #1a1a1a;
+  background: rgba(0,0,0,0.08);
+}
+#fullscreen-overlay.fullscreen-light .fullscreen-close:hover,
+#fullscreen-overlay.fullscreen-light .fullscreen-nav-prev:hover,
+#fullscreen-overlay.fullscreen-light .fullscreen-nav-next:hover {
+  background: rgba(0,0,0,0.15);
+}
 .fullscreen-close {
   position: absolute;
   top: 1.25rem; right: 1.25rem;
@@ -1825,6 +1839,11 @@ footer {
     fullscreenPhoto.style.maxHeight = 'calc(100vh - ' + (barHeight + 24) + 'px)';
   }
 
+  // Galerisi olmayan (tek fotoğraflı) ürünlerde koyu çerçeve yerine beyaz zemin kullan
+  function updateFullscreenBackground() {
+    fullscreenOverlay.classList.toggle('fullscreen-light', currentPhotos.length <= 1);
+  }
+
   function renderFullscreenSwatches() {
     if (!currentProduct || !currentProduct.colors || currentProduct.colors.length <= 1) {
       fullscreenSwatches.innerHTML = '';
@@ -1851,6 +1870,7 @@ footer {
       renderFullscreenSwatches();
       updateFullscreenView();
       adjustFullscreenPhotoHeight();
+      updateFullscreenBackground();
     }
   }
 
@@ -1894,6 +1914,7 @@ footer {
     renderFullscreenSwatches();
     updateFullscreenView();
     adjustFullscreenPhotoHeight();
+    updateFullscreenBackground();
     fullscreenOverlay.classList.add('open');
   }
 
