@@ -613,7 +613,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   position: absolute;
   inset: 0;
   width: 100%; height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   opacity: 0;
   display: none;
   transition: opacity 0.3s ease;
@@ -625,8 +625,29 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   position: relative;
   flex: 1;
   min-height: 0;
+  max-height: 80vh;
   overflow: hidden;
+  background: var(--bg);
 }
+.modal-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px; height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.55);
+  color: var(--text2);
+  border-radius: 50%;
+  opacity: 0.6;
+  z-index: 6;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+.modal-nav:hover { opacity: 1; background: rgba(255,255,255,0.9); }
+.modal-nav .ti { font-size: 1.15rem; }
+.modal-nav-prev { left: 0.75rem; }
+.modal-nav-next { right: 0.75rem; }
 .modal-thumb-strip {
   display: flex;
   gap: 0.5rem;
@@ -1358,6 +1379,8 @@ footer {
         <div class="modal-img-placeholder" id="modal-img">
           <i class="ti ti-camera"></i>
         </div>
+        <button class="modal-nav modal-nav-prev" id="modal-nav-prev" aria-label="Önceki fotoğraf"><i class="ti ti-chevron-left"></i></button>
+        <button class="modal-nav modal-nav-next" id="modal-nav-next" aria-label="Sonraki fotoğraf"><i class="ti ti-chevron-right"></i></button>
       </div>
       <div class="modal-thumb-strip" id="modal-thumb-strip"></div>
     </div>
@@ -1603,6 +1626,11 @@ footer {
   const modalImg = document.getElementById('modal-img');
   const modalPhoto = document.getElementById('modal-photo');
   const modalThumbStrip = document.getElementById('modal-thumb-strip');
+  const modalNavPrev = document.getElementById('modal-nav-prev');
+  const modalNavNext = document.getElementById('modal-nav-next');
+
+  let currentPhotos = [];
+  let currentPhotoIndex = 0;
 
   const CAT_GRADIENTS = {
     elbiseler: 'linear-gradient(145deg,#fce4ec,#f8bbd0)',
@@ -1638,26 +1666,47 @@ footer {
     setTimeout(apply, 300);
   }
 
+  function updateNavArrows() {
+    modalNavPrev.style.display = currentPhotoIndex > 0 ? 'flex' : 'none';
+    modalNavNext.style.display = currentPhotoIndex < currentPhotos.length - 1 ? 'flex' : 'none';
+  }
+
+  function updateThumbActive(idx) {
+    modalThumbStrip.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
+    const active = modalThumbStrip.querySelector(`.modal-thumb[data-idx="${idx}"]`);
+    if (active) active.classList.add('active');
+  }
+
+  function goToPhoto(idx) {
+    if (idx < 0 || idx >= currentPhotos.length) return;
+    currentPhotoIndex = idx;
+    setModalPhoto(currentPhotos[idx], false);
+    updateThumbActive(idx);
+    updateNavArrows();
+  }
+
   function renderThumbStrip(color) {
     const galeri = (color && color.galeriFotolar) || [];
+    currentPhotos = [color && color.kapakFoto, ...galeri].filter(Boolean);
+    currentPhotoIndex = 0;
+
     if (galeri.length === 0) {
       modalThumbStrip.innerHTML = '';
-      return;
+    } else {
+      modalThumbStrip.innerHTML = currentPhotos
+        .map((url, idx) => `<img class="modal-thumb${idx === 0 ? ' active' : ''}" src="${url}" alt="" data-idx="${idx}">`)
+        .join('');
+
+      modalThumbStrip.querySelectorAll('.modal-thumb').forEach(thumb => {
+        thumb.addEventListener('click', () => goToPhoto(Number(thumb.dataset.idx)));
+      });
     }
 
-    const photos = [color.kapakFoto, ...galeri].filter(Boolean);
-    modalThumbStrip.innerHTML = photos
-      .map((url, idx) => `<img class="modal-thumb${idx === 0 ? ' active' : ''}" src="${url}" alt="" data-idx="${idx}">`)
-      .join('');
-
-    modalThumbStrip.querySelectorAll('.modal-thumb').forEach(thumb => {
-      thumb.addEventListener('click', () => {
-        modalThumbStrip.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
-        thumb.classList.add('active');
-        setModalPhoto(thumb.getAttribute('src'), false);
-      });
-    });
+    updateNavArrows();
   }
+
+  modalNavPrev.addEventListener('click', () => goToPhoto(currentPhotoIndex - 1));
+  modalNavNext.addEventListener('click', () => goToPhoto(currentPhotoIndex + 1));
 
   function openModal(product) {
     modalImg.style.background = CAT_GRADIENTS[product.category] || 'var(--soft-pink)';
@@ -1717,7 +1766,13 @@ footer {
 
   document.getElementById('modal-close').addEventListener('click', closeModal);
   overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+    if (overlay.classList.contains('open')) {
+      if (e.key === 'ArrowLeft') goToPhoto(currentPhotoIndex - 1);
+      if (e.key === 'ArrowRight') goToPhoto(currentPhotoIndex + 1);
+    }
+  });
 
   // ===== PRODUCTS =====
   let allProducts = [];
