@@ -610,12 +610,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   transition: opacity 0.3s ease;
 }
 .modal-photo {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
+  display: none;
+  width: 100%;
+  max-height: 70vh;
   object-fit: contain;
   opacity: 0;
-  display: none;
   transition: opacity 0.3s ease;
 }
 .modal-color-item { cursor: pointer; }
@@ -623,9 +622,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* ===== MODAL GALLERY THUMBNAIL STRIP ===== */
 .modal-main-photo {
   position: relative;
-  flex: 1;
-  min-height: 0;
-  max-height: 80vh;
+  width: 100%;
   overflow: hidden;
   background: var(--bg);
 }
@@ -701,11 +698,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 #modal-overlay.open { opacity: 1; visibility: visible; }
 .modal {
   background: var(--card);
-  max-width: 900px;
-  width: 100%;
-  max-height: 90vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  width: 90vw;
+  max-width: 1000px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   transform: translateY(20px) scale(0.97);
   transition: transform 0.35s ease;
@@ -713,13 +710,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 #modal-overlay.open .modal { transform: translateY(0) scale(1); }
 .modal-visual {
   position: relative;
-  aspect-ratio: 3/4;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 .modal-img-placeholder {
-  width: 100%; height: 100%;
+  width: 100%; height: 40vh;
   display: flex; align-items: center; justify-content: center;
   flex-direction: column;
   gap: 1rem;
@@ -727,10 +724,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .modal-img-placeholder .ti { font-size: 4rem; opacity: 0.25; }
 .modal-body {
-  padding: 2.5rem 2rem;
+  padding: 1rem 1.5rem 1.5rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  gap: 0.6rem;
 }
 .modal-close {
   position: absolute;
@@ -743,53 +741,38 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   transition: var(--transition);
 }
 .modal-close:hover { color: var(--text); background: var(--bg); }
-.modal-code {
-  font-size: 0.6rem;
-  letter-spacing: 0.5em;
-  text-transform: uppercase;
-  color: var(--text);
-  font-weight: 500;
-  margin-bottom: 0.5rem;
+.modal-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
-.modal-name {
+.modal-title-line {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 400;
-  font-size: 1.6rem;
-  line-height: 1.2;
-  margin-bottom: 0.25rem;
+  font-size: 1.15rem;
+  line-height: 1.3;
 }
-.modal-name-en {
-  font-size: 0.75rem;
-  color: var(--text);
-  font-style: italic;
-  margin-bottom: 1.5rem;
-}
-.modal-divider {
-  width: 100%; height: 1px;
-  background: linear-gradient(90deg, var(--accent), transparent);
-  margin-bottom: 1.5rem;
-}
-.modal-section-label {
-  font-size: 0.55rem;
-  letter-spacing: 0.4em;
+.modal-title-code {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--text);
+  color: var(--accent);
   font-weight: 500;
-  margin-bottom: 0.75rem;
 }
 .modal-colors {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  gap: 0.6rem;
 }
 .modal-color-item {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
 }
 .modal-color-dot {
-  width: 18px; height: 18px;
+  width: 16px; height: 16px;
   border-radius: 50%;
   border: 2px solid rgba(255,255,255,0.6);
   box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
@@ -800,35 +783,20 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   color: var(--text);
   font-weight: 400;
 }
-.modal-sizes {
-  font-size: 0.65rem;
-  color: var(--text);
-  letter-spacing: 0.15em;
-  font-weight: 400;
-  margin-bottom: 1.5rem;
+.modal-sizes-mini {
+  font-size: 0.6rem;
+  color: var(--text2);
+  letter-spacing: 0.1em;
 }
-.modal-fav-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-}
-.modal-fav-btn {
-  width: 40px; height: 40px;
-  border: 1px solid rgba(196,160,138,0.4);
+.modal-fav-btn-mini {
+  width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
   color: var(--text2);
-  transition: var(--transition);
   flex-shrink: 0;
+  transition: var(--transition);
 }
-.modal-fav-btn:hover, .modal-fav-btn.active { color: var(--accent); border-color: var(--accent); }
-.modal-fav-label {
-  font-size: 0.55rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--text);
-  font-weight: 400;
-}
+.modal-fav-btn-mini:hover, .modal-fav-btn-mini.active { color: var(--accent); }
+.modal-fav-btn-mini .ti { font-size: 1.2rem; }
 .btn-whatsapp {
   display: flex;
   align-items: center;
@@ -842,7 +810,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   text-transform: uppercase;
   font-weight: 400;
   transition: var(--transition);
-  margin-top: auto;
+  margin-top: 0.4rem;
 }
 .btn-whatsapp:hover { background: #b8906a; }
 .btn-whatsapp .ti { font-size: 1.1rem; }
@@ -1100,8 +1068,7 @@ footer {
   .slide-2 .slide-visual { order: -1; }
   #hero { height: auto; min-height: 100vh; }
   .product-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-  .modal { grid-template-columns: 1fr; max-height: 95vh; overflow-y: auto; }
-  .modal-visual { aspect-ratio: 4/3; }
+  .modal { width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; }
   .footer-grid { grid-template-columns: 1fr; }
   #fav-panel { width: 100%; }
   .section-wrap { padding: 3rem 1rem; }
@@ -1125,11 +1092,11 @@ footer {
   #hero { min-height: unset; }
   .slide-content { background: var(--bg); }
 
-  /* Modal - full screen, scrollable */
-  #modal-overlay { padding: 0; align-items: flex-end; }
-  .modal { max-height: 100vh; overflow: auto; border-radius: 0; }
-  .modal-visual { aspect-ratio: 3/2; min-height: unset; }
-  .modal-body { overflow-y: visible; }
+  /* Modal - full screen */
+  #modal-overlay { padding: 0; align-items: stretch; justify-content: stretch; }
+  .modal-main-photo { max-height: 55vh; }
+  .modal-photo { max-height: 55vh; }
+  .modal-img-placeholder { height: 35vh; }
 
   /* Color dots - stay tappable on touch */
   .color-dot { width: 18px; height: 18px; }
@@ -1143,12 +1110,9 @@ footer {
   .slide-tag { font-size: 0.75rem; letter-spacing: 0.3em; }
   .slide-desc { font-size: 0.75rem; }
   .slide-cta { font-size: 0.75rem; letter-spacing: 0.25em; }
-  .modal-code { font-size: 0.75rem; letter-spacing: 0.3em; }
-  .modal-section-label { font-size: 0.75rem; letter-spacing: 0.25em; }
+  .modal-title-code { font-size: 0.75rem; letter-spacing: 0.25em; }
   .modal-color-name { font-size: 0.75rem; }
-  .modal-sizes { font-size: 0.75rem; letter-spacing: 0.1em; }
-  .modal-fav-label { font-size: 0.75rem; letter-spacing: 0.15em; }
-  .modal-name-en { font-size: 0.75rem; }
+  .modal-sizes-mini { font-size: 0.75rem; letter-spacing: 0.1em; }
   .fav-item-code { font-size: 0.75rem; letter-spacing: 0.2em; }
   .fav-empty { font-size: 0.75rem; }
   .btn-whatsapp { font-size: 0.75rem; letter-spacing: 0.2em; }
@@ -1174,7 +1138,7 @@ footer {
   .slide-content { padding: 1.5rem 1rem; }
 
   /* Modal tighter */
-  .modal-body { padding: 1.5rem 1rem; }
+  .modal-body { padding: 0.75rem 1rem 1rem; }
 
   /* Product grid single col */
   .product-grid { gap: 0.75rem; }
@@ -1628,6 +1592,7 @@ footer {
   const modalThumbStrip = document.getElementById('modal-thumb-strip');
   const modalNavPrev = document.getElementById('modal-nav-prev');
   const modalNavNext = document.getElementById('modal-nav-next');
+  const modalMainPhoto = document.getElementById('modal-main-photo');
 
   let currentPhotos = [];
   let currentPhotoIndex = 0;
@@ -1694,7 +1659,7 @@ footer {
       modalThumbStrip.innerHTML = '';
     } else {
       modalThumbStrip.innerHTML = currentPhotos
-        .map((url, idx) => `<img class="modal-thumb${idx === 0 ? ' active' : ''}" src="${url}" alt="" data-idx="${idx}">`)
+        .map((url, idx) => `<img class="modal-thumb${idx === 0 ? ' active' : ''}" src="${url}" alt="" data-idx="${idx}" loading="lazy">`)
         .join('');
 
       modalThumbStrip.querySelectorAll('.modal-thumb').forEach(thumb => {
@@ -1708,18 +1673,34 @@ footer {
   modalNavPrev.addEventListener('click', () => goToPhoto(currentPhotoIndex - 1));
   modalNavNext.addEventListener('click', () => goToPhoto(currentPhotoIndex + 1));
 
+  // Mobil: parmakla kaydırarak fotoğraf değiştir
+  let touchStartX = 0;
+  let touchStartY = 0;
+  modalMainPhoto.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].clientX;
+    touchStartY = e.changedTouches[0].clientY;
+  }, { passive: true });
+  modalMainPhoto.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      goToPhoto(currentPhotoIndex + (dx < 0 ? 1 : -1));
+    }
+  }, { passive: true });
+
   function openModal(product) {
     modalImg.style.background = CAT_GRADIENTS[product.category] || 'var(--soft-pink)';
     modalImg.innerHTML = `<i class="ti ti-camera" style="font-size:4rem;opacity:0.25;color:var(--text2);"></i>`;
 
     const favActive = isFav(product.code);
     modalBody.innerHTML = `
-      <div class="modal-code">${product.code}</div>
-      <div class="modal-name">${product.name}</div>
-      <div class="modal-name-en">${product.nameEn}</div>
-      <div class="modal-divider"></div>
+      <div class="modal-info-row">
+        <div class="modal-title-line"><span class="modal-title-code">${product.code}</span> — ${product.name}</div>
+        <button class="modal-fav-btn-mini ${favActive ? 'active' : ''}" id="modal-fav-btn" data-code="${product.code}" aria-label="Favorilere ekle">
+          <i class="ti ${favActive ? 'ti-heart-filled' : 'ti-heart'}"></i>
+        </button>
+      </div>
       ${product.colors && product.colors.length > 1 ? `
-      <div class="modal-section-label">Renk Seçenekleri</div>
       <div class="modal-colors">
         ${product.colors.map(c => `
           <div class="modal-color-item">
@@ -1727,14 +1708,7 @@ footer {
             <span class="modal-color-name">${c.name}</span>
           </div>`).join('')}
       </div>` : ''}
-      <div class="modal-section-label">Beden Dağılımı</div>
-      <div class="modal-sizes">${product.sizes}</div>
-      <div class="modal-fav-row">
-        <button class="modal-fav-btn ${favActive ? 'active' : ''}" id="modal-fav-btn" data-code="${product.code}">
-          <i class="ti ${favActive ? 'ti-heart-filled' : 'ti-heart'}"></i>
-        </button>
-        <span class="modal-fav-label">Favorilere Ekle</span>
-      </div>
+      <div class="modal-sizes-mini">${product.sizes}</div>
       <a href="https://wa.me/905344644221?text=${encodeURIComponent('Merhaba, ' + product.code + ' – ' + product.name + ' ürünü hakkında bilgi almak istiyorum.')}" target="_blank" class="btn-whatsapp">
         <i class="ti ti-brand-whatsapp"></i> Sipariş için WhatsApp
       </a>`;
