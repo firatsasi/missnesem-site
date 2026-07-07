@@ -613,7 +613,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .modal-photo {
   display: none;
   width: 100%;
-  max-height: 80vh;
+  max-height: calc(100vh - 280px);
   object-fit: contain;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -702,7 +702,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   background: var(--card);
   width: 90vw;
   max-width: 1000px;
-  max-height: 92vh;
+  max-height: calc(100vh - 4rem);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -721,6 +721,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .modal-img-placeholder {
   width: 100%; height: 40vh;
+  max-height: calc(100vh - 280px);
   display: flex; align-items: center; justify-content: center;
   flex-direction: column;
   gap: 1rem;
@@ -729,7 +730,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .modal-img-placeholder .ti { font-size: 4rem; opacity: 0.25; }
 .modal-body {
   padding: 1rem 1.5rem 1.5rem;
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -836,11 +837,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 #fullscreen-overlay.open { opacity: 1; visibility: visible; }
 #fullscreen-photo {
   width: 100vw;
-  height: 100vh;
+  max-height: calc(100vh - 100px);
   background: #1a1a1a;
   object-fit: contain;
   transform: scale(0.9);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, max-height 0.2s ease;
 }
 #fullscreen-overlay.open #fullscreen-photo { transform: scale(1); }
 .fullscreen-close {
@@ -865,16 +866,39 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .fullscreen-nav-prev .ti, .fullscreen-nav-next .ti { font-size: 1.6rem; }
 .fullscreen-nav-prev { left: 1.5rem; }
 .fullscreen-nav-next { right: 1.5rem; }
-.fullscreen-thumb-strip {
+.fullscreen-bottom-bar {
   position: fixed;
-  bottom: 0; left: 0; right: 0;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
+}
+.fullscreen-swatches {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  justify-content: center;
+  background: rgba(0,0,0,0.5);
+}
+.fullscreen-swatches:empty { display: none; }
+.fullscreen-swatch {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.35);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.2s ease;
+}
+.fullscreen-swatch.active { border-color: #c4a08a; }
+.fullscreen-thumb-strip {
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem;
   overflow-x: auto;
   background: rgba(0,0,0,0.5);
-  z-index: 5;
 }
+.fullscreen-thumb-strip:empty { display: none; }
 
 /* ===== FAVORITES PANEL ===== */
 #fav-panel {
@@ -1156,9 +1180,8 @@ footer {
 
   /* Modal - full screen */
   #modal-overlay { padding: 0; align-items: stretch; justify-content: stretch; }
-  .modal-main-photo { max-height: 55vh; }
-  .modal-photo { max-height: 55vh; }
-  .modal-img-placeholder { height: 35vh; }
+  .modal-photo { max-height: calc(100vh - 240px); }
+  .modal-img-placeholder { height: 35vh; max-height: calc(100vh - 240px); }
 
   /* Color dots - stay tappable on touch */
   .color-dot { width: 18px; height: 18px; }
@@ -1420,7 +1443,10 @@ footer {
   <img id="fullscreen-photo" alt="" />
   <button class="modal-nav fullscreen-nav-prev" id="fullscreen-nav-prev" aria-label="Önceki fotoğraf"><i class="ti ti-chevron-left"></i></button>
   <button class="modal-nav fullscreen-nav-next" id="fullscreen-nav-next" aria-label="Sonraki fotoğraf"><i class="ti ti-chevron-right"></i></button>
-  <div class="fullscreen-thumb-strip" id="fullscreen-thumb-strip"></div>
+  <div class="fullscreen-bottom-bar">
+    <div class="fullscreen-swatches" id="fullscreen-swatches"></div>
+    <div class="fullscreen-thumb-strip" id="fullscreen-thumb-strip"></div>
+  </div>
 </div>
 
 <!-- ===== FAV PANEL ===== -->
@@ -1674,6 +1700,8 @@ footer {
 
   let currentPhotos = [];
   let currentPhotoIndex = 0;
+  let currentProduct = null;
+  let currentColorIndex = 0;
 
   const CAT_GRADIENTS = {
     elbiseler: 'linear-gradient(145deg,#fce4ec,#f8bbd0)',
@@ -1712,6 +1740,17 @@ footer {
   function updateNavArrows() {
     modalNavPrev.style.display = currentPhotoIndex > 0 ? 'flex' : 'none';
     modalNavNext.style.display = currentPhotoIndex < currentPhotos.length - 1 ? 'flex' : 'none';
+  }
+
+  // Thumbnail strip + isim + swatch + WhatsApp butonu her zaman ekranda kalsın diye
+  // görselin max-height'ı, altındaki gerçek (değişken) içerik yüksekliğine göre hesaplanır.
+  function adjustModalPhotoHeight() {
+    const thumbH = modalThumbStrip.getBoundingClientRect().height;
+    const bodyH = modalBody.scrollHeight;
+    const safetyMargin = 48;
+    const maxH = Math.max(200, window.innerHeight - thumbH - bodyH - safetyMargin);
+    modalPhoto.style.maxHeight = maxH + 'px';
+    modalImg.style.maxHeight = maxH + 'px';
   }
 
   function updateThumbActive(idx) {
@@ -1776,8 +1815,44 @@ footer {
   const fullscreenOverlay = document.getElementById('fullscreen-overlay');
   const fullscreenPhoto = document.getElementById('fullscreen-photo');
   const fullscreenThumbStrip = document.getElementById('fullscreen-thumb-strip');
+  const fullscreenSwatches = document.getElementById('fullscreen-swatches');
+  const fullscreenBottomBar = document.querySelector('.fullscreen-bottom-bar');
   const fullscreenNavPrev = document.getElementById('fullscreen-nav-prev');
   const fullscreenNavNext = document.getElementById('fullscreen-nav-next');
+
+  function adjustFullscreenPhotoHeight() {
+    const barHeight = fullscreenBottomBar ? fullscreenBottomBar.getBoundingClientRect().height : 0;
+    fullscreenPhoto.style.maxHeight = 'calc(100vh - ' + (barHeight + 24) + 'px)';
+  }
+
+  function renderFullscreenSwatches() {
+    if (!currentProduct || !currentProduct.colors || currentProduct.colors.length <= 1) {
+      fullscreenSwatches.innerHTML = '';
+      return;
+    }
+    fullscreenSwatches.innerHTML = currentProduct.colors
+      .map((c, idx) => `<div class="fullscreen-swatch${idx === currentColorIndex ? ' active' : ''}" style="background:${c.hex}" title="${c.name}" data-idx="${idx}"></div>`)
+      .join('');
+    fullscreenSwatches.querySelectorAll('.fullscreen-swatch').forEach(sw => {
+      sw.addEventListener('click', () => switchColor(Number(sw.dataset.idx)));
+    });
+  }
+
+  function switchColor(idx) {
+    if (!currentProduct || !currentProduct.colors[idx]) return;
+    currentColorIndex = idx;
+    const c = currentProduct.colors[idx];
+    setModalPhoto(c.kapakFoto, false);
+    renderThumbStrip(c);
+    adjustModalPhotoHeight();
+
+    if (fullscreenOverlay.classList.contains('open')) {
+      renderFullscreenThumbs();
+      renderFullscreenSwatches();
+      updateFullscreenView();
+      adjustFullscreenPhotoHeight();
+    }
+  }
 
   function updateFullscreenView() {
     const p = currentPhotos[currentPhotoIndex];
@@ -1816,7 +1891,9 @@ footer {
   function openFullscreen() {
     if (currentPhotos.length === 0) return;
     renderFullscreenThumbs();
+    renderFullscreenSwatches();
     updateFullscreenView();
+    adjustFullscreenPhotoHeight();
     fullscreenOverlay.classList.add('open');
   }
 
@@ -1851,7 +1928,14 @@ footer {
     }
   }, { passive: true });
 
+  window.addEventListener('resize', () => {
+    if (fullscreenOverlay.classList.contains('open')) adjustFullscreenPhotoHeight();
+    if (overlay.classList.contains('open')) adjustModalPhotoHeight();
+  });
+
   function openModal(product) {
+    currentProduct = product;
+    currentColorIndex = 0;
     modalEl.classList.remove('modal-portrait');
     modalImg.style.background = CAT_GRADIENTS[product.category] || 'var(--soft-pink)';
     modalImg.innerHTML = `<i class="ti ti-camera" style="font-size:4rem;opacity:0.25;color:var(--text2);"></i>`;
@@ -1882,16 +1966,13 @@ footer {
     });
 
     modalBody.querySelectorAll('.modal-color-item').forEach((el, idx) => {
-      el.addEventListener('click', () => {
-        const c = product.colors[idx];
-        setModalPhoto(c && c.kapakFoto, false);
-        renderThumbStrip(c);
-      });
+      el.addEventListener('click', () => switchColor(idx));
     });
 
     const initialColor = product.colors[0];
     setModalPhoto(initialColor && initialColor.kapakFoto, true);
     renderThumbStrip(initialColor);
+    adjustModalPhotoHeight();
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
