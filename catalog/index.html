@@ -625,7 +625,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   position: relative;
   width: 100%;
   overflow: hidden;
-  background: var(--bg);
+  background: #1a1a1a;
 }
 .modal-nav {
   position: absolute;
@@ -706,9 +706,11 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   flex-direction: column;
   overflow: hidden;
   transform: translateY(20px) scale(0.97);
-  transition: transform 0.35s ease;
+  transition: transform 0.35s ease, max-width 0.3s ease;
 }
 #modal-overlay.open .modal { transform: translateY(0) scale(1); }
+/* Dikey fotoğraflarda modal daha dar olsun ki yanlarda boşluk kalmasın */
+.modal.modal-portrait { max-width: 600px; }
 .modal-visual {
   position: relative;
   overflow: hidden;
@@ -820,7 +822,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 #fullscreen-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.95);
+  background: #1a1a1a;
   z-index: 3000;
   display: flex;
   align-items: center;
@@ -833,6 +835,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 #fullscreen-photo {
   width: 100vw;
   height: 100vh;
+  background: #1a1a1a;
   object-fit: contain;
   transform: scale(0.9);
   transition: transform 0.3s ease;
@@ -1125,6 +1128,7 @@ footer {
   #hero { height: auto; min-height: 100vh; }
   .product-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
   .modal { width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; }
+  .modal.modal-portrait { max-width: 100vw; }
   .footer-grid { grid-template-columns: 1fr; }
   #fav-panel { width: 100%; }
   .section-wrap { padding: 3rem 1rem; }
@@ -1658,6 +1662,13 @@ footer {
   const modalNavPrev = document.getElementById('modal-nav-prev');
   const modalNavNext = document.getElementById('modal-nav-next');
   const modalMainPhoto = document.getElementById('modal-main-photo');
+  const modalEl = document.getElementById('modal');
+
+  // Dikey fotoğraflarda modalı daraltarak yanlardaki koyu boşluğu azalt
+  modalPhoto.addEventListener('load', () => {
+    const isPortrait = modalPhoto.naturalHeight > modalPhoto.naturalWidth;
+    modalEl.classList.toggle('modal-portrait', isPortrait);
+  });
 
   let currentPhotos = [];
   let currentPhotoIndex = 0;
@@ -1839,6 +1850,7 @@ footer {
   }, { passive: true });
 
   function openModal(product) {
+    modalEl.classList.remove('modal-portrait');
     modalImg.style.background = CAT_GRADIENTS[product.category] || 'var(--soft-pink)';
     modalImg.innerHTML = `<i class="ti ti-camera" style="font-size:4rem;opacity:0.25;color:var(--text2);"></i>`;
 
@@ -2019,10 +2031,18 @@ footer {
 
   // Galeri elemanı ya eski API/fallback'te düz URL string'i ya da yeni API'de
   // {medium,thumb,full} objesi olabilir — ikisini de tek bir tier objesine indirger.
+  // Panel'de fotoğraflar sıkıştırılıp yeniden oluşturulduğunda tarayıcıların eski
+  // (büyük/404 olmuş) sürümü önbellekten sunmaması için her sayfa yüklemesinde
+  // fotoğraf URL'lerine tazelik parametresi ekleriz.
+  const cacheBust = '?v=' + Date.now();
+  function withCacheBust(url) {
+    return url ? url + cacheBust : url;
+  }
+
   function photoTier(entry) {
     if (!entry) return null;
-    if (typeof entry === 'string') return { medium: entry, thumb: entry, full: entry };
-    return { medium: entry.medium || null, thumb: entry.thumb || null, full: entry.full || null };
+    if (typeof entry === 'string') return { medium: withCacheBust(entry), thumb: withCacheBust(entry), full: withCacheBust(entry) };
+    return { medium: withCacheBust(entry.medium), thumb: withCacheBust(entry.thumb), full: withCacheBust(entry.full) };
   }
 
   function mapApiProduct(p) {
@@ -2034,9 +2054,9 @@ footer {
       colors: (p.renkler || []).map(r => ({
         name: r.renk,
         hex: r.hex || '#CCCCCC',
-        kapakFoto: r.kapakFoto || null,
-        kapakFotoThumb: r.kapakFotoThumb || r.kapakFoto || null,
-        kapakFotoFull: r.kapakFotoFull || r.kapakFoto || null,
+        kapakFoto: withCacheBust(r.kapakFoto),
+        kapakFotoThumb: withCacheBust(r.kapakFotoThumb || r.kapakFoto),
+        kapakFotoFull: withCacheBust(r.kapakFotoFull || r.kapakFoto),
         galeriFotolar: (r.galeriFotolar || []).map(photoTier).filter(Boolean),
       })),
       sizes: p.bedenler || '',
@@ -2055,9 +2075,9 @@ footer {
       colors: (p.colors || []).map(c => ({
         name: c.name,
         hex: c.hex,
-        kapakFoto: c.kapakFoto || null,
-        kapakFotoThumb: c.kapakFoto || null,
-        kapakFotoFull: c.kapakFoto || null,
+        kapakFoto: withCacheBust(c.kapakFoto),
+        kapakFotoThumb: withCacheBust(c.kapakFoto),
+        kapakFotoFull: withCacheBust(c.kapakFoto),
         galeriFotolar: (c.galeriFotolar || []).map(photoTier).filter(Boolean),
       })),
     }));
