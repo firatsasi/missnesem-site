@@ -598,6 +598,29 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .cat-pantolon  .product-img-placeholder { background: linear-gradient(145deg, #e0f2f1 0%, #b2dfdb 100%); }
 .cat-etek      .product-img-placeholder { background: linear-gradient(145deg, #fce4ec 0%, #f8bbd0 100%); }
 .cat-sort      .product-img-placeholder { background: linear-gradient(145deg, #fff8e1 0%, #ffecb3 100%); }
+.cat-yelek     .product-img-placeholder { background: linear-gradient(145deg, #ffe0b2 0%, #ffcc80 100%); }
+.cat-korse     .product-img-placeholder { background: linear-gradient(145deg, #f8bbd0 0%, #f48fb1 100%); }
+.cat-tulum     .product-img-placeholder { background: linear-gradient(145deg, #b3e5fc 0%, #81d4fa 100%); }
+.cat-dis-giyim .product-img-placeholder { background: linear-gradient(145deg, #d7ccc8 0%, #bcaaa4 100%); }
+.cat-diger     .product-img-placeholder { background: linear-gradient(145deg, #eceff1 0%, #cfd8dc 100%); }
+
+/* ===== PRODUCT / MODAL PHOTOS (API kapakFoto) ===== */
+.product-card-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.3s ease;
+}
+.modal-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  display: none;
+  transition: opacity 0.3s ease;
+}
+.modal-color-item { cursor: pointer; }
 
 /* ===== CATEGORY SECTIONS ===== */
 .cat-section {
@@ -1135,6 +1158,11 @@ footer {
         <li><a href="#pantolon">Pantolonlar</a></li>
         <li><a href="#etek">Etekler</a></li>
         <li><a href="#sort">Şortlar</a></li>
+        <li><a href="#yelek">Yelekler</a></li>
+        <li><a href="#korse">Korseler</a></li>
+        <li><a href="#tulum">Tulumlar</a></li>
+        <li><a href="#dis-giyim">Dış Giyim</a></li>
+        <li><a href="#diger">Diğer</a></li>
         <li><a href="#catalog" class="nav-indirim">İndirim</a></li>
       </ul>
     </nav>
@@ -1163,6 +1191,11 @@ footer {
   <a href="#pantolon" class="mobile-link">Pantolonlar</a>
   <a href="#etek" class="mobile-link">Etekler</a>
   <a href="#sort" class="mobile-link">Şortlar</a>
+  <a href="#yelek" class="mobile-link">Yelekler</a>
+  <a href="#korse" class="mobile-link">Korseler</a>
+  <a href="#tulum" class="mobile-link">Tulumlar</a>
+  <a href="#dis-giyim" class="mobile-link">Dış Giyim</a>
+  <a href="#diger" class="mobile-link">Diğer</a>
   <a href="#catalog" class="mobile-link nav-indirim">İndirim</a>
 </div>
 
@@ -1273,6 +1306,11 @@ footer {
           <li><a href="#pantolon">Pantolonlar</a></li>
           <li><a href="#etek">Etekler</a></li>
           <li><a href="#sort">Şortlar</a></li>
+          <li><a href="#yelek">Yelekler</a></li>
+          <li><a href="#korse">Korseler</a></li>
+          <li><a href="#tulum">Tulumlar</a></li>
+          <li><a href="#dis-giyim">Dış Giyim</a></li>
+          <li><a href="#diger">Diğer</a></li>
           <li><a href="https://missnesem.com">Ana Sayfa</a></li>
         </ul>
       </div>
@@ -1289,6 +1327,7 @@ footer {
   <div class="modal" id="modal" role="dialog" aria-modal="true">
     <div class="modal-visual" id="modal-visual">
       <button class="modal-close" id="modal-close"><i class="ti ti-x"></i></button>
+      <img class="modal-photo" id="modal-photo" alt="" />
       <div class="modal-img-placeholder" id="modal-img">
         <i class="ti ti-camera"></i>
       </div>
@@ -1528,19 +1567,46 @@ footer {
   const overlay = document.getElementById('modal-overlay');
   const modalBody = document.getElementById('modal-body');
   const modalImg = document.getElementById('modal-img');
+  const modalPhoto = document.getElementById('modal-photo');
+
+  const CAT_GRADIENTS = {
+    elbiseler: 'linear-gradient(145deg,#fce4ec,#f8bbd0)',
+    takimlar:  'linear-gradient(145deg,#e8f5e9,#c8e6c9)',
+    bluzlar:   'linear-gradient(145deg,#e8eaf6,#c5cae9)',
+    gomlek:    'linear-gradient(145deg,#fff9c4,#fff176)',
+    ceket:     'linear-gradient(145deg,#f3e5f5,#e1bee7)',
+    pantolon:  'linear-gradient(145deg,#e0f2f1,#b2dfdb)',
+    etek:      'linear-gradient(145deg,#fce4ec,#f8bbd0)',
+    sort:      'linear-gradient(145deg,#fff8e1,#ffecb3)',
+    yelek:     'linear-gradient(145deg,#ffe0b2,#ffcc80)',
+    korse:     'linear-gradient(145deg,#f8bbd0,#f48fb1)',
+    tulum:     'linear-gradient(145deg,#b3e5fc,#81d4fa)',
+    'dis-giyim': 'linear-gradient(145deg,#d7ccc8,#bcaaa4)',
+    diger:     'linear-gradient(145deg,#eceff1,#cfd8dc)',
+  };
+
+  function setModalPhoto(url, immediate) {
+    const apply = () => {
+      if (url) {
+        modalPhoto.src = url;
+        modalPhoto.style.display = 'block';
+        modalImg.style.display = 'none';
+        void modalPhoto.offsetWidth; // reflow, sonraki opacity geçişini tetikler
+        modalPhoto.style.opacity = '1';
+      } else {
+        modalPhoto.removeAttribute('src');
+        modalPhoto.style.display = 'none';
+        modalPhoto.style.opacity = '0';
+        modalImg.style.display = 'flex';
+      }
+    };
+    if (immediate) { apply(); return; }
+    modalPhoto.style.opacity = '0';
+    setTimeout(apply, 300);
+  }
 
   function openModal(product) {
-    const catGradients = {
-      elbiseler: 'linear-gradient(145deg,#fce4ec,#f8bbd0)',
-      takimlar:  'linear-gradient(145deg,#e8f5e9,#c8e6c9)',
-      bluzlar:   'linear-gradient(145deg,#e8eaf6,#c5cae9)',
-      gomlek:    'linear-gradient(145deg,#fff9c4,#fff176)',
-      ceket:     'linear-gradient(145deg,#f3e5f5,#e1bee7)',
-      pantolon:  'linear-gradient(145deg,#e0f2f1,#b2dfdb)',
-      etek:      'linear-gradient(145deg,#fce4ec,#f8bbd0)',
-      sort:      'linear-gradient(145deg,#fff8e1,#ffecb3)',
-    };
-    modalImg.style.background = catGradients[product.category] || 'var(--soft-pink)';
+    modalImg.style.background = CAT_GRADIENTS[product.category] || 'var(--soft-pink)';
     modalImg.innerHTML = `<i class="ti ti-camera" style="font-size:4rem;opacity:0.25;color:var(--text2);"></i>`;
 
     const favActive = isFav(product.code);
@@ -1573,6 +1639,16 @@ footer {
       toggleFav(product.code);
     });
 
+    modalBody.querySelectorAll('.modal-color-item').forEach((el, idx) => {
+      el.addEventListener('click', () => {
+        const c = product.colors[idx];
+        setModalPhoto(c && c.kapakFoto, false);
+      });
+    });
+
+    const initialPhoto = product.colors[0] && product.colors[0].kapakFoto;
+    setModalPhoto(initialPhoto, true);
+
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -1598,15 +1674,19 @@ footer {
       const colorDots = (p.colors || []).map(c =>
         `<div class="color-dot" style="background:${c.hex}" title="${c.name}"></div>`
       ).join('');
+      const coverPhoto = p.colors && p.colors[0] && p.colors[0].kapakFoto;
+      const visualInner = coverPhoto
+        ? `<img class="product-card-img" src="${coverPhoto}" alt="${p.name}" loading="lazy">`
+        : `<div class="product-img-placeholder">
+              <i class="ti ti-hanger"></i>
+              <span class="product-code-overlay">${p.code}</span>
+            </div>`;
       return `
         <div class="product-card cat-${p.category} reveal"
              data-code="${p.code}" data-name="${p.name} ${p.nameEn}" data-cat="${cat.name}"
              role="button" tabindex="0" aria-label="${p.name} - ${p.code}">
           <div class="product-card-visual">
-            <div class="product-img-placeholder">
-              <i class="ti ti-hanger"></i>
-              <span class="product-code-overlay">${p.code}</span>
-            </div>
+            ${visualInner}
             <button class="card-fav ${favActive ? 'active' : ''}" data-code="${p.code}" title="Favorilere ekle" aria-label="Favori">
               <i class="ti ${favActive ? 'ti-heart-filled' : 'ti-heart'}"></i>
             </button>
@@ -1674,18 +1754,81 @@ footer {
     renderFavPanel();
   }
 
-  // fetch products
-  const PRODUCTS_URL = '/catalog/products.json';
-  console.log('[MissNesem] Fetch:', PRODUCTS_URL);
-  fetch(PRODUCTS_URL)
-    .then(r => {
-      console.log('[MissNesem] Response:', r.status, r.url);
-      if (!r.ok) throw new Error('HTTP ' + r.status + ' — ' + r.url);
-      return r.json();
-    })
-    .then(data => {
-      console.log('[MissNesem] JSON parse OK. Keys:', Object.keys(data));
-      renderCatalog(data);
+  // ===== API ENTEGRASYONU =====
+  const CATEGORIES = [
+    { id: 'elbiseler', name: 'Elbiseler', nameEn: 'Dresses' },
+    { id: 'takimlar', name: 'Takımlar', nameEn: 'Suits & Sets' },
+    { id: 'bluzlar', name: 'Bluzlar', nameEn: 'Blouses' },
+    { id: 'gomlek', name: 'Gömlekler', nameEn: 'Shirts' },
+    { id: 'ceket', name: 'Ceketler', nameEn: 'Jackets & Vests' },
+    { id: 'pantolon', name: 'Pantolonlar', nameEn: 'Trousers' },
+    { id: 'etek', name: 'Etekler', nameEn: 'Skirts' },
+    { id: 'sort', name: 'Şortlar', nameEn: 'Shorts' },
+    { id: 'yelek', name: 'Yelekler', nameEn: 'Vests' },
+    { id: 'korse', name: 'Korseler', nameEn: 'Corsets' },
+    { id: 'tulum', name: 'Tulumlar', nameEn: 'Jumpsuits' },
+    { id: 'dis-giyim', name: 'Dış Giyim', nameEn: 'Outerwear' },
+    { id: 'diger', name: 'Diğer', nameEn: 'Other' },
+  ];
+  const CATEGORY_SLUG_MAP = {
+    'Elbiseler': 'elbiseler', 'Takımlar': 'takimlar', 'Bluzlar': 'bluzlar',
+    'Gömlekler': 'gomlek', 'Ceketler': 'ceket', 'Pantolonlar': 'pantolon',
+    'Etekler': 'etek', 'Şortlar': 'sort', 'Yelekler': 'yelek',
+    'Korseler': 'korse', 'Tulumlar': 'tulum', 'Dış Giyim': 'dis-giyim',
+    'Diğer': 'diger',
+  };
+
+  function mapApiProduct(p) {
+    return {
+      code: p.kod,
+      name: p.urunAdi,
+      nameEn: p.urunAdiEN || '',
+      category: CATEGORY_SLUG_MAP[p.kategori] || 'diger',
+      colors: (p.renkler || []).map(r => ({
+        name: r.renk,
+        hex: r.hex || '#CCCCCC',
+        kapakFoto: r.kapakFoto || null,
+        galeriFotolar: r.galeriFotolar || [],
+      })),
+      sizes: p.bedenler || '',
+      stokta: p.stokta !== false,
+    };
+  }
+
+  function normalizeCatalogData(raw) {
+    if (Array.isArray(raw)) {
+      // Panel API'den gelen düz dizi
+      return { categories: CATEGORIES, products: raw.map(mapApiProduct) };
+    }
+    // products.json fallback yapısı — renk objelerine kapakFoto/galeriFotolar varsayılanı ekle
+    raw.products = (raw.products || []).map(p => ({
+      ...p,
+      colors: (p.colors || []).map(c => ({
+        name: c.name,
+        hex: c.hex,
+        kapakFoto: c.kapakFoto || null,
+        galeriFotolar: c.galeriFotolar || [],
+      })),
+    }));
+    return raw;
+  }
+
+  async function loadProducts() {
+    try {
+      const res = await fetch('https://panel.missnesem.com/api/catalog/products');
+      if (!res.ok) throw new Error('API error ' + res.status);
+      return await res.json();
+    } catch (e) {
+      console.warn('Panel API bağlantısı yok, products.json fallback:', e.message);
+      const res = await fetch('/catalog/products.json');
+      return await res.json();
+    }
+  }
+
+  loadProducts()
+    .then(raw => {
+      console.log('[MissNesem] Veri alındı, normalize ediliyor.');
+      renderCatalog(normalizeCatalogData(raw));
     })
     .catch(err => {
       console.error('[MissNesem] FETCH/RENDER HATASI:', err);
