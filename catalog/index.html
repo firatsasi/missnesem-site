@@ -471,6 +471,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .section-header {
   margin-bottom: 3rem;
+  cursor: pointer;
+  user-select: none;
 }
 .section-tag {
   font-size: 0.55rem;
@@ -487,11 +489,22 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-size: clamp(1.8rem, 4vw, 3rem);
   letter-spacing: 0.05em;
 }
+.section-toggle-icon {
+  font-size: 1.2rem;
+  color: var(--accent);
+  margin-left: 0.75rem;
+  vertical-align: middle;
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+.cat-section.open .section-toggle-icon { transform: rotate(180deg); }
 .section-divider {
   width: 60px; height: 1px;
   background: linear-gradient(90deg, var(--accent), transparent);
   margin-top: 1rem;
 }
+.cat-section .product-grid { display: none; }
+.cat-section.open .product-grid { display: grid; }
 
 /* ===== PRODUCT GRID ===== */
 .product-grid {
@@ -1570,24 +1583,54 @@ footer {
         if (match) anyVisible = true;
       });
       section.style.display = anyVisible ? '' : 'none';
+      // Grid'ler varsayılan kapalı olduğu için arama eşleşmesi bulunan bölüm açılmazsa
+      // sonuçlar görünmez kalır — aktif bir arama sırasında eşleşen bölümü zorla açıyoruz.
+      if (query && anyVisible) setSectionOpen(section, true);
     });
   }
 
-  // ===== KATEGORİ FİLTRESİ =====
-  // Nav/mobil menüdeki kategori linkleri tıklandığında sadece o bölüm gösterilir;
-  // "Tüm Ürünler" (ve "İndirim", aynı linke gider) tüm bölümleri geri getirir.
-  function filterByCategory(catId) {
-    document.querySelectorAll('.cat-section').forEach(section => {
-      section.style.display = (!catId || section.id === catId) ? '' : 'none';
-    });
+  // ===== KATEGORİ AKORDİYON =====
+  // Sayfa temiz açılsın diye ürün grid'leri varsayılan kapalı gelir; sadece
+  // kategori başlıkları görünür. Başlığa tıklamak o kategoriyi açar/kapatır,
+  // nav linkleri o kategoriyi açar, "Tüm Ürünler" hepsini birden açar.
+  function setSectionOpen(section, isOpen) {
+    section.classList.toggle('open', isOpen);
+    const header = section.querySelector('.section-header');
+    if (header) header.setAttribute('aria-expanded', String(isOpen));
   }
+
+  function toggleSection(section) {
+    setSectionOpen(section, !section.classList.contains('open'));
+  }
+
+  function openCategory(catId) {
+    const section = document.getElementById(catId);
+    if (section) setSectionOpen(section, true);
+  }
+
+  function openAllCategories() {
+    document.querySelectorAll('.cat-section').forEach(section => setSectionOpen(section, true));
+  }
+
+  const catalogEl = document.getElementById('catalog');
+  catalogEl.addEventListener('click', e => {
+    const header = e.target.closest('.section-header');
+    if (header) toggleSection(header.closest('.cat-section'));
+  });
+  catalogEl.addEventListener('keydown', e => {
+    const header = e.target.closest('.section-header');
+    if (header && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      toggleSection(header.closest('.cat-section'));
+    }
+  });
 
   document.querySelectorAll('#nav-links a, .mobile-link').forEach(a => {
     const href = a.getAttribute('href') || '';
     if (href === '#catalog') {
-      a.addEventListener('click', () => filterByCategory(null));
+      a.addEventListener('click', () => openAllCategories());
     } else if (href.startsWith('#')) {
-      a.addEventListener('click', () => filterByCategory(href.slice(1)));
+      a.addEventListener('click', () => openCategory(href.slice(1)));
     }
   });
 
@@ -2066,9 +2109,9 @@ footer {
     return `
       <section class="cat-section" id="${cat.id}">
         <div class="section-wrap">
-          <div class="section-header reveal">
+          <div class="section-header reveal" role="button" tabindex="0" aria-expanded="false">
             <span class="section-tag">${cat.nameEn}</span>
-            <h2 class="section-title">${cat.name}</h2>
+            <h2 class="section-title">${cat.name}<i class="ti ti-chevron-down section-toggle-icon"></i></h2>
             <div class="section-divider"></div>
           </div>
           <div class="product-grid">${cards}</div>
