@@ -1837,7 +1837,7 @@ footer {
       return;
     }
     fullscreenSwatches.innerHTML = currentProduct.colors
-      .map((c, idx) => `<div class="fullscreen-swatch${idx === currentColorIndex ? ' active' : ''}" style="background:${c.hex}" title="${c.name}" data-idx="${idx}"></div>`)
+      .map((c, idx) => `<div class="fullscreen-swatch${idx === currentColorIndex ? ' active' : ''}" style="${swatchStyle(c)}" title="${c.name}" data-idx="${idx}"></div>`)
       .join('');
     fullscreenSwatches.querySelectorAll('.fullscreen-swatch').forEach(sw => {
       sw.addEventListener('click', () => switchColor(Number(sw.dataset.idx)));
@@ -1958,7 +1958,7 @@ footer {
       <div class="modal-colors">
         ${product.colors.map(c => `
           <div class="modal-color-item">
-            <div class="modal-color-dot" style="background:${c.hex}"></div>
+            <div class="modal-color-dot" style="${swatchStyle(c)}"></div>
             <span class="modal-color-name">${c.name}</span>
           </div>`).join('')}
       </div>` : ''}
@@ -2015,7 +2015,7 @@ footer {
     const cards = catProducts.map(p => {
       const favActive = isFav(p.code);
       const colorDots = (p.colors && p.colors.length > 1)
-        ? p.colors.map(c => `<div class="color-dot" style="background:${c.hex}" title="${c.name}"></div>`).join('')
+        ? p.colors.map(c => `<div class="color-dot" style="${swatchStyle(c)}" title="${c.name}"></div>`).join('')
         : '';
       const coverPhoto = p.colors && p.colors[0] && p.colors[0].kapakFoto;
       const visualInner = coverPhoto
@@ -2134,6 +2134,13 @@ footer {
     return { medium: withCacheBust(entry.medium), thumb: withCacheBust(entry.thumb), full: withCacheBust(entry.full) };
   }
 
+  // Desenli renkler için swatch görseli varsa onu kullan, yoksa düz hex rengine düş.
+  function swatchStyle(c) {
+    return c.swatchImageUrl
+      ? `background-image:url('${c.swatchImageUrl}');background-size:cover;background-position:center;`
+      : `background:${c.hex};`;
+  }
+
   function mapApiProduct(p) {
     return {
       code: p.kod,
@@ -2143,6 +2150,7 @@ footer {
       colors: (p.renkler || []).map(r => ({
         name: r.renk,
         hex: r.hex || '#CCCCCC',
+        swatchImageUrl: r.swatchImageUrl || null,
         kapakFoto: withCacheBust(r.kapakFoto),
         kapakFotoThumb: withCacheBust(r.kapakFotoThumb || r.kapakFoto),
         kapakFotoFull: withCacheBust(r.kapakFotoFull || r.kapakFoto),
@@ -2164,6 +2172,7 @@ footer {
       colors: (p.colors || []).map(c => ({
         name: c.name,
         hex: c.hex,
+        swatchImageUrl: c.swatchImageUrl || null,
         kapakFoto: withCacheBust(c.kapakFoto),
         kapakFotoThumb: withCacheBust(c.kapakFoto),
         kapakFotoFull: withCacheBust(c.kapakFoto),
