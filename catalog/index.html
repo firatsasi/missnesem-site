@@ -1256,17 +1256,18 @@ footer {
     <a href="#hero" class="nav-logo">Miss Neşem</a>
     <nav>
       <ul class="nav-links" id="nav-links">
-        <li><a href="#catalog">Tüm Ürünler</a></li>
+        <li><a href="#catalog" id="nav-all-products">Tüm Ürünler</a></li>
         <li><a href="#elbiseler">Elbiseler</a></li>
         <li><a href="#takimlar">Takımlar</a></li>
         <li><a href="#bluzlar">Bluzlar</a></li>
+        <li><a href="#korseler">Korseler</a></li>
+        <li><a href="#etek">Etekler</a></li>
+        <li><a href="#tesettur">Tesettür</a></li>
         <li><a href="#gomlek">Gömlekler</a></li>
         <li><a href="#ceket">Ceketler</a></li>
         <li><a href="#pantolon">Pantolonlar</a></li>
-        <li><a href="#etek">Etekler</a></li>
         <li><a href="#sort">Şortlar</a></li>
         <li><a href="#yelek">Yelekler</a></li>
-        <li><a href="#tesettur">Tesettür</a></li>
         <li><a href="#diger">Diğer</a></li>
         <li><a href="#catalog" class="nav-indirim">İndirim</a></li>
       </ul>
@@ -1291,13 +1292,14 @@ footer {
   <a href="#elbiseler" class="mobile-link">Elbiseler</a>
   <a href="#takimlar" class="mobile-link">Takımlar</a>
   <a href="#bluzlar" class="mobile-link">Bluzlar</a>
+  <a href="#korseler" class="mobile-link">Korseler</a>
+  <a href="#etek" class="mobile-link">Etekler</a>
+  <a href="#tesettur" class="mobile-link">Tesettür</a>
   <a href="#gomlek" class="mobile-link">Gömlekler</a>
   <a href="#ceket" class="mobile-link">Ceketler</a>
   <a href="#pantolon" class="mobile-link">Pantolonlar</a>
-  <a href="#etek" class="mobile-link">Etekler</a>
   <a href="#sort" class="mobile-link">Şortlar</a>
   <a href="#yelek" class="mobile-link">Yelekler</a>
-  <a href="#tesettur" class="mobile-link">Tesettür</a>
   <a href="#diger" class="mobile-link">Diğer</a>
   <a href="#catalog" class="mobile-link nav-indirim">İndirim</a>
 </div>
@@ -1570,6 +1572,24 @@ footer {
       section.style.display = anyVisible ? '' : 'none';
     });
   }
+
+  // ===== KATEGORİ FİLTRESİ =====
+  // Nav/mobil menüdeki kategori linkleri tıklandığında sadece o bölüm gösterilir;
+  // "Tüm Ürünler" (ve "İndirim", aynı linke gider) tüm bölümleri geri getirir.
+  function filterByCategory(catId) {
+    document.querySelectorAll('.cat-section').forEach(section => {
+      section.style.display = (!catId || section.id === catId) ? '' : 'none';
+    });
+  }
+
+  document.querySelectorAll('#nav-links a, .mobile-link').forEach(a => {
+    const href = a.getAttribute('href') || '';
+    if (href === '#catalog') {
+      a.addEventListener('click', () => filterByCategory(null));
+    } else if (href.startsWith('#')) {
+      a.addEventListener('click', () => filterByCategory(href.slice(1)));
+    }
+  });
 
   // ===== HERO SLIDER =====
   const slides = document.querySelectorAll('.slide');
@@ -2009,7 +2029,7 @@ footer {
   let allProducts = [];
 
   function buildCategorySection(cat, products) {
-    const catProducts = products.filter(p => p.category === cat.id);
+    const catProducts = products.filter(p => p.category === cat.id && hasPhoto(p));
     if (catProducts.length === 0) return '';
 
     const cards = catProducts.map(p => {
@@ -2098,17 +2118,19 @@ footer {
   }
 
   // ===== API ENTEGRASYONU =====
+  // Sıra kataloğun varsayılan (Tüm Ürünler) görünümündeki bölüm sırasını belirler.
   const CATEGORIES = [
     { id: 'elbiseler', name: 'Elbiseler', nameEn: 'Dresses' },
     { id: 'takimlar', name: 'Takımlar', nameEn: 'Suits & Sets' },
     { id: 'bluzlar', name: 'Bluzlar', nameEn: 'Blouses' },
+    { id: 'korseler', name: 'Korseler', nameEn: 'Corsets' },
+    { id: 'etek', name: 'Etekler', nameEn: 'Skirts' },
+    { id: 'tesettur', name: 'Tesettür', nameEn: 'Modest Wear' },
     { id: 'gomlek', name: 'Gömlekler', nameEn: 'Shirts' },
     { id: 'ceket', name: 'Ceketler', nameEn: 'Jackets & Vests' },
     { id: 'pantolon', name: 'Pantolonlar', nameEn: 'Trousers' },
-    { id: 'etek', name: 'Etekler', nameEn: 'Skirts' },
     { id: 'sort', name: 'Şortlar', nameEn: 'Shorts' },
     { id: 'yelek', name: 'Yelekler', nameEn: 'Vests' },
-    { id: 'tesettur', name: 'Tesettür', nameEn: 'Modest Wear' },
     { id: 'diger', name: 'Diğer', nameEn: 'Other' },
   ];
   const CATEGORY_SLUG_MAP = {
@@ -2141,12 +2163,30 @@ footer {
       : `background:${c.hex};`;
   }
 
+  // Panel API'de korse/büstiyer ürünleri "Bluzlar" kategorisinde gelir; katalogda
+  // ayrı bir "Korseler" bölümü göstermek için isimden tespit edip ayırıyoruz.
+  function detectCategory(p) {
+    const slug = CATEGORY_SLUG_MAP[p.kategori] || 'diger';
+    if (slug === 'bluzlar') {
+      const nameLower = (p.urunAdi || '').toLocaleLowerCase('tr-TR');
+      if (nameLower.includes('korse') || nameLower.includes('büstiyer') || nameLower.includes('bustiyer')) {
+        return 'korseler';
+      }
+    }
+    return slug;
+  }
+
+  // Fotoğrafı olmayan ürünler katalogda hiç gösterilmez.
+  function hasPhoto(p) {
+    return !!(p.colors && p.colors.some(c => c.kapakFoto));
+  }
+
   function mapApiProduct(p) {
     return {
       code: p.kod,
       name: p.urunAdi,
       nameEn: p.urunAdiEN || '',
-      category: CATEGORY_SLUG_MAP[p.kategori] || 'diger',
+      category: detectCategory(p),
       colors: (p.renkler || []).map(r => ({
         name: r.renk,
         hex: r.hex || '#CCCCCC',
