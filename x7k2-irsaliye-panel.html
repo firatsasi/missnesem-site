@@ -126,6 +126,10 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .tag.gay{background:#d4b896;color:#2c2419}
 .date-pick{display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap}
 .date-pick input{padding:7px 10px;font-size:13px;border:1px solid #c8a87a;border-radius:6px;background:#fff;color:#2c2419}
+.sync-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:700;letter-spacing:.3px;color:#fff;z-index:9999;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.sync-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.sync-toast.ok{background:#2e7d32}
+.sync-toast.err{background:#c0392b}
 
 @media print {
   @page { size: A4 portrait; margin: 10mm; }
@@ -716,9 +720,68 @@ ekle();ekle();ekle();
 /* ====== KAYIT (localStorage) ====== */
 function veriCek(){var v=localStorage.getItem('mn_irsaliye');return v?JSON.parse(v):[];}
 function veriYaz(a){localStorage.setItem('mn_irsaliye',JSON.stringify(a));}
-function syncSunucu(payload){
-  try{fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){}
+
+/* ---- sync retry kuyruğu + durum bildirimi ---- */
+var SYNC_KUYRUK_KEY='mn_sync_kuyruk';
+var SYNC_TIMEOUT_MS=10000;
+
+function _syncToastGoster(basarili){
+  var el=document.getElementById('syncToast');
+  if(!el){
+    el=document.createElement('div');
+    el.id='syncToast';
+    el.className='sync-toast';
+    document.body.appendChild(el);
+  }
+  el.textContent=basarili?'✓ Panele kaydedildi':'✗ Panel sync başarısız — tekrar denenecek';
+  el.className='sync-toast show '+(basarili?'ok':'err');
+  clearTimeout(el._t);
+  el._t=setTimeout(function(){el.classList.remove('show');},3000);
 }
+
+function _syncKuyrukOku(){var v=localStorage.getItem(SYNC_KUYRUK_KEY);return v?JSON.parse(v):[];}
+function _syncKuyrukYaz(a){localStorage.setItem(SYNC_KUYRUK_KEY,JSON.stringify(a));}
+function _syncKuyrukAnahtar(payload){return payload.tip+':'+payload.id;}
+function _syncKuyrukEkle(payload){
+  var kuyruk=_syncKuyrukOku();
+  var anahtar=_syncKuyrukAnahtar(payload);
+  var idx=kuyruk.findIndex(function(k){return _syncKuyrukAnahtar(k)===anahtar;});
+  if(idx>=0)kuyruk[idx]=payload;else kuyruk.push(payload);
+  _syncKuyrukYaz(kuyruk);
+}
+function _syncKuyruktanCikar(payload){
+  var kuyruk=_syncKuyrukOku().filter(function(k){return _syncKuyrukAnahtar(k)!==_syncKuyrukAnahtar(payload);});
+  _syncKuyrukYaz(kuyruk);
+}
+
+function syncSunucu(payload){
+  var controller=new AbortController();
+  var timer=setTimeout(function(){controller.abort();},SYNC_TIMEOUT_MS);
+  fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal})
+    .then(function(r){
+      clearTimeout(timer);
+      if(r.ok){_syncKuyruktanCikar(payload);_syncToastGoster(true);}
+      else{_syncKuyrukEkle(payload);_syncToastGoster(false);}
+    })
+    .catch(function(){
+      clearTimeout(timer);
+      _syncKuyrukEkle(payload);
+      _syncToastGoster(false);
+    });
+}
+
+function _bekleyenSyncleriTekrarDene(){
+  _syncKuyrukOku().forEach(function(payload){syncSunucu(payload);});
+}
+_bekleyenSyncleriTekrarDene();
+
+window.addEventListener('beforeunload',function(e){
+  if(_syncKuyrukOku().length>0){
+    e.preventDefault();
+    e.returnValue='Panele gönderilmeyi bekleyen kayıtlar var. Sayfadan ayrılırsanız senkronize edilemeyebilir.';
+    return e.returnValue;
+  }
+});
 // GEÇİCİ: localStorage'daki tüm irsaliyeleri panele tek tek gönderir. Konsoldan çağır: tumunuSyncEt()
 async function tumunuSyncEt(){
   var v=veriCek();
