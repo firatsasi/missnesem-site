@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Miss Neşem - Privacy Policy / Gizlilik Politikası</title>
+  <meta name="description" content="Miss Neşem gizlilik politikası - WhatsApp Business API ve müşteri verilerinin korunması hakkında bilgilendirme." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://missnesem.com/privacy-policy.html" />
+
+  <link rel="icon" type="image/png" href="/assets/missnesem_logo_white.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #f5f1ea;
+      --bg-secondary: #e8dfd3;
+      --accent-pink: #d4a5a5;
+      --accent-gold: #b8985e;
+      --text-dark: #2c2419;
+      --text-light: #6b5d4f;
+      --card-bg: rgba(255, 255, 255, 0.7);
+      --radius: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-dark);
+      font-family: 'Montserrat', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 110% 65% at 8% 12%, rgba(184,152,94,0.09) 0%, transparent 55%),
+        radial-gradient(ellipse 90% 80% at 92% 88%, rgba(212,165,165,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 50% at 55% 45%, rgba(232,223,211,0.55) 0%, transparent 65%),
+        repeating-linear-gradient(108deg, transparent 0px, transparent 58px, rgba(150,130,100,0.028) 58px, rgba(150,130,100,0.028) 59px),
+        repeating-linear-gradient(74deg, transparent 0px, transparent 82px, rgba(180,155,120,0.022) 82px, rgba(180,155,120,0.022) 83px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 720px;
+      padding: 50px 24px 40px;
+    }
+
+    .site-header {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .site-logo {
+      max-width: 260px;
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto 14px;
+      filter: brightness(0) saturate(100%) invert(13%) sepia(15%) saturate(700%) hue-rotate(15deg) drop-shadow(0 2px 6px rgba(44,36,25,0.08));
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: clamp(24px, 4.5vw, 32px);
+      color: var(--text-dark);
+    }
+
+    .subtitle {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: clamp(14px, 3vw, 17px);
+      color: var(--text-light);
+      margin-top: 4px;
+      letter-spacing: 0.02em;
+    }
+
+    .gold-divider {
+      width: 80px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+      margin: 18px auto 30px;
+    }
+
+    .updated {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-light);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 30px;
+    }
+
+    .policy-card {
+      background: var(--card-bg);
+      border: 1.5px solid rgba(184,152,94,0.35);
+      border-radius: var(--radius);
+      backdrop-filter: blur(6px);
+      padding: 28px 26px;
+      margin-bottom: 20px;
+    }
+
+    .policy-card h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: 21px;
+      color: var(--accent-gold);
+      margin-bottom: 10px;
+    }
+
+    .policy-card p {
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--text-dark);
+      font-weight: 300;
+      margin-bottom: 10px;
+    }
+
+    .policy-card p:last-child { margin-bottom: 0; }
+
+    .lang-label {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-pink);
+      margin-bottom: 6px;
+    }
+
+    a.contact-link {
+      color: var(--accent-gold);
+      text-decoration: none;
+      font-weight: 500;
+      border-bottom: 1px solid rgba(184,152,94,0.4);
+    }
+    a.contact-link:hover { color: var(--accent-pink); }
+
+    .site-footer {
+      text-align: center;
+      color: var(--text-light);
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      padding: 20px 0 8px;
+    }
+
+    .site-footer a {
+      color: var(--accent-gold);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+
+    <header class="site-header">
+      <img src="assets/missnesem_logo_white.png" alt="Miss Neşem" class="site-logo" />
+      <h1>Miss Neşem</h1>
+      <p class="subtitle">Privacy Policy / Gizlilik Politikası</p>
+    </header>
+    <div class="gold-divider"></div>
+    <p class="updated">Son güncelleme / Last updated: 9 Temmuz 2026</p>
+
+    <section class="policy-card">
+      <span class="lang-label">Türkçe</span>
+      <h2>WhatsApp Üzerinden İletişim</h2>
+      <p>Miss Neşem olarak müşterilerimizle WhatsApp Business API üzerinden iletişim kurmaktayız. Bu kanal üzerinden gönderdiğiniz mesajlar sipariş takibi, müşteri hizmetleri ve bilgilendirme amacıyla kullanılır.</p>
+    </section>
+
+    <section class="policy-card">
+      <span class="lang-label">English</span>
+      <h2>Communication via WhatsApp</h2>
+      <p>Miss Neşem communicates with customers through the WhatsApp Business API. Messages sent through this channel are used for order tracking, customer service, and informational purposes.</p>
+    </section>
+
+    <section class="policy-card">
+      <span class="lang-label">Türkçe</span>
+      <h2>Müşteri Verilerinin Korunması</h2>
+      <p>Ad, telefon numarası, adres ve sipariş bilgileri gibi müşteri verileri güvenli bir şekilde saklanır ve yalnızca hizmet sunumu amacıyla kullanılır. Verileriniz hiçbir üçüncü taraf ile paylaşılmaz veya satılmaz.</p>
+    </section>
+
+    <section class="policy-card">
+      <span class="lang-label">English</span>
+      <h2>Protection of Customer Data</h2>
+      <p>Customer data such as name, phone number, address, and order details is stored securely and used solely for providing our services. Your data is never shared with or sold to third parties.</p>
+    </section>
+
+    <section class="policy-card">
+      <span class="lang-label">Türkçe / English</span>
+      <h2>İletişim / Contact</h2>
+      <p>Gizlilik politikamız hakkında sorularınız için / For questions about this privacy policy, contact us at:<br />
+      <a class="contact-link" href="mailto:info@missnesem.com">info@missnesem.com</a></p>
+    </section>
+
+    <footer class="site-footer">
+      <a href="/">← Miss Neşem</a> &nbsp;•&nbsp; Made with ❤️ in Merter, İstanbul
+    </footer>
+
+  </div>
+
+</body>
+</html>
