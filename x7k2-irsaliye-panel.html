@@ -733,7 +733,7 @@ function _syncToastGoster(basarili){
     el.className='sync-toast';
     document.body.appendChild(el);
   }
-  el.textContent=basarili?'✓ Panele kaydedildi':'✗ Panel sync başarısız — tekrar denenecek';
+  el.textContent=basarili?'✓ Panele kaydedildi':'✗ Sync başarısız — tekrar Kaydet\'e basın';
   el.className='sync-toast show '+(basarili?'ok':'err');
   clearTimeout(el._t);
   el._t=setTimeout(function(){el.classList.remove('show');},3000);
@@ -754,20 +754,44 @@ function _syncKuyruktanCikar(payload){
   _syncKuyrukYaz(kuyruk);
 }
 
+function _syncTekDene(payload){
+  return new Promise(function(resolve){
+    var controller=new AbortController();
+    var timer=setTimeout(function(){controller.abort();},SYNC_TIMEOUT_MS);
+    fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal})
+      .then(function(r){clearTimeout(timer);resolve(!!r.ok);})
+      .catch(function(){clearTimeout(timer);resolve(false);});
+  });
+}
+
+// Sessiz (arkaplan) sync: toast/retry döngüsü yok — bekleyen kuyruğu ve düzenleme öncesi
+// eski kaydı silme gibi "Kaydet" tuşuna bağlı olmayan işlemler için kullanılır.
 function syncSunucu(payload){
-  var controller=new AbortController();
-  var timer=setTimeout(function(){controller.abort();},SYNC_TIMEOUT_MS);
-  fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal})
-    .then(function(r){
-      clearTimeout(timer);
-      if(r.ok){_syncKuyruktanCikar(payload);_syncToastGoster(true);}
-      else{_syncKuyrukEkle(payload);_syncToastGoster(false);}
-    })
-    .catch(function(){
-      clearTimeout(timer);
-      _syncKuyrukEkle(payload);
-      _syncToastGoster(false);
+  _syncTekDene(payload).then(function(ok){
+    if(ok)_syncKuyruktanCikar(payload);else _syncKuyrukEkle(payload);
+  });
+}
+
+var SYNC_MAX_RETRY=3;
+var SYNC_RETRY_DELAY_MS=2000;
+// "Kaydet" tuşuna özel: başarısız olursa 2sn arayla 3 kez daha dener, sonucu net bir toast ile bildirir.
+function syncSunucuKaydetVeBildir(payload){
+  var deneme=0;
+  function dene(){
+    deneme++;
+    _syncTekDene(payload).then(function(ok){
+      if(ok){
+        _syncKuyruktanCikar(payload);
+        _syncToastGoster(true);
+      }else if(deneme<=SYNC_MAX_RETRY){
+        setTimeout(dene,SYNC_RETRY_DELAY_MS);
+      }else{
+        _syncKuyrukEkle(payload);
+        _syncToastGoster(false);
+      }
     });
+  }
+  dene();
 }
 
 function _bekleyenSyncleriTekrarDene(){
@@ -795,7 +819,7 @@ async function tumunuSyncEt(){
   }
   console.log('tumunuSyncEt tamamlandı → Başarılı: '+basarili+' / Hatalı: '+hatali+' / Toplam: '+v.length);
 }
-function kaydet(sessiz){
+function kaydet(sessiz,skipSync){
   var musteri=document.getElementById('musteri').value.trim();
   if(!musteri){if(!sessiz)alert('Müşteri adı boş olamaz');return false;}
   var tarih=document.getElementById('tarih').value;
@@ -890,11 +914,13 @@ function kaydet(sessiz){
   }
   if(!sessiz)alert((duzenleniyor?'✅ Güncellendi!':'✅ Kaydedildi!')+'\n\n'+musteri+' · '+fmtPara(genel,kayit.para)+'\n'+kayit.odeme+' · '+kayit.tur+bakiyeMsg);
 
-  if(duzenleniyor){
-    // Sunucudaki eski kaydı sil, ardından güncel veriyle aynı id (CreatedAt) üzerinden yeniden oluştur
-    syncSunucu({tip:'irsaliye_sil',id:kayit.id});
+  if(!skipSync){
+    if(duzenleniyor){
+      // Sunucudaki eski kaydı sil, ardından güncel veriyle aynı id (CreatedAt) üzerinden yeniden oluştur
+      syncSunucu({tip:'irsaliye_sil',id:kayit.id});
+    }
+    syncSunucuKaydetVeBildir(Object.assign({tip:'irsaliye_kaydet'},kayit));
   }
-  syncSunucu(Object.assign({tip:'irsaliye_kaydet'},kayit));
   raporGuncelle();
 
   if(!sessiz&&duzenleniyor){
@@ -1367,7 +1393,7 @@ function _pdfUrunKontrol(){
 function pdfIndir(){
   var musteri=_pdfUrunKontrol();
   if(!musteri)return;
-  kaydet(true);
+  kaydet(true,true);
   var s=hazirla();
   var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.pdf';
   var el=document.getElementById('irsaliye');
@@ -1388,7 +1414,7 @@ function pdfIndir(){
 function pngIndir(){
   var musteri=_pdfUrunKontrol();
   if(!musteri)return;
-  kaydet(true);
+  kaydet(true,true);
   var s=hazirla();
   var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.png';
   var el=document.getElementById('irsaliye');
