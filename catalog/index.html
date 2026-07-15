@@ -310,7 +310,12 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   align-items: center;
   justify-content: center;
   gap: 2.5rem;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  padding: 3rem 1rem;
 }
+.mobile-menu::-webkit-scrollbar { display: none; }
 .mobile-menu.open { display: flex; }
 .mobile-menu a {
   font-size: 0.8rem;
@@ -549,7 +554,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .card-fav .ti { font-size: 1rem; }
 .card-fav:hover { color: var(--accent); transform: scale(1.2); }
 .card-fav.active { color: var(--accent); }
-.card-fav.active .ti::before { content: '\ea29'; } /* filled heart */
 
 .product-card-info {
   padding: 1rem 0 0;
@@ -1273,6 +1277,7 @@ footer {
       </ul>
     </nav>
     <div class="nav-actions">
+      <button class="nav-btn" id="lang-toggle" title="Dil / Language" style="font-size:0.5rem;letter-spacing:0.15em;font-weight:600;width:auto;padding:0 4px;">TR</button>
       <button class="nav-btn" id="search-toggle" title="Ara"><i class="ti ti-search"></i></button>
       <button class="nav-btn" id="fav-toggle" title="Favoriler">
         <i class="ti ti-heart"></i>
@@ -1534,7 +1539,9 @@ footer {
 
   // ===== MOBILE MENU =====
   document.getElementById('hamburger').addEventListener('click', () => {
-    document.getElementById('mobile-menu').classList.add('open');
+    const mm = document.getElementById('mobile-menu');
+    mm.scrollTop = 0;
+    mm.classList.add('open');
   });
   document.getElementById('mobile-close').addEventListener('click', () => {
     document.getElementById('mobile-menu').classList.remove('open');
@@ -1631,11 +1638,28 @@ footer {
 
   function isFav(code) { return favorites.includes(code); }
 
+  function showFavHint() {
+    if (localStorage.getItem('mn_fav_hint_shown')) return;
+    localStorage.setItem('mn_fav_hint_shown', '1');
+    const toast = document.createElement('div');
+    toast.textContent = 'Beğendiğiniz ürünleri kaydedin, WhatsApp ile gönderin ❤️';
+    Object.assign(toast.style, {
+      position:'fixed',bottom:'2rem',left:'50%',transform:'translateX(-50%)',
+      background:'rgba(26,16,24,0.85)',color:'#fff',padding:'0.75rem 1.5rem',
+      borderRadius:'8px',fontSize:'0.7rem',letterSpacing:'0.1em',zIndex:'9999',
+      opacity:'0',transition:'opacity 0.4s ease',whiteSpace:'nowrap',maxWidth:'90vw'
+    });
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.style.opacity = '1');
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
+  }
+
   function toggleFav(code) {
     if (isFav(code)) {
       favorites = favorites.filter(c => c !== code);
     } else {
       favorites.push(code);
+      showFavHint();
     }
     saveFavs();
     updateCardFavUI(code);
@@ -1649,18 +1673,21 @@ footer {
   }
 
   function updateCardFavUI(code) {
+    const fav = isFav(code);
     document.querySelectorAll(`.card-fav[data-code="${code}"]`).forEach(btn => {
-      btn.classList.toggle('active', isFav(code));
+      if (fav) { btn.classList.add('active'); } else { btn.classList.remove('active'); }
       const icon = btn.querySelector('.ti');
-      icon.className = isFav(code) ? 'ti ti-heart-filled' : 'ti ti-heart';
+      if (icon) { icon.className = ''; icon.className = fav ? 'ti ti-heart-filled' : 'ti ti-heart'; }
     });
   }
 
   function updateModalFavUI(code) {
     const btn = document.getElementById('modal-fav-btn');
     if (!btn || btn.dataset.code !== code) return;
-    btn.classList.toggle('active', isFav(code));
-    btn.querySelector('.ti').className = isFav(code) ? 'ti ti-heart-filled' : 'ti ti-heart';
+    const fav = isFav(code);
+    if (fav) { btn.classList.add('active'); } else { btn.classList.remove('active'); }
+    const icon = btn.querySelector('.ti');
+    if (icon) { icon.className = ''; icon.className = fav ? 'ti ti-heart-filled' : 'ti ti-heart'; }
   }
 
   // fav panel
@@ -1974,14 +2001,14 @@ footer {
           <i class="ti ${favActive ? 'ti-heart-filled' : 'ti-heart'}"></i>
         </button>
       </div>
-      ${product.colors && product.colors.length > 1 ? `
+      ${(() => { const mc = (product.colors||[]).filter(c => c.kapakFoto && !c.kapakFoto.includes('undefined')); return mc.length > 1 ? `
       <div class="modal-colors">
-        ${product.colors.map(c => `
+        ${mc.map(c => `
           <div class="modal-color-item">
             <div class="modal-color-dot" style="${swatchStyle(c)}"></div>
             <span class="modal-color-name">${c.name}</span>
           </div>`).join('')}
-      </div>` : ''}
+      </div>` : ''; })()}
       <div class="modal-sizes-mini">${product.sizes}</div>
       <a href="https://wa.me/905344644221?text=${encodeURIComponent('Merhaba, ' + product.code + ' – ' + product.name + ' ürünü hakkında bilgi almak istiyorum.')}" target="_blank" class="btn-whatsapp">
         <i class="ti ti-brand-whatsapp"></i> Sipariş için WhatsApp
@@ -2030,12 +2057,26 @@ footer {
 
   function buildCategorySection(cat, products) {
     const catProducts = products.filter(p => p.category === cat.id && hasPhoto(p));
-    if (catProducts.length === 0) return '';
+    if (catProducts.length === 0) return `
+      <section class="cat-section" id="${cat.id}">
+        <div class="section-wrap">
+          <div class="section-header reveal">
+            <span class="section-tag">${cat.nameEn}</span>
+            <h2 class="section-title">${cat.name}</h2>
+            <div class="section-divider"></div>
+          </div>
+          <div style="text-align:center;padding:3rem 2rem;color:var(--text2);opacity:0.5;">
+            <i class="ti ti-clock" style="font-size:2rem;display:block;margin-bottom:0.8rem;"></i>
+            <span style="font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;">Yakında • Coming Soon</span>
+          </div>
+        </div>
+      </section>`;
 
     const cards = catProducts.map(p => {
       const favActive = isFav(p.code);
-      const colorDots = (p.colors && p.colors.length > 1)
-        ? p.colors.map(c => `<div class="color-dot" style="${swatchStyle(c)}" title="${c.name}"></div>`).join('')
+      const colorsWithPhoto = (p.colors || []).filter(c => c.kapakFoto && !c.kapakFoto.includes('undefined'));
+      const colorDots = colorsWithPhoto.length > 1
+        ? colorsWithPhoto.map(c => `<div class="color-dot" style="${swatchStyle(c)}" title="${c.name}"></div>`).join('')
         : '';
       const coverPhoto = p.colors && p.colors[0] && p.colors[0].kapakFoto;
       const visualInner = coverPhoto
@@ -2055,7 +2096,7 @@ footer {
             </button>
           </div>
           <div class="product-card-info">
-            <span class="card-code">${p.code}</span>
+            <span class="card-code">Kod: ${p.code}</span>
             <div class="card-name">${p.name}</div>
             <div class="card-name-en">${p.nameEn}</div>
             ${colorDots ? `<div class="card-colors">${colorDots}</div>` : ''}
@@ -2281,6 +2322,71 @@ footer {
   }
 
   updateFavCount();
+
+  // ===== LANGUAGE TOGGLE =====
+  let currentLang = localStorage.getItem('mn_lang') || 'tr';
+  const langBtn = document.getElementById('lang-toggle');
+
+  function applyLang() {
+    const isEn = currentLang === 'en';
+    langBtn.textContent = isEn ? 'EN' : 'TR';
+
+    // section headers
+    document.querySelectorAll('.section-header').forEach(h => {
+      const tag = h.querySelector('.section-tag');
+      const title = h.querySelector('.section-title');
+      if (tag && title) {
+        const trName = title.getAttribute('data-tr') || title.textContent;
+        const enName = tag.getAttribute('data-en') || tag.textContent;
+        if (!title.getAttribute('data-tr')) title.setAttribute('data-tr', title.textContent);
+        if (!tag.getAttribute('data-en')) tag.setAttribute('data-en', tag.textContent);
+        if (isEn) { title.textContent = enName; tag.textContent = enName.toUpperCase(); }
+        else { title.textContent = trName; tag.textContent = enName; }
+      }
+    });
+
+    // card names
+    document.querySelectorAll('.product-card').forEach(card => {
+      const nameTr = card.querySelector('.card-name');
+      const nameEn = card.querySelector('.card-name-en');
+      if (nameTr && nameEn) {
+        if (isEn) { nameTr.style.display = 'none'; nameEn.style.fontStyle = 'normal'; nameEn.style.fontSize = '1rem'; nameEn.style.fontFamily = "'Cormorant Garamond', serif"; }
+        else { nameTr.style.display = ''; nameEn.style.fontStyle = ''; nameEn.style.fontSize = ''; nameEn.style.fontFamily = ''; }
+      }
+    });
+
+    // WhatsApp buttons
+    document.querySelectorAll('.btn-whatsapp').forEach(btn => {
+      const icon = '<i class="ti ti-brand-whatsapp"></i> ';
+      btn.innerHTML = icon + (isEn ? 'Order via WhatsApp' : 'Sipariş için WhatsApp');
+    });
+
+    // fav panel
+    const favTitle = document.querySelector('.fav-panel-title');
+    if (favTitle) favTitle.textContent = isEn ? 'My Favorites' : 'Favorilerim';
+
+    // search placeholder
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) searchInput.placeholder = isEn ? 'Search by code or name...' : 'Ürün kodu veya isim ara...';
+
+    // fav WA button
+    const favWaBtn = document.getElementById('fav-wa-btn');
+    if (favWaBtn) {
+      const waIcon = favWaBtn.querySelector('.ti');
+      const iconHtml = waIcon ? '<i class="ti ti-brand-whatsapp"></i> ' : '';
+      favWaBtn.innerHTML = iconHtml + (isEn ? 'Send via WhatsApp' : 'WhatsApp ile Gönder');
+    }
+  }
+
+  langBtn.addEventListener('click', () => {
+    currentLang = currentLang === 'tr' ? 'en' : 'tr';
+    localStorage.setItem('mn_lang', currentLang);
+    applyLang();
+  });
+
+  // Apply on load after catalog renders
+  const origRender = renderCatalog;
+  renderCatalog = function(data) { origRender(data); setTimeout(applyLang, 100); };
 })();
 </script>
 </body>
