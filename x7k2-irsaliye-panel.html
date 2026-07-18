@@ -733,7 +733,7 @@ function veriYaz(a){localStorage.setItem('mn_irsaliye',JSON.stringify(a));}
 // Panel API'den irsaliyeleri çek (mobil cihazlar için)
 function apidenVeriCek(){
   if(_apiYuklendi)return Promise.resolve(_apiVeriler||[]);
-  return fetch('https://panel.missnesem.com/api/invoices/report')
+  return fetch('https://panel.missnesem.com/mn_irsaliye.json')
     .then(function(r){if(!r.ok)throw new Error('API hata');return r.json();})
     .then(function(data){
       _apiVeriler=data;
