@@ -567,7 +567,14 @@ function tabGoster(t){
   document.getElementById('tab1').classList.toggle('active',t==='irs');
   document.getElementById('tab2').classList.toggle('active',t==='rap');
   document.body.dataset.printMode=t;
-  if(t==='rap')raporGuncelle();
+  if(t==='rap'){
+    var lokal=localStorage.getItem('mn_irsaliye');
+    if(!lokal||JSON.parse(lokal).length===0){
+      apidenVeriCek().then(function(){raporGuncelle();});
+    }else{
+      raporGuncelle();
+    }
+  }
 }
 
 /* ====== İRSALİYE ====== */
@@ -717,9 +724,29 @@ ekle();ekle();ekle();
   _duzenlemeBanneriGuncelle();
 }
 
-/* ====== KAYIT (localStorage) ====== */
-function veriCek(){var v=localStorage.getItem('mn_irsaliye');return v?JSON.parse(v):[];}
+/* ====== KAYIT (localStorage + API fallback) ====== */
+var _apiVeriler=null; // API'den çekilen veriler cache
+var _apiYuklendi=false;
+function veriCek(){var v=localStorage.getItem('mn_irsaliye');return v?JSON.parse(v):(_apiVeriler||[]);}
 function veriYaz(a){localStorage.setItem('mn_irsaliye',JSON.stringify(a));}
+
+// Panel API'den irsaliyeleri çek (mobil cihazlar için)
+function apidenVeriCek(){
+  if(_apiYuklendi)return Promise.resolve(_apiVeriler||[]);
+  return fetch('https://panel.missnesem.com/api/invoices/report')
+    .then(function(r){if(!r.ok)throw new Error('API hata');return r.json();})
+    .then(function(data){
+      _apiVeriler=data;
+      _apiYuklendi=true;
+      return data;
+    })
+    .catch(function(e){
+      console.warn('API veri çekme başarısız:',e);
+      _apiYuklendi=true;
+      _apiVeriler=[];
+      return [];
+    });
+}
 
 /* ---- sync retry kuyruğu + durum bildirimi ---- */
 var SYNC_KUYRUK_KEY='mn_sync_kuyruk';
