@@ -2054,6 +2054,11 @@ footer {
 
   // ===== PRODUCTS =====
   let allProducts = [];
+  // Sayfa açılışında ekrana giren ilk kartlar (above the fold) hemen (eager) yüklenir;
+  // geri kalanı IntersectionObserver görünür olduklarında yükler. Bu sayaç tüm kategori
+  // bölümleri boyunca DOM sırasına göre artar, her renderCatalog çağrısında sıfırlanır.
+  const EAGER_IMAGE_COUNT = 6;
+  let cardImgCounter = 0;
 
   function buildCategorySection(cat, products) {
     const catProducts = products.filter(p => p.category === cat.id && hasPhoto(p));
@@ -2079,8 +2084,13 @@ footer {
         ? colorsWithPhoto.map(c => `<div class="color-dot" style="${swatchStyle(c)}" title="${c.name}"></div>`).join('')
         : '';
       const coverPhoto = p.colors && p.colors[0] && p.colors[0].kapakFoto;
+      const isEager = cardImgCounter < EAGER_IMAGE_COUNT;
+      cardImgCounter++;
+      const imgSrcAttrs = isEager
+        ? `src="${coverPhoto}" loading="eager" fetchpriority="high"`
+        : `data-src="${coverPhoto}" loading="lazy"`;
       const visualInner = coverPhoto
-        ? `<img class="product-card-img" src="${coverPhoto}" alt="${p.name}" loading="lazy">`
+        ? `<img class="product-card-img" ${imgSrcAttrs} alt="${p.name}">`
         : `<div class="product-img-placeholder">
               <i class="ti ti-hanger"></i>
               <span class="product-code-overlay">${p.code}</span>
@@ -2126,12 +2136,14 @@ footer {
     }
     console.log('[MissNesem] Render başlıyor:', data.products.length, 'ürün,', data.categories.length, 'kategori');
     allProducts = data.products;
+    cardImgCounter = 0;
     const catalog = document.getElementById('catalog');
     const html = data.categories
       .map(cat => buildCategorySection(cat, data.products))
       .join('');
     catalog.innerHTML = html;
     console.log('[MissNesem] DOM güncellendi. Catalog children:', catalog.children.length);
+    initLazyImages();
 
     // card click
     catalog.addEventListener('click', e => {
@@ -2191,10 +2203,30 @@ footer {
     return url ? url + cacheBust : url;
   }
 
+  // Tarayıcı WebP destekliyorsa API'nin sunduğu WebP varyantı, desteklemiyorsa
+  // orijinal (jpg/png) varyantı kullanılır. Karar bir kere verilip tüm görsel
+  // URL'lerinin çözümlenmesinde (photoTier, mapApiProduct) kullanılır.
+  let webpSupported = false;
+  function detectWebpSupport() {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => resolve(img.width === 1 && img.height === 1);
+      img.onerror = () => resolve(false);
+      img.src = 'data:image/webp;base64,UklGRiIAAABXRUJQVlA4IBYAAAAwAQCdASoBAAEADsD+JaQAA3AAAAAA';
+    });
+  }
+  function pickFormat(webpUrl, originalUrl) {
+    return (webpSupported && webpUrl) ? webpUrl : originalUrl;
+  }
+
   function photoTier(entry) {
     if (!entry) return null;
     if (typeof entry === 'string') return { medium: withCacheBust(entry), thumb: withCacheBust(entry), full: withCacheBust(entry) };
-    return { medium: withCacheBust(entry.medium), thumb: withCacheBust(entry.thumb), full: withCacheBust(entry.full) };
+    return {
+      medium: withCacheBust(pickFormat(entry.mediumWebp, entry.medium)),
+      thumb: withCacheBust(pickFormat(entry.thumbWebp, entry.thumb)),
+      full: withCacheBust(entry.full),
+    };
   }
 
   // Desenli renkler için swatch görseli varsa onu kullan, yoksa düz hex rengine düş.
@@ -2232,8 +2264,8 @@ footer {
         name: r.renk,
         hex: r.hex || '#CCCCCC',
         swatchImageUrl: r.swatchImageUrl || null,
-        kapakFoto: withCacheBust(r.kapakFoto),
-        kapakFotoThumb: withCacheBust(r.kapakFotoThumb || r.kapakFoto),
+        kapakFoto: withCacheBust(pickFormat(r.kapakFotoWebp, r.kapakFoto)),
+        kapakFotoThumb: withCacheBust(pickFormat(r.kapakFotoThumbWebp, r.kapakFotoThumb || r.kapakFoto)),
         kapakFotoFull: withCacheBust(r.kapakFotoFull || r.kapakFoto),
         galeriFotolar: (r.galeriFotolar || []).map(photoTier).filter(Boolean),
       })),
@@ -2275,9 +2307,10 @@ footer {
     }
   }
 
-  loadProducts()
-    .then(raw => {
-      console.log('[MissNesem] Veri alındı, normalize ediliyor.');
+  Promise.all([detectWebpSupport(), loadProducts()])
+    .then(([supported, raw]) => {
+      webpSupported = supported;
+      console.log('[MissNesem] Veri alındı, normalize ediliyor. WebP destekleniyor mu:', supported);
       renderCatalog(normalizeCatalogData(raw));
     })
     .catch(err => {
@@ -2288,6 +2321,34 @@ footer {
         + '<span style="font-size:0.65rem;opacity:0.6;letter-spacing:0.1em;text-transform:none;display:block;margin-top:1rem">' + err.message + '</span>'
         + '</div>';
     });
+
+  // ===== LAZY LOAD (ürün görselleri) =====
+  // data-src taşıyan kartlar viewport'a ~200px kala gerçek src'ye kavuşur; loading="lazy"
+  // ayrıca tarayıcının kendi native lazy-load mekanizmasını da devrede tutar.
+  function initLazyImages() {
+    const images = document.querySelectorAll('.product-card-img[data-src]');
+    if (images.length === 0) return;
+
+    if (!('IntersectionObserver' in window)) {
+      images.forEach(img => {
+        img.src = img.dataset.src;
+        img.removeAttribute('data-src');
+      });
+      return;
+    }
+
+    const imgObserver = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.removeAttribute('data-src');
+        obs.unobserve(img);
+      });
+    }, { rootMargin: '200px 0px', threshold: 0.01 });
+
+    images.forEach(img => imgObserver.observe(img));
+  }
 
   // ===== INTERSECTION OBSERVER (reveal) =====
   function initReveal() {
