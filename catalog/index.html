@@ -224,11 +224,23 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   color: #1a1018;
   white-space: nowrap;
 }
+.nav-inner > nav {
+  /* Grid'in "auto" ortası, içerik (14 kategori linki) taşınca varsayılan olarak
+     büzülmeyi reddedip nav-actions'ı (arama/favori/dil) viewport dışına iter.
+     min-width:0 + overflow:hidden bu otomatik min-boyut davranışını kapatır. */
+  min-width: 0;
+  overflow: hidden;
+}
 .nav-links {
   display: flex;
   gap: 1.6rem;
   list-style: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.nav-links::-webkit-scrollbar { display: none; }
 .nav-links a {
   font-size: 0.58rem;
   font-weight: 700;
