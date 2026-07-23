@@ -1581,21 +1581,32 @@ footer {
   }
 
   // ===== KATEGORİ FİLTRESİ =====
-  // Nav/mobil menüdeki kategori linkleri tıklandığında sadece o bölüm gösterilir;
-  // "Tüm Ürünler" (ve "İndirim", aynı linke gider) tüm bölümleri geri getirir.
+  // Nav, mobil menü ve footer'daki kategori linkleri tıklandığında sadece o bölüm
+  // gösterilir ve o bölüme scroll edilir; "Tüm Ürünler" (ve şimdilik "İndirim",
+  // henüz ayrı bir indirim bölümü olmadığından aynı linke gider) tüm bölümleri geri getirir.
+  // Tarayıcının native #hash navigasyonuna güvenilmez (preventDefault ile devre dışı
+  // bırakılır) — böylece sayfadan hiç çıkılmaz, her zaman scroll/filtre JS ile yapılır.
   function filterByCategory(catId) {
     document.querySelectorAll('.cat-section').forEach(section => {
       section.style.display = (!catId || section.id === catId) ? '' : 'none';
     });
   }
 
-  document.querySelectorAll('#nav-links a, .mobile-link').forEach(a => {
+  function goToCategory(catId) {
+    filterByCategory(catId);
+    requestAnimationFrame(() => {
+      const target = document.getElementById(catId || 'catalog');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  document.querySelectorAll('#nav-links a, .mobile-link, .footer-links a').forEach(a => {
     const href = a.getAttribute('href') || '';
-    if (href === '#catalog') {
-      a.addEventListener('click', () => filterByCategory(null));
-    } else if (href.startsWith('#')) {
-      a.addEventListener('click', () => filterByCategory(href.slice(1)));
-    }
+    if (!href.startsWith('#')) return;
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      goToCategory(href === '#catalog' ? null : href.slice(1));
+    });
   });
 
   // ===== HERO SLIDER =====
