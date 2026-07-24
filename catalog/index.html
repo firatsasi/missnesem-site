@@ -2083,6 +2083,15 @@ footer {
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
+
+    if (currentLang === 'ar') {
+      const enName = product.nameEn || product.name;
+      if (!getArTranslation(enName)) {
+        translateBatchToArabic([enName]).then(() => {
+          if (currentLang === 'ar' && currentProduct === product) refreshModalName();
+        });
+      }
+    }
   }
 
   function closeModal() {
@@ -2483,15 +2492,136 @@ footer {
   if (!STRINGS[currentLang]) currentLang = 'tr';
   const langSwitch = document.getElementById('lang-switch');
 
-  // Ürün adının seçili dile göre karşılığı; AR için karşılık yoksa EN'e düşer.
+  // ===== Ücretsiz Google Translate endpoint'i ile EN -> AR otomatik çeviri =====
+  // Panelde Arapça ürün adı / kategori adı olmadığından, AR seçilince İngilizce
+  // metinler translate.googleapis.com üzerinden çevrilip localStorage'da cache'lenir.
+  const TRANSLATE_CACHE_KEY = 'mn_translate_ar_v1';
+  let translateCache = {};
+  try { translateCache = JSON.parse(localStorage.getItem(TRANSLATE_CACHE_KEY) || '{}'); } catch (e) { translateCache = {}; }
+
+  function getArTranslation(enText) {
+    return enText ? translateCache[enText] : null;
+  }
+
+  function saveTranslateCache() {
+    try { localStorage.setItem(TRANSLATE_CACHE_KEY, JSON.stringify(translateCache)); } catch (e) {}
+  }
+
+  async function translateSingleToArabic(text) {
+    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=${encodeURIComponent(text)}`);
+    if (!res.ok) throw new Error('translate http ' + res.status);
+    const data = await res.json();
+    return (data[0] || []).map(seg => seg[0]).join('');
+  }
+
+  // translate.googleapis.com'un tek "q" parametresi çoklu satırı sıra korunarak
+  // ayrı segmentlere çevirir (satır sayısı == segment sayısı olduğu sürece);
+  // bu sayede tek istekle onlarca metni birden çevirip istek sayısını azaltıyoruz.
+  async function translateBatchToArabic(texts) {
+    const uncached = [...new Set(texts.filter(Boolean))].filter(txt => !translateCache[txt]);
+    if (uncached.length === 0) return;
+    const CHUNK = 20;
+    for (let i = 0; i < uncached.length; i += CHUNK) {
+      const chunk = uncached.slice(i, i + CHUNK);
+      try {
+        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=${encodeURIComponent(chunk.join('\n'))}`);
+        if (!res.ok) throw new Error('translate http ' + res.status);
+        const data = await res.json();
+        const segments = data[0] || [];
+        if (segments.length === chunk.length) {
+          segments.forEach((seg, idx) => {
+            if (seg && seg[0]) translateCache[chunk[idx]] = seg[0].replace(/\n$/, '');
+          });
+        } else {
+          // Beklenmeyen segment sayısı (ör. cümle bölünmesi) — tek tek çevirmeye düş
+          for (const txt of chunk) {
+            if (translateCache[txt]) continue;
+            try { translateCache[txt] = await translateSingleToArabic(txt); } catch (e2) { /* bu metin EN kalır */ }
+          }
+        }
+        saveTranslateCache();
+      } catch (e) {
+        console.warn('[MissNesem] Arapça çeviri isteği başarısız, İngilizce gösterilecek:', e.message);
+      }
+    }
+  }
+
+  async function ensureArabicTranslations() {
+    const texts = new Set();
+    document.querySelectorAll('.section-header .section-tag').forEach(tag => {
+      texts.add(tag.getAttribute('data-en') || tag.textContent);
+    });
+    allProducts.forEach(p => texts.add(p.nameEn || p.name));
+    await translateBatchToArabic([...texts]);
+  }
+
+  // Ürün adının seçili dile göre karşılığı; AR'da çeviri henüz cache'de yoksa
+  // (istek devam ederken) geçici olarak EN gösterilir.
   function localizedProductName(product) {
     if (currentLang === 'tr') return product.name;
-    return product.nameEn || product.name;
+    const enName = product.nameEn || product.name;
+    if (currentLang === 'ar') return getArTranslation(enName) || enName;
+    return enName;
+  }
+
+  function renderSectionHeaderText(h) {
+    const tag = h.querySelector('.section-tag');
+    const title = h.querySelector('.section-title');
+    if (!tag || !title) return;
+    const trName = title.getAttribute('data-tr') || title.textContent;
+    const enName = tag.getAttribute('data-en') || tag.textContent;
+    if (!title.getAttribute('data-tr')) title.setAttribute('data-tr', title.textContent);
+    if (!tag.getAttribute('data-en')) tag.setAttribute('data-en', tag.textContent);
+    if (currentLang === 'tr') { title.textContent = trName; tag.textContent = enName; return; }
+    if (currentLang === 'ar') {
+      const arName = getArTranslation(enName) || enName;
+      title.textContent = arName;
+      tag.textContent = arName;
+      return;
+    }
+    title.textContent = enName; tag.textContent = enName.toUpperCase();
+  }
+
+  function renderCardTexts(card) {
+    const codeEl = card.querySelector('.card-code');
+    if (codeEl) codeEl.textContent = `${STRINGS[currentLang].code}: ${card.dataset.code}`;
+    const nameTr = card.querySelector('.card-name');
+    const nameEnEl = card.querySelector('.card-name-en');
+    if (!nameTr || !nameEnEl) return;
+    if (!nameEnEl.dataset.original) nameEnEl.dataset.original = nameEnEl.textContent;
+    const enName = nameEnEl.dataset.original;
+    if (currentLang === 'tr') {
+      nameTr.style.display = ''; nameEnEl.style.fontStyle = ''; nameEnEl.style.fontSize = ''; nameEnEl.style.fontFamily = '';
+      nameEnEl.textContent = enName;
+      return;
+    }
+    nameTr.style.display = 'none';
+    nameEnEl.style.fontStyle = 'normal';
+    nameEnEl.style.fontSize = '1rem';
+    nameEnEl.style.fontFamily = "'Cormorant Garamond', serif";
+    nameEnEl.textContent = currentLang === 'ar' ? (getArTranslation(enName) || enName) : enName;
+  }
+
+  function refreshModalName() {
+    if (!currentProduct) return;
+    const displayName = localizedProductName(currentProduct);
+    const titleLine = modalBody.querySelector('.modal-title-line');
+    if (titleLine) titleLine.innerHTML = `<span class="modal-title-code">${currentProduct.code}</span> — ${displayName}`;
+    const waLink = modalBody.querySelector('.btn-whatsapp');
+    if (waLink) {
+      waLink.href = `https://wa.me/905344644221?text=${encodeURIComponent('Merhaba, ' + currentProduct.code + ' – ' + displayName + ' ürünü hakkında bilgi almak istiyorum.')}`;
+    }
+  }
+
+  function refreshTranslatedUI() {
+    document.querySelectorAll('.section-header').forEach(renderSectionHeaderText);
+    document.querySelectorAll('.product-card').forEach(renderCardTexts);
+    renderFavPanel();
+    if (overlay.classList.contains('open')) refreshModalName();
   }
 
   function applyLang() {
     const t = STRINGS[currentLang];
-    const useFallbackEn = currentLang !== 'tr';
 
     document.documentElement.lang = currentLang;
     document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
@@ -2500,35 +2630,9 @@ footer {
       btn.classList.toggle('active', btn.dataset.lang === currentLang);
     });
 
-    // section headers (kategori adları için AR karşılığı yok, EN'e düşer)
-    document.querySelectorAll('.section-header').forEach(h => {
-      const tag = h.querySelector('.section-tag');
-      const title = h.querySelector('.section-title');
-      if (tag && title) {
-        const trName = title.getAttribute('data-tr') || title.textContent;
-        const enName = tag.getAttribute('data-en') || tag.textContent;
-        if (!title.getAttribute('data-tr')) title.setAttribute('data-tr', title.textContent);
-        if (!tag.getAttribute('data-en')) tag.setAttribute('data-en', tag.textContent);
-        if (useFallbackEn) { title.textContent = enName; tag.textContent = enName.toUpperCase(); }
-        else { title.textContent = trName; tag.textContent = enName; }
-      }
-    });
-
     // "Yakında / Coming Soon" etiketleri
     document.querySelectorAll('.section-soon-label').forEach(el => {
       el.textContent = t.soon;
-    });
-
-    // card names + kod etiketi
-    document.querySelectorAll('.product-card').forEach(card => {
-      const nameTr = card.querySelector('.card-name');
-      const nameEn = card.querySelector('.card-name-en');
-      if (nameTr && nameEn) {
-        if (useFallbackEn) { nameTr.style.display = 'none'; nameEn.style.fontStyle = 'normal'; nameEn.style.fontSize = '1rem'; nameEn.style.fontFamily = "'Cormorant Garamond', serif"; }
-        else { nameTr.style.display = ''; nameEn.style.fontStyle = ''; nameEn.style.fontSize = ''; nameEn.style.fontFamily = ''; }
-      }
-      const codeEl = card.querySelector('.card-code');
-      if (codeEl) codeEl.textContent = `${t.code}: ${card.dataset.code}`;
     });
 
     // WhatsApp buttons
@@ -2542,7 +2646,6 @@ footer {
     if (favTitle) favTitle.textContent = t.favTitle;
     const favToggleBtn = document.getElementById('fav-toggle');
     if (favToggleBtn) favToggleBtn.title = t.favToggleTitle;
-    renderFavPanel();
 
     // search placeholder
     const searchInput = document.getElementById('search-input');
@@ -2554,6 +2657,15 @@ footer {
       const waIcon = favWaBtn.querySelector('.ti');
       const iconHtml = waIcon ? '<i class="ti ti-brand-whatsapp"></i> ' : '';
       favWaBtn.innerHTML = iconHtml + t.sendFavWa;
+    }
+
+    // kategori adları + ürün adları (TR/EN anında; AR önce cache'ten, sonra çeviri gelince güncellenir)
+    refreshTranslatedUI();
+
+    if (currentLang === 'ar') {
+      ensureArabicTranslations().then(() => {
+        if (currentLang === 'ar') refreshTranslatedUI();
+      });
     }
   }
 
