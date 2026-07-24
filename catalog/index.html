@@ -299,7 +299,14 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   white-space: nowrap;
   transition: color var(--transition), opacity var(--transition), background var(--transition);
 }
-.lang-switch .lang-btn .flag { font-size: 0.85rem; line-height: 1; }
+.lang-switch .lang-btn .flag {
+  width: 16px;
+  height: 12px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.08);
+  flex-shrink: 0;
+}
 .lang-switch .lang-btn:hover { color: var(--accent); opacity: 0.85; }
 .lang-switch .lang-btn.active { color: var(--accent); opacity: 1; background: var(--soft-pink); }
 #fav-count {
@@ -1319,9 +1326,9 @@ footer {
     </nav>
     <div class="nav-actions">
       <div class="lang-switch" id="lang-switch" role="group" aria-label="Dil / Language">
-        <button type="button" class="lang-btn" data-lang="tr"><span class="flag">🇹🇷</span>TR</button>
-        <button type="button" class="lang-btn" data-lang="en"><span class="flag">🇬🇧</span>EN</button>
-        <button type="button" class="lang-btn" data-lang="ar"><span class="flag">🇸🇦</span>AR</button>
+        <button type="button" class="lang-btn" data-lang="tr"><img class="flag" src="https://flagcdn.com/24x18/tr.png" width="16" height="12" alt="" loading="lazy">TR</button>
+        <button type="button" class="lang-btn" data-lang="en"><img class="flag" src="https://flagcdn.com/24x18/gb.png" width="16" height="12" alt="" loading="lazy">EN</button>
+        <button type="button" class="lang-btn" data-lang="ar"><img class="flag" src="https://flagcdn.com/24x18/sa.png" width="16" height="12" alt="" loading="lazy">AR</button>
       </div>
       <button class="nav-btn" id="search-toggle" title="Ara"><i class="ti ti-search"></i></button>
       <button class="nav-btn" id="fav-toggle" title="Favoriler">
