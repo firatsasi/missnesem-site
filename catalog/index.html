@@ -90,6 +90,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   text-align: center;
   padding: 0 1rem;
   line-height: 1;
+  direction: ltr;
 }
 
 /* Harf animasyonu */
@@ -224,6 +225,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   text-transform: uppercase;
   color: #1a1018;
   white-space: nowrap;
+  direction: ltr;
 }
 .nav-inner > nav {
   /* Orta kolon artık 1fr: kalan tüm genişliği alır. min-width:0 + overflow:hidden,
@@ -1092,6 +1094,7 @@ footer {
   text-transform: uppercase;
   color: #f5efe6;
   margin-bottom: 1.5rem;
+  direction: ltr;
 }
 .footer-divider {
   width: 100%; height: 1px;
@@ -1287,7 +1290,7 @@ footer {
   <div class="splash-bg-glow"></div>
   <div class="splash-logo" id="splash-logo-text">Miss Neşem</div>
   <div class="splash-underline"></div>
-  <div class="splash-sub">Wholesale Women's Fashion</div>
+  <div class="splash-sub">Toptan Kadın Giyim</div>
   <div class="splash-season">Summer · 2026</div>
   <div class="splash-enter">Tıklayın veya bekleyin</div>
 </div>
@@ -1695,7 +1698,7 @@ footer {
     if (localStorage.getItem('mn_fav_hint_shown')) return;
     localStorage.setItem('mn_fav_hint_shown', '1');
     const toast = document.createElement('div');
-    toast.textContent = 'Beğendiğiniz ürünleri kaydedin, WhatsApp ile gönderin ❤️';
+    toast.textContent = STRINGS[currentLang].favHint;
     Object.assign(toast.style, {
       position:'fixed',bottom:'2rem',left:'50%',transform:'translateX(-50%)',
       background:'rgba(26,16,24,0.85)',color:'#fff',padding:'0.75rem 1.5rem',
@@ -1755,7 +1758,7 @@ footer {
   function renderFavPanel() {
     const body = document.getElementById('fav-panel-body');
     if (favorites.length === 0) {
-      body.innerHTML = '<div class="fav-empty"><i class="ti ti-heart" style="font-size:2rem;display:block;margin-bottom:1rem;opacity:0.3;"></i>Henüz favori eklemediniz.</div>';
+      body.innerHTML = `<div class="fav-empty"><i class="ti ti-heart" style="font-size:2rem;display:block;margin-bottom:1rem;opacity:0.3;"></i>${STRINGS[currentLang].favEmpty}</div>`;
       return;
     }
     body.innerHTML = favorites.map(code => {
@@ -2461,6 +2464,10 @@ footer {
       colors: 'Renkler',
       sizes: 'Bedenler',
       code: 'Kod',
+      splashSub: 'Toptan Kadın Giyim',
+      splashEnter: 'Tıklayın veya bekleyin',
+      favEmpty: 'Henüz favori eklemediniz.',
+      favHint: 'Beğendiğiniz ürünleri kaydedin, WhatsApp ile gönderin ❤️',
     },
     en: {
       whatsapp: 'More Info & Order via WhatsApp',
@@ -2473,6 +2480,10 @@ footer {
       colors: 'Colors',
       sizes: 'Sizes',
       code: 'Code',
+      splashSub: "Wholesale Women's Fashion",
+      splashEnter: 'Click or wait',
+      favEmpty: "You haven't added any favorites yet.",
+      favHint: 'Save the products you like, send them via WhatsApp ❤️',
     },
     ar: {
       whatsapp: 'لمزيد من المعلومات والطلب عبر واتساب',
@@ -2485,6 +2496,10 @@ footer {
       colors: 'الألوان',
       sizes: 'المقاسات',
       code: 'الكود',
+      splashSub: 'أزياء نسائية بالجملة',
+      splashEnter: 'انقر أو انتظر',
+      favEmpty: 'لم تقم بإضافة أي مفضلة بعد.',
+      favHint: 'احفظي المنتجات التي أعجبتك وأرسليها عبر واتساب ❤️',
     },
   };
 
@@ -2691,6 +2706,12 @@ footer {
       const icon = '<i class="ti ti-brand-whatsapp"></i> ';
       btn.innerHTML = icon + t.whatsapp;
     });
+
+    // splash ekranı ("Yakında" ile aynı anda görünmese de sabit metinlerdir)
+    const splashSub = document.querySelector('.splash-sub');
+    if (splashSub) splashSub.textContent = t.splashSub;
+    const splashEnter = document.querySelector('.splash-enter');
+    if (splashEnter) splashEnter.textContent = t.splashEnter;
 
     // fav panel
     const favTitle = document.querySelector('.fav-panel-title');
