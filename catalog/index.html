@@ -2037,7 +2037,7 @@ footer {
       </div>` : ''; })()}
       <div class="modal-sizes-mini">${product.sizes}</div>
       <a href="https://wa.me/905344644221?text=${encodeURIComponent('Merhaba, ' + product.code + ' – ' + product.name + ' ürünü hakkında bilgi almak istiyorum.')}" target="_blank" class="btn-whatsapp">
-        <i class="ti ti-brand-whatsapp"></i> Sipariş için WhatsApp
+        <i class="ti ti-brand-whatsapp"></i> Daha Fazla Bilgi ve Sipariş için WhatsApp
       </a>`;
 
     document.getElementById('modal-fav-btn').addEventListener('click', () => {
@@ -2446,7 +2446,7 @@ footer {
     // WhatsApp buttons
     document.querySelectorAll('.btn-whatsapp').forEach(btn => {
       const icon = '<i class="ti ti-brand-whatsapp"></i> ';
-      btn.innerHTML = icon + (isEn ? 'Order via WhatsApp' : 'Sipariş için WhatsApp');
+      btn.innerHTML = icon + (isEn ? 'More Info & Order via WhatsApp' : 'Daha Fazla Bilgi ve Sipariş için WhatsApp');
     });
 
     // fav panel
