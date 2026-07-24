@@ -278,6 +278,28 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .nav-btn:hover { color: var(--accent); }
 .nav-btn .ti { font-size: 1.1rem; }
+.lang-switch {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.lang-switch .lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: var(--text2);
+  opacity: 0.55;
+  white-space: nowrap;
+  transition: color var(--transition), opacity var(--transition), background var(--transition);
+}
+.lang-switch .lang-btn .flag { font-size: 0.85rem; line-height: 1; }
+.lang-switch .lang-btn:hover { color: var(--accent); opacity: 0.85; }
+.lang-switch .lang-btn.active { color: var(--accent); opacity: 1; background: var(--soft-pink); }
 #fav-count {
   position: absolute;
   top: 2px; right: 2px;
@@ -1169,6 +1191,7 @@ footer {
   .nav-hamburger { display: flex; }
   .nav-inner { grid-template-columns: 1fr auto; }
   .nav-actions { gap: 0.5rem; }
+  .lang-switch .lang-btn { padding: 3px 4px; font-size: 0.44rem; }
   .slide { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
   .slide-visual { min-height: 55vw; }
   .slide-content { padding: 2rem 1.5rem; }
@@ -1292,7 +1315,11 @@ footer {
       </ul>
     </nav>
     <div class="nav-actions">
-      <button class="nav-btn" id="lang-toggle" title="Dil / Language" style="font-size:0.5rem;letter-spacing:0.15em;font-weight:600;width:auto;padding:0 4px;">TR</button>
+      <div class="lang-switch" id="lang-switch" role="group" aria-label="Dil / Language">
+        <button type="button" class="lang-btn" data-lang="tr"><span class="flag">🇹🇷</span>TR</button>
+        <button type="button" class="lang-btn" data-lang="en"><span class="flag">🇬🇧</span>EN</button>
+        <button type="button" class="lang-btn" data-lang="ar"><span class="flag">🇸🇦</span>AR</button>
+      </div>
       <button class="nav-btn" id="search-toggle" title="Ara"><i class="ti ti-search"></i></button>
       <button class="nav-btn" id="fav-toggle" title="Favoriler">
         <i class="ti ti-heart"></i>
@@ -1740,7 +1767,7 @@ footer {
         </div>
         <div class="fav-item-info">
           <div class="fav-item-code">${p.code}</div>
-          <div class="fav-item-name">${p.name}</div>
+          <div class="fav-item-name">${localizedProductName(p)}</div>
         </div>
         <button class="fav-item-remove" onclick="window._toggleFav('${p.code}')"><i class="ti ti-x"></i></button>
       </div>`;
@@ -2020,9 +2047,10 @@ footer {
     modalImg.innerHTML = `<i class="ti ti-camera" style="font-size:4rem;opacity:0.25;color:var(--text2);"></i>`;
 
     const favActive = isFav(product.code);
+    const displayName = localizedProductName(product);
     modalBody.innerHTML = `
       <div class="modal-info-row">
-        <div class="modal-title-line"><span class="modal-title-code">${product.code}</span> — ${product.name}</div>
+        <div class="modal-title-line"><span class="modal-title-code">${product.code}</span> — ${displayName}</div>
         <button class="modal-fav-btn-mini ${favActive ? 'active' : ''}" id="modal-fav-btn" data-code="${product.code}" aria-label="Favorilere ekle">
           <i class="ti ${favActive ? 'ti-heart-filled' : 'ti-heart'}"></i>
         </button>
@@ -2036,8 +2064,8 @@ footer {
           </div>`).join('')}
       </div>` : ''; })()}
       <div class="modal-sizes-mini">${product.sizes}</div>
-      <a href="https://wa.me/905344644221?text=${encodeURIComponent('Merhaba, ' + product.code + ' – ' + product.name + ' ürünü hakkında bilgi almak istiyorum.')}" target="_blank" class="btn-whatsapp">
-        <i class="ti ti-brand-whatsapp"></i> Daha Fazla Bilgi ve Sipariş için WhatsApp
+      <a href="https://wa.me/905344644221?text=${encodeURIComponent('Merhaba, ' + product.code + ' – ' + displayName + ' ürünü hakkında bilgi almak istiyorum.')}" target="_blank" class="btn-whatsapp">
+        <i class="ti ti-brand-whatsapp"></i> ${STRINGS[currentLang].whatsapp}
       </a>`;
 
     document.getElementById('modal-fav-btn').addEventListener('click', () => {
@@ -2098,7 +2126,7 @@ footer {
           </div>
           <div style="text-align:center;padding:3rem 2rem;color:var(--text2);opacity:0.5;">
             <i class="ti ti-clock" style="font-size:2rem;display:block;margin-bottom:0.8rem;"></i>
-            <span style="font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;">Yakında • Coming Soon</span>
+            <span class="section-soon-label" style="font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;">Yakında • Coming Soon</span>
           </div>
         </div>
       </section>`;
@@ -2411,15 +2439,68 @@ footer {
 
   updateFavCount();
 
-  // ===== LANGUAGE TOGGLE =====
+  // ===== LANGUAGE TOGGLE (TR / EN / AR) =====
+  const STRINGS = {
+    tr: {
+      whatsapp: 'Daha Fazla Bilgi ve Sipariş için WhatsApp',
+      favTitle: 'Favorilerim',
+      favToggleTitle: 'Favoriler',
+      searchPlaceholder: 'Ürün kodu veya isim ara...',
+      sendFavWa: 'WhatsApp ile Gönder',
+      soon: 'Yakında • Coming Soon',
+      inStock: 'Stokta',
+      colors: 'Renkler',
+      sizes: 'Bedenler',
+      code: 'Kod',
+    },
+    en: {
+      whatsapp: 'More Info & Order via WhatsApp',
+      favTitle: 'My Favorites',
+      favToggleTitle: 'Favorites',
+      searchPlaceholder: 'Search by code or name...',
+      sendFavWa: 'Send via WhatsApp',
+      soon: 'Coming Soon',
+      inStock: 'In Stock',
+      colors: 'Colors',
+      sizes: 'Sizes',
+      code: 'Code',
+    },
+    ar: {
+      whatsapp: 'لمزيد من المعلومات والطلب عبر واتساب',
+      favTitle: 'المفضلة',
+      favToggleTitle: 'المفضلة',
+      searchPlaceholder: 'ابحث بالكود أو الاسم...',
+      sendFavWa: 'إرسال عبر واتساب',
+      soon: 'قريباً',
+      inStock: 'متوفر',
+      colors: 'الألوان',
+      sizes: 'المقاسات',
+      code: 'الكود',
+    },
+  };
+
   let currentLang = localStorage.getItem('mn_lang') || 'tr';
-  const langBtn = document.getElementById('lang-toggle');
+  if (!STRINGS[currentLang]) currentLang = 'tr';
+  const langSwitch = document.getElementById('lang-switch');
+
+  // Ürün adının seçili dile göre karşılığı; AR için karşılık yoksa EN'e düşer.
+  function localizedProductName(product) {
+    if (currentLang === 'tr') return product.name;
+    return product.nameEn || product.name;
+  }
 
   function applyLang() {
-    const isEn = currentLang === 'en';
-    langBtn.textContent = isEn ? 'EN' : 'TR';
+    const t = STRINGS[currentLang];
+    const useFallbackEn = currentLang !== 'tr';
 
-    // section headers
+    document.documentElement.lang = currentLang;
+    document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+
+    langSwitch.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === currentLang);
+    });
+
+    // section headers (kategori adları için AR karşılığı yok, EN'e düşer)
     document.querySelectorAll('.section-header').forEach(h => {
       const tag = h.querySelector('.section-tag');
       const title = h.querySelector('.section-title');
@@ -2428,48 +2509,60 @@ footer {
         const enName = tag.getAttribute('data-en') || tag.textContent;
         if (!title.getAttribute('data-tr')) title.setAttribute('data-tr', title.textContent);
         if (!tag.getAttribute('data-en')) tag.setAttribute('data-en', tag.textContent);
-        if (isEn) { title.textContent = enName; tag.textContent = enName.toUpperCase(); }
+        if (useFallbackEn) { title.textContent = enName; tag.textContent = enName.toUpperCase(); }
         else { title.textContent = trName; tag.textContent = enName; }
       }
     });
 
-    // card names
+    // "Yakında / Coming Soon" etiketleri
+    document.querySelectorAll('.section-soon-label').forEach(el => {
+      el.textContent = t.soon;
+    });
+
+    // card names + kod etiketi
     document.querySelectorAll('.product-card').forEach(card => {
       const nameTr = card.querySelector('.card-name');
       const nameEn = card.querySelector('.card-name-en');
       if (nameTr && nameEn) {
-        if (isEn) { nameTr.style.display = 'none'; nameEn.style.fontStyle = 'normal'; nameEn.style.fontSize = '1rem'; nameEn.style.fontFamily = "'Cormorant Garamond', serif"; }
+        if (useFallbackEn) { nameTr.style.display = 'none'; nameEn.style.fontStyle = 'normal'; nameEn.style.fontSize = '1rem'; nameEn.style.fontFamily = "'Cormorant Garamond', serif"; }
         else { nameTr.style.display = ''; nameEn.style.fontStyle = ''; nameEn.style.fontSize = ''; nameEn.style.fontFamily = ''; }
       }
+      const codeEl = card.querySelector('.card-code');
+      if (codeEl) codeEl.textContent = `${t.code}: ${card.dataset.code}`;
     });
 
     // WhatsApp buttons
     document.querySelectorAll('.btn-whatsapp').forEach(btn => {
       const icon = '<i class="ti ti-brand-whatsapp"></i> ';
-      btn.innerHTML = icon + (isEn ? 'More Info & Order via WhatsApp' : 'Daha Fazla Bilgi ve Sipariş için WhatsApp');
+      btn.innerHTML = icon + t.whatsapp;
     });
 
     // fav panel
     const favTitle = document.querySelector('.fav-panel-title');
-    if (favTitle) favTitle.textContent = isEn ? 'My Favorites' : 'Favorilerim';
+    if (favTitle) favTitle.textContent = t.favTitle;
+    const favToggleBtn = document.getElementById('fav-toggle');
+    if (favToggleBtn) favToggleBtn.title = t.favToggleTitle;
+    renderFavPanel();
 
     // search placeholder
     const searchInput = document.getElementById('search-input');
-    if (searchInput) searchInput.placeholder = isEn ? 'Search by code or name...' : 'Ürün kodu veya isim ara...';
+    if (searchInput) searchInput.placeholder = t.searchPlaceholder;
 
     // fav WA button
     const favWaBtn = document.getElementById('fav-wa-btn');
     if (favWaBtn) {
       const waIcon = favWaBtn.querySelector('.ti');
       const iconHtml = waIcon ? '<i class="ti ti-brand-whatsapp"></i> ' : '';
-      favWaBtn.innerHTML = iconHtml + (isEn ? 'Send via WhatsApp' : 'WhatsApp ile Gönder');
+      favWaBtn.innerHTML = iconHtml + t.sendFavWa;
     }
   }
 
-  langBtn.addEventListener('click', () => {
-    currentLang = currentLang === 'tr' ? 'en' : 'tr';
-    localStorage.setItem('mn_lang', currentLang);
-    applyLang();
+  langSwitch.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentLang = btn.dataset.lang;
+      localStorage.setItem('mn_lang', currentLang);
+      applyLang();
+    });
   });
 
   // Apply on load after catalog renders
