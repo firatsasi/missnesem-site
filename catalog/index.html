@@ -2164,8 +2164,8 @@ footer {
     allProducts = data.products;
     cardImgCounter = 0;
     const catalog = document.getElementById('catalog');
-    const html = data.categories
-      .filter(cat => data.products.some(p => p.category === cat.id && hasPhoto(p)))
+    const hasProducts = cat => data.products.some(p => p.category === cat.id && hasPhoto(p));
+    const html = [...data.categories.filter(hasProducts), ...data.categories.filter(c => !hasProducts(c))]
       .map(cat => buildCategorySection(cat, data.products))
       .join('');
     catalog.innerHTML = html;
