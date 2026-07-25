@@ -236,7 +236,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .nav-links {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.55rem;
   list-style: none;
   overflow-x: auto;
   overflow-y: hidden;
@@ -245,9 +245,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .nav-links::-webkit-scrollbar { display: none; }
 .nav-links a {
-  font-size: 0.54rem;
+  font-size: 0.48rem;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #1a1018;
   position: relative;
@@ -1184,12 +1184,12 @@ footer {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1200px) {
-  .nav-links { gap: 0.85rem; }
-  .nav-links a { font-size: 0.5rem; letter-spacing: 0.12em; }
+  .nav-links { gap: 0.5rem; }
+  .nav-links a { font-size: 0.44rem; letter-spacing: 0.08em; }
 }
 @media (max-width: 1024px) {
-  .nav-links { gap: 0.65rem; }
-  .nav-links a { font-size: 0.46rem; }
+  .nav-links { gap: 0.4rem; }
+  .nav-links a { font-size: 0.4rem; letter-spacing: 0.05em; }
   .product-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 900px) {
@@ -1315,13 +1315,12 @@ footer {
         <li><a href="#korseler">Korseler</a></li>
         <li><a href="#etek">Etekler</a></li>
         <li><a href="#tesettur">Tesettür</a></li>
-        <li><a href="#gomlek">Gömlekler</a></li>
         <li><a href="#ceket">Ceketler</a></li>
         <li><a href="#pantolon">Pantolonlar</a></li>
         <li><a href="#sort">Şortlar</a></li>
         <li><a href="#yelek">Yelekler</a></li>
         <li><a href="#diger">Diğer</a></li>
-        <li><a href="#catalog" class="nav-indirim">İndirim</a></li>
+        <li><a href="#catalog" class="nav-indirim">İndirimler</a></li>
       </ul>
     </nav>
     <div class="nav-actions">
@@ -1352,13 +1351,12 @@ footer {
   <a href="#korseler" class="mobile-link">Korseler</a>
   <a href="#etek" class="mobile-link">Etekler</a>
   <a href="#tesettur" class="mobile-link">Tesettür</a>
-  <a href="#gomlek" class="mobile-link">Gömlekler</a>
   <a href="#ceket" class="mobile-link">Ceketler</a>
   <a href="#pantolon" class="mobile-link">Pantolonlar</a>
   <a href="#sort" class="mobile-link">Şortlar</a>
   <a href="#yelek" class="mobile-link">Yelekler</a>
   <a href="#diger" class="mobile-link">Diğer</a>
-  <a href="#catalog" class="mobile-link nav-indirim">İndirim</a>
+  <a href="#catalog" class="mobile-link nav-indirim">İndirimler</a>
 </div>
 
 <!-- search bar -->
@@ -1463,7 +1461,6 @@ footer {
           <li><a href="#elbiseler">Elbiseler</a></li>
           <li><a href="#takimlar">Takımlar</a></li>
           <li><a href="#bluzlar">Bluzlar</a></li>
-          <li><a href="#gomlek">Gömlekler</a></li>
           <li><a href="#ceket">Ceketler</a></li>
           <li><a href="#pantolon">Pantolonlar</a></li>
           <li><a href="#etek">Etekler</a></li>
@@ -1634,7 +1631,7 @@ footer {
 
   // ===== KATEGORİ FİLTRESİ =====
   // Nav, mobil menü ve footer'daki kategori linkleri tıklandığında sadece o bölüm
-  // gösterilir ve o bölüme scroll edilir; "Tüm Ürünler" (ve şimdilik "İndirim",
+  // gösterilir ve o bölüme scroll edilir; "Tüm Ürünler" (ve şimdilik "İndirimler",
   // henüz ayrı bir indirim bölümü olmadığından aynı linke gider) tüm bölümleri geri getirir.
   // Tarayıcının native #hash navigasyonuna güvenilmez (preventDefault ile devre dışı
   // bırakılır) — böylece sayfadan hiç çıkılmaz, her zaman scroll/filtre JS ile yapılır.
@@ -2253,7 +2250,6 @@ footer {
     { id: 'korseler', name: 'Korseler', nameEn: 'Corsets', nameAr: 'كورسيهات' },
     { id: 'etek', name: 'Etekler', nameEn: 'Skirts', nameAr: 'تنانير' },
     { id: 'tesettur', name: 'Tesettür', nameEn: 'Modest Wear', nameAr: 'حجاب' },
-    { id: 'gomlek', name: 'Gömlekler', nameEn: 'Shirts', nameAr: 'قمصان' },
     { id: 'ceket', name: 'Ceketler', nameEn: 'Jackets & Vests', nameAr: 'جاكيتات' },
     { id: 'pantolon', name: 'Pantolonlar', nameEn: 'Trousers', nameAr: 'بناطيل' },
     { id: 'sort', name: 'Şortlar', nameEn: 'Shorts', nameAr: 'شورتات' },
@@ -2262,7 +2258,7 @@ footer {
   ];
   const CATEGORY_SLUG_MAP = {
     'Elbiseler': 'elbiseler', 'Takımlar': 'takimlar', 'Bluzlar': 'bluzlar',
-    'Gömlekler': 'gomlek', 'Ceketler': 'ceket', 'Pantolonlar': 'pantolon',
+    'Ceketler': 'ceket', 'Pantolonlar': 'pantolon',
     'Etekler': 'etek', 'Şortlar': 'sort', 'Yelekler': 'yelek',
     'Tesettür': 'tesettur', 'Diğer': 'diger',
   };
@@ -2653,13 +2649,12 @@ footer {
     'Korseler': { en: 'Corsets', ar: 'كورسيهات' },
     'Etekler': { en: 'Skirts', ar: 'تنانير' },
     'Tesettür': { en: 'Modest Wear', ar: 'حجاب' },
-    'Gömlekler': { en: 'Shirts', ar: 'قمصان' },
     'Ceketler': { en: 'Jackets & Vests', ar: 'جاكيتات' },
     'Pantolonlar': { en: 'Trousers', ar: 'بناطيل' },
     'Şortlar': { en: 'Shorts', ar: 'شورتات' },
     'Yelekler': { en: 'Vests', ar: 'سترات' },
     'Diğer': { en: 'Other', ar: 'أخرى' },
-    'İndirim': { en: 'Sale', ar: 'تخفيضات' },
+    'İndirimler': { en: 'Sale', ar: 'تخفيضات' },
     'Ana Sayfa': { en: 'Home', ar: 'الرئيسية' },
   };
 
