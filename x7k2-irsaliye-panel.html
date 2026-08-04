@@ -942,10 +942,10 @@ function kaydet(sessiz,skipSync){
   if(!sessiz)alert((duzenleniyor?'✅ Güncellendi!':'✅ Kaydedildi!')+'\n\n'+musteri+' · '+fmtPara(genel,kayit.para)+'\n'+kayit.odeme+' · '+kayit.tur+bakiyeMsg);
 
   if(!skipSync){
-    if(duzenleniyor){
-      // Sunucudaki eski kaydı sil, ardından güncel veriyle aynı id (CreatedAt) üzerinden yeniden oluştur
-      syncSunucu({tip:'irsaliye_sil',id:kayit.id});
-    }
+    // Not: eskiden düzenlemede önce "irsaliye_sil" sonra "irsaliye_kaydet" gönderiliyordu.
+    // İki istek de await edilmeden art arda fırlatıldığı için sırası garanti değildi; "sil"
+    // sunucuya "kaydet"ten sonra ulaşırsa az önce güncellenmiş kayıt tamamen siliniyordu.
+    // Artık sunucu tarafı aynı id (CreatedAt) için doğrudan upsert yapıyor, ayrı bir sil gerekmiyor.
     syncSunucuKaydetVeBildir(Object.assign({tip:'irsaliye_kaydet'},kayit));
   }
   raporGuncelle();
