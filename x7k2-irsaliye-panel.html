@@ -225,8 +225,8 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   </div>
   <div class="table-scroll">
   <table>
-    <colgroup><col><col style="width:95px"><col style="width:135px"><col style="width:115px"><col style="width:46px" class="iade-col"><col style="width:36px" class="del-col"></colgroup>
-    <thead><tr><th>ÜRÜN / KOD / RENK</th><th>ADET</th><th class="r">BİRİM FİYAT</th><th class="r">TOPLAM</th><th class="iade-col">İADE</th><th class="del-col"></th></tr></thead>
+    <colgroup><col style="width:95px"><col><col style="width:135px"><col style="width:115px"><col style="width:46px" class="iade-col"><col style="width:36px" class="del-col"></colgroup>
+    <thead><tr><th>ADET</th><th>ÜRÜN / KOD / RENK</th><th class="r">BİRİM FİYAT</th><th class="r">TOPLAM</th><th class="iade-col">İADE</th><th class="del-col"></th></tr></thead>
     <tbody id="tb"></tbody>
   </table>
   </div>
@@ -616,7 +616,7 @@ function ekle(){
   var btn=document.createElement('button');btn.textContent='×';
   btn.onclick=function(){tr.remove();hesapla();};
   td5.appendChild(btn);
-  tr.appendChild(td2);tr.appendChild(td1);tr.appendChild(td3);tr.appendChild(td4);tr.appendChild(tdIade);tr.appendChild(td5);
+  tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);tr.appendChild(td4);tr.appendChild(tdIade);tr.appendChild(td5);
   tbody.appendChild(tr);hesapla();
 }
 function toggleIadeRow(tr,checked){
@@ -630,7 +630,7 @@ function hesapla(){
   var ara=0; // sadece normal satış satırları
   var iadeTutar=0; // iade satırları toplamı (pozitif)
   document.querySelectorAll('#tb tr').forEach(function(tr){
-    var qty=tr.querySelector('td:nth-child(2) input');
+    var qty=tr.querySelector('td:nth-child(1) input');
     var prc=tr.querySelector('.fiyat-wrap input');
     var chk=tr.querySelector('.iade-chk');
     var isIade=!!(chk&&chk.checked);
@@ -857,7 +857,7 @@ function kaydet(sessiz,skipSync){
   var satisToplam=0;
   var iadeToplam=0;
   document.querySelectorAll('#tb tr').forEach(function(tr){
-    var qty=tr.querySelector('td:nth-child(2) input').value;
+    var qty=tr.querySelector('td:nth-child(1) input').value;
     var adInp=tr.querySelector('.urun-adi');
     var ad=adInp?adInp.value:'';
     var fi=tr.querySelector('.fiyat-wrap input').value;
@@ -1299,7 +1299,7 @@ function irsaliyeDuzenle(id){
     ekle();
     var rows=document.querySelectorAll('#tb tr');
     var tr=rows[rows.length-1];
-    tr.querySelector('td:nth-child(2) input').value=u.adet;
+    tr.querySelector('td:nth-child(1) input').value=u.adet;
     var adInp2=tr.querySelector('.urun-adi');if(adInp2)adInp2.value=u.ad;
     tr.querySelector('.fiyat-wrap input').value=u.fiyat;
     var chk=tr.querySelector('.iade-chk');
@@ -1410,7 +1410,7 @@ function _pdfUrunKontrol(){
   if(!musteri){alert('Müşteri adı boş olamaz');return null;}
   var hasUrun=false;
   document.querySelectorAll('#tb tr').forEach(function(tr){
-    var qty=tr.querySelector('td:nth-child(2) input');
+    var qty=tr.querySelector('td:nth-child(1) input');
     var ad=tr.querySelector('.urun-adi');
     if(qty&&ad&&parseFloat(qty.value)>0&&ad.value.trim())hasUrun=true;
   });
@@ -1536,7 +1536,7 @@ function whatsappSiparis(){
   var urunler=[];
   var parca=0;
   document.querySelectorAll('#tb tr').forEach(function(tr){
-    var qty=tr.querySelector('td:nth-child(2) input').value;
+    var qty=tr.querySelector('td:nth-child(1) input').value;
     var adInp3=tr.querySelector('.urun-adi');
     var ad=adInp3?adInp3.value:'';
     var chk=tr.querySelector('.iade-chk');
