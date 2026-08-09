@@ -105,6 +105,13 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .tab{flex:1;padding:10px;font-size:12px;font-weight:700;letter-spacing:1px;color:#2c2419;border:none;background:transparent;cursor:pointer;border-radius:6px}
 .tab.active{background:#2c2419;color:#f0e4d3}
 
+/* KULLANICI TOGGLE */
+.kullanici-toggle{display:flex;align-items:center;gap:8px;margin-bottom:12px;background:#d4b896;border-radius:8px;padding:6px 10px 6px 14px}
+.kullanici-lbl{font-size:10px;letter-spacing:1.5px;color:#2c2419;font-weight:700;white-space:nowrap}
+.kullanici-btns{display:flex;gap:4px;flex:1}
+.kullanici-btn{flex:1;padding:8px;font-size:12px;font-weight:700;letter-spacing:.5px;color:#2c2419;border:none;background:transparent;cursor:pointer;border-radius:6px}
+.kullanici-btn.active{background:#2c2419;color:#f0e4d3}
+
 /* RAPOR */
 .rapor-card{background:#f0e4d3;border-radius:10px;border:1px solid #b8985e;padding:2rem}
 .rapor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:1rem 0}
@@ -140,7 +147,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
     margin: 0 !important;
     padding: 0 !important;
   }
-  #loginOverlay, .tabs, .date-pick { display: none !important; }
+  #loginOverlay, .tabs, .date-pick, .kullanici-toggle { display: none !important; }
 
   /* ── İRSALİYE PRINT ── doğal CSS'iyle basılır, override gerekmez ── */
   body[data-print-mode="irs"] .btns,
@@ -193,6 +200,14 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 
 <div id="app">
 <div class="wrap">
+
+<div class="kullanici-toggle" id="kullaniciToggle">
+  <span class="kullanici-lbl">KESEN</span>
+  <div class="kullanici-btns">
+    <button type="button" class="kullanici-btn" id="btnFirat" onclick="kullaniciSec('Fırat')">Fırat</button>
+    <button type="button" class="kullanici-btn" id="btnGurhan" onclick="kullaniciSec('Gürhan')">Gürhan</button>
+  </div>
+</div>
 
 <div class="tabs">
   <button class="tab active" id="tab1" onclick="tabGoster('irs')">İRSALİYE OLUŞTUR</button>
@@ -473,7 +488,22 @@ function goster(){
   document.getElementById('raporBitis').value=bugun;
   raporGuncelle();
   odemeGuncelle();
+  kullaniciToggleGuncelle();
 }
+
+/* ====== KULLANICI (kesen kişi) ====== */
+var KULLANICI_KEY='mn_aktif_kullanici';
+var aktifKullanici=localStorage.getItem(KULLANICI_KEY)||'Fırat';
+function kullaniciSec(k){
+  aktifKullanici=k;
+  localStorage.setItem(KULLANICI_KEY,k);
+  kullaniciToggleGuncelle();
+}
+function kullaniciToggleGuncelle(){
+  document.getElementById('btnFirat').classList.toggle('active',aktifKullanici==='Fırat');
+  document.getElementById('btnGurhan').classList.toggle('active',aktifKullanici==='Gürhan');
+}
+function kullaniciHarf(){return aktifKullanici==='Gürhan'?'G':'F';}
 function check(){
   var ck=document.cookie.split(';').find(function(x){return x.trim().indexOf('mn_auth=')===0;});
   if(ck){var val=ck.trim().split('=').slice(1).join('=');if(KULLANICILAR.indexOf(val)!==-1){goster();}}
@@ -903,7 +933,8 @@ function kaydet(sessiz,skipSync){
     odeme:document.getElementById('odeme').value,
     tur:document.getElementById('tur').value,
     kargoFirma:kargoFirma,
-    kargoKod:kargoKod
+    kargoKod:kargoKod,
+    kullanici:aktifKullanici
   };
   if(eskiKayit&&eskiKayit.siparisNo)kayit.siparisNo=eskiKayit.siparisNo;
 
@@ -1461,7 +1492,7 @@ function siparisNoAl(){
   if(d.tarih!==bugun){d.tarih=bugun;d.no=0;}
   d.no++;
   localStorage.setItem('mn_siparis_no',JSON.stringify(d));
-  return d.no;
+  return d.no+kullaniciHarf();
 }
 // Formun temsil ettiği kayda (varsa) sipariş no'sunu bağlar; daha önce atanmışsa aynısını döner
 // (düzenleme modunda veya tekrar PNG/PDF üretiminde numara değişmesin diye).
