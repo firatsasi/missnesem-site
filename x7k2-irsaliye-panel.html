@@ -105,12 +105,12 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .tab{flex:1;padding:10px;font-size:12px;font-weight:700;letter-spacing:1px;color:#2c2419;border:none;background:transparent;cursor:pointer;border-radius:6px}
 .tab.active{background:#2c2419;color:#f0e4d3}
 
-/* KULLANICI TOGGLE */
-.kullanici-toggle{display:flex;align-items:center;gap:8px;margin-bottom:12px;background:#d4b896;border-radius:8px;padding:6px 10px 6px 14px}
-.kullanici-lbl{font-size:10px;letter-spacing:1.5px;color:#2c2419;font-weight:700;white-space:nowrap}
-.kullanici-btns{display:flex;gap:4px;flex:1}
-.kullanici-btn{flex:1;padding:8px;font-size:12px;font-weight:700;letter-spacing:.5px;color:#2c2419;border:none;background:transparent;cursor:pointer;border-radius:6px}
-.kullanici-btn.active{background:#2c2419;color:#f0e4d3}
+/* KULLANICI BAR (giriş yapan kişi + çıkış) */
+.kullanici-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;background:#d4b896;border-radius:8px;padding:8px 14px}
+.kullanici-lbl{font-size:11px;letter-spacing:1px;color:#2c2419;font-weight:700}
+.kullanici-lbl strong{letter-spacing:.5px}
+.kullanici-cikis-btn{font-size:11px;font-weight:700;letter-spacing:.5px;color:#2c2419;border:1px solid #c8a87a;background:#f0e4d3;padding:6px 14px;border-radius:6px;cursor:pointer}
+.kullanici-cikis-btn:hover{background:#fff}
 
 /* RAPOR */
 .rapor-card{background:#f0e4d3;border-radius:10px;border:1px solid #b8985e;padding:2rem}
@@ -147,7 +147,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
     margin: 0 !important;
     padding: 0 !important;
   }
-  #loginOverlay, .tabs, .date-pick, .kullanici-toggle { display: none !important; }
+  #loginOverlay, .tabs, .date-pick, .kullanici-bar { display: none !important; }
 
   /* ── İRSALİYE PRINT ── doğal CSS'iyle basılır, override gerekmez ── */
   body[data-print-mode="irs"] .btns,
@@ -201,12 +201,9 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 <div id="app">
 <div class="wrap">
 
-<div class="kullanici-toggle" id="kullaniciToggle">
-  <span class="kullanici-lbl">KESEN</span>
-  <div class="kullanici-btns">
-    <button type="button" class="kullanici-btn" id="btnFirat" onclick="kullaniciSec('Fırat')">Fırat</button>
-    <button type="button" class="kullanici-btn" id="btnGurhan" onclick="kullaniciSec('Gürhan')">Gürhan</button>
-  </div>
+<div class="kullanici-bar" id="kullaniciBar">
+  <span class="kullanici-lbl">KESEN: <strong id="kullaniciAdEtiket"></strong></span>
+  <button type="button" class="kullanici-cikis-btn" onclick="cikisYap()">Çıkış</button>
 </div>
 
 <div class="tabs">
@@ -363,18 +360,44 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 
 <script>
 /* ====== LOGIN ====== */
-var KULLANICILAR=["YWRtaW46MjEyNDQwMDEyelg=","Z3VyaGFuOjIxMDA2Nw=="];
+// Panel'deki (panel.missnesem.com) gerçek kullanıcı hesaplarıyla birebir eşleşir.
+// Kullanıcı adı → giriş yapan kişinin görünen adı (KESEN etiketi ve sipariş no harfi bundan gelir).
+var GIRIS_HESAPLAR={
+  admin:{sifre:'212440012zX',kullanici:'Fırat'},
+  gurhan:{sifre:'12345',kullanici:'Gürhan'}
+};
+var OTURUM_KEY='mn_oturum';
 function login(){
-  var u=document.getElementById('user').value.trim();
+  var u=document.getElementById('user').value.trim().toLowerCase();
   var p=document.getElementById('pass').value;
-  var k=btoa(u+':'+p);
-  if(KULLANICILAR.indexOf(k)!==-1){
-    var bitis=new Date();bitis.setDate(bitis.getDate()+30);
-    document.cookie="mn_auth="+k+"; expires="+bitis.toUTCString()+"; path=/; SameSite=Strict";
+  var hesap=GIRIS_HESAPLAR[u];
+  if(hesap&&hesap.sifre===p){
+    localStorage.setItem(OTURUM_KEY,JSON.stringify({kullaniciAdi:u,kullanici:hesap.kullanici}));
+    aktifKullanici=hesap.kullanici;
     goster();
   }else{
     document.getElementById('err').textContent="Hatalı kullanıcı adı veya şifre";
   }
+}
+function oturumKontrolEt(){
+  var v=localStorage.getItem(OTURUM_KEY);
+  if(!v)return;
+  try{
+    var oturum=JSON.parse(v);
+    var hesap=oturum&&GIRIS_HESAPLAR[oturum.kullaniciAdi];
+    if(hesap&&hesap.kullanici===oturum.kullanici){
+      aktifKullanici=oturum.kullanici;
+      goster();
+    }
+  }catch(e){}
+}
+function cikisYap(){
+  localStorage.removeItem(OTURUM_KEY);
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginOverlay').style.display='flex';
+  document.getElementById('user').value='';
+  document.getElementById('pass').value='';
+  document.getElementById('err').textContent='';
 }
 var _musteriTimer=null;var _lastAutoMusteri='';
 function musteriAutocomplete(val){
@@ -488,29 +511,19 @@ function goster(){
   document.getElementById('raporBitis').value=bugun;
   raporGuncelle();
   odemeGuncelle();
-  kullaniciToggleGuncelle();
+  kullaniciBarGuncelle();
 }
 
-/* ====== KULLANICI (kesen kişi) ====== */
-var KULLANICI_KEY='mn_aktif_kullanici';
-var aktifKullanici=localStorage.getItem(KULLANICI_KEY)||'Fırat';
-function kullaniciSec(k){
-  aktifKullanici=k;
-  localStorage.setItem(KULLANICI_KEY,k);
-  kullaniciToggleGuncelle();
-}
-function kullaniciToggleGuncelle(){
-  document.getElementById('btnFirat').classList.toggle('active',aktifKullanici==='Fırat');
-  document.getElementById('btnGurhan').classList.toggle('active',aktifKullanici==='Gürhan');
+/* ====== KULLANICI (kesen kişi) — girişten belirlenir, elle seçilmez ====== */
+var aktifKullanici='Fırat'; // login() veya oturumKontrolEt() tarafından güncellenir
+function kullaniciBarGuncelle(){
+  var el=document.getElementById('kullaniciAdEtiket');
+  if(el)el.textContent=aktifKullanici;
 }
 function kullaniciHarf(){return aktifKullanici==='Gürhan'?'G':'F';}
-function check(){
-  var ck=document.cookie.split(';').find(function(x){return x.trim().indexOf('mn_auth=')===0;});
-  if(ck){var val=ck.trim().split('=').slice(1).join('=');if(KULLANICILAR.indexOf(val)!==-1){goster();}}
-}
 document.getElementById('pass').addEventListener('keypress',function(e){if(e.key==='Enter')login();});
 document.getElementById('user').addEventListener('keypress',function(e){if(e.key==='Enter')document.getElementById('pass').focus();});
-check();
+oturumKontrolEt();
 
 /* ====== ÖDEME ŞEKLİ TÜRE GÖRE ====== */
 function odemeGuncelle(){
