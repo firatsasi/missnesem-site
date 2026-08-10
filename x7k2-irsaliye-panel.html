@@ -1087,7 +1087,13 @@ function _raporDoldur(res){
 function raporListeYapUzak(liste){
   var el=document.getElementById('raporListe');
   if(!liste.length){el.innerHTML='<div class="bos">Bu tarihte irsaliye yok</div>';return;}
-  var html='<div class="table-scroll"><table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th>KESEN</th></tr></thead><tbody>';
+  // Düzenle sadece bu cihazda zaten kayıtlı irsaliyelerde çalışır — panelin InvoiceItem'ı
+  // satır bazında iade bilgisi tutmadığından başka cihazda kesilmiş bir kaydı burada
+  // düzenlemeye açmak iade satırlarını sessizce normal satışa çevirir. Bu riski almamak için
+  // Düzenle butonu sadece yerelde eşleşen kayıt varsa gösterilir.
+  var yerelIdler={};
+  veriCek().forEach(function(k){yerelIdler[k.id]=true;});
+  var html='<div class="table-scroll"><table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th>KESEN</th><th></th></tr></thead><tbody>';
   liste.forEach(function(k){
     var tagCls=k.tur==='Resmi'?'res':'gay';
     var tp=k.tarih?k.tarih.split('-'):['','',''];
@@ -1100,6 +1106,13 @@ function raporListeYapUzak(liste){
     html+='<td>'+(k.odeme||'')+'</td>';
     html+='<td><span class="tag '+tagCls+'">'+(k.tur||'').toUpperCase()+'</span><br><span style="font-size:9px;color:#a64d3e;font-weight:700;letter-spacing:0.5px">'+tarihKisa+'</span></td>';
     html+='<td>'+(k.kesen||'—')+'</td>';
+    html+='<td style="white-space:nowrap">';
+    html+='<a href="https://panel.missnesem.com/Invoices/Detail?id='+k.panelId+'" target="_blank" rel="noopener" title="Panelde Görüntüle" style="text-decoration:none;color:#2c2419;font-size:16px;padding:2px 4px">👁</a>';
+    if(yerelIdler[k.id]){
+      html+='<button title="Düzenle" onclick="irsaliyeDuzenle('+k.id+')" style="background:none;border:none;cursor:pointer;color:#2c2419;font-size:16px;padding:2px 4px">✏️</button>';
+    }
+    html+='<button title="Sil" onclick="kayitSil('+k.id+')" style="background:none;border:none;cursor:pointer;color:#a64d3e;font-size:16px;padding:2px 4px">🗑️</button>';
+    html+='</td>';
     html+='</tr>';
   });
   html+='</tbody></table></div>';
@@ -1336,8 +1349,10 @@ function _cariHareketGeriAl(kayit){
 }
 function kayitSil(id){
   if(!confirm('Bu kaydı silmek istediğine emin misin?'))return;
+  // kayit yerelde bulunmayabilir — örn. Günlük Rapor'dan, başka cihazda kesilmiş bir irsaliye
+  // siliniyorsa. O durumda sadece panele sil isteği gönderilir, yerel cari/form bookkeeping'i
+  // atlanır (zaten bu cihazda hiç kaydı yok).
   var kayit=veriCek().find(function(k){return k.id===id;});
-  if(!kayit)return;
   // Önce panele sil isteği gönderilir (3 deneme); ancak panelden gerçekten silindiği
   // doğrulanınca local kayıt kaldırılır. Aksi halde local'den silinip panelde kalıcı
   // olarak asılı kalan, kullanıcının fark etmediği kayıtlar oluşuyordu.
@@ -1346,12 +1361,14 @@ function kayitSil(id){
       alert('❌ Kayıt panelden silinemedi (bağlantı sorunu). İnternet bağlantınızı kontrol edip tekrar deneyin — kayıt listede kaldı.');
       return;
     }
-    veriYaz(veriCek().filter(function(k){return k.id!==id;}));
-    // Açık hesap ise cari hareketi de sil ve bakiyeyi güncelle
-    if(kayit.odeme==='AcikHesap'){
-      _cariHareketGeriAl(kayit);
+    if(kayit){
+      veriYaz(veriCek().filter(function(k){return k.id!==id;}));
+      // Açık hesap ise cari hareketi de sil ve bakiyeyi güncelle
+      if(kayit.odeme==='AcikHesap'){
+        _cariHareketGeriAl(kayit);
+      }
+      if(_duzenlemeId===id)duzenlemeIptal(); // düzenlenmekte olan kayıt silindiyse düzenleme modundan çık
     }
-    if(_duzenlemeId===id)duzenlemeIptal(); // düzenlenmekte olan kayıt silindiyse düzenleme modundan çık
     raporGuncelle();
   },{ok:'✓ Panelden silindi',err:'✗ Silme başarısız — kayıt listede kaldı'});
 }
