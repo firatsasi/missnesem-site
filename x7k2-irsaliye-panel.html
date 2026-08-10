@@ -361,7 +361,8 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 
   <div class="rapor-grid">
     <div class="rapor-cell"><div class="lbl">NAKİT</div><div class="val" id="rNakit">0 ₺</div></div>
-    <div class="rapor-cell"><div class="lbl">HAVALE</div><div class="val" id="rHavale">0 ₺</div></div>
+    <div class="rapor-cell"><div class="lbl">RESMİ HAVALE</div><div class="val" id="rHavaleResmi">0 ₺</div></div>
+    <div class="rapor-cell"><div class="lbl">GAYRİ RESMİ HAVALE</div><div class="val" id="rHavaleGayri">0 ₺</div></div>
     <div class="rapor-cell"><div class="lbl">KREDİ KARTI</div><div class="val" id="rKredi">0 ₺</div></div>
     <div class="rapor-cell"><div class="lbl">MAIL ORDER</div><div class="val" id="rMail">0 ₺</div></div>
     <div class="rapor-cell"><div class="lbl">AÇIK HESAP</div><div class="val" id="rAcik">0 ₺</div></div>
@@ -373,6 +374,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
     <button class="btn-sec" onclick="dataIndir()">Yedek indir (JSON)</button>
     <button class="btn-drk" onclick="raporPng()">Raporu PNG indir</button>
     <button class="btn-drk" onclick="raporPdf()">Raporu PDF indir</button>
+    <button class="btn-drk" onclick="kasaRaporuIndir()">Kasa Raporu İndir</button>
   </div>
 </div>
 </div>
@@ -1030,6 +1032,7 @@ function kaydet(sessiz,skipSync){
 
 /* ====== RAPOR ====== */
 var raporFiltre='gun';
+var _sonRaporVerisi=null; // en son /api/gunluk-rapor yanıtı — Kasa Raporu PDF'i bunu kullanır
 function raporTumu(){
   raporFiltre='hepsi';
   document.getElementById('raporBaslangic').value='';
@@ -1067,13 +1070,18 @@ function raporGuncelle(){
     });
 }
 function _raporDoldur(res){
+  _sonRaporVerisi=res;
   document.getElementById('rIrs').textContent=res.irsaliyeAdedi||0;
   document.getElementById('rParca').textContent=(res.toplamParca||0).toLocaleString('tr-TR');
   document.getElementById('rResmi').textContent=fmtPara(res.resmiToplam||0,'TL');
   document.getElementById('rGayri').textContent=fmtPara(res.gayriResmiToplam||0,'TL');
   document.getElementById('rGenel').textContent=fmtPara(res.genelToplam||0,'TL');
   document.getElementById('rNakit').textContent=fmtPara(res.nakit||0,'TL');
-  document.getElementById('rHavale').textContent=fmtPara(res.havale||0,'TL');
+  // Havale artık Resmi/Gayri Resmi kırılımıyla gösteriliyor — irsaliyelerde Tür ve Ödeme
+  // zaten birlikte tutuluyor, kasaRaporu bu ikisini çapraz tablosunda karşılaştırır.
+  var kasa=res.kasaRaporu||{};
+  document.getElementById('rHavaleResmi').textContent=fmtPara((kasa.resmi&&kasa.resmi.havale&&kasa.resmi.havale.tutar)||0,'TL');
+  document.getElementById('rHavaleGayri').textContent=fmtPara((kasa.gayriResmi&&kasa.gayriResmi.havale&&kasa.gayriResmi.havale.tutar)||0,'TL');
   document.getElementById('rKredi').textContent=fmtPara(res.krediKarti||0,'TL');
   document.getElementById('rMail').textContent=fmtPara(res.mailOrder||0,'TL');
   document.getElementById('rAcik').textContent=fmtPara(res.acikHesap||0,'TL');
@@ -1695,6 +1703,81 @@ function raporPng(){
     link.href=canvas.toDataURL('image/png');
     link.click();
   });
+}
+function _raporTarihEtiketi(){
+  if(raporFiltre==='hepsi')return'TÜM ZAMANLAR';
+  var bas=document.getElementById('raporBaslangic').value;
+  var bit=document.getElementById('raporBitis').value;
+  function fmt(d){if(!d)return'';var p=d.split('-');return p[2]+'.'+p[1]+'.'+p[0];}
+  if(!bas&&!bit)return fmt(new Date().toISOString().split('T')[0]);
+  if(!bit||bas===bit)return fmt(bas||bit);
+  return fmt(bas)+' – '+fmt(bit);
+}
+function _kasaSatirHtml(etiket,tutar,adet,vurgu){
+  var stil=vurgu?'background:#2c2419;color:#f0e4d3;font-weight:700;border-radius:6px;padding:10px 14px':'padding:8px 14px;border-bottom:1px solid #e0cdb5';
+  return'<div style="display:flex;justify-content:space-between;align-items:center;'+stil+'">'+
+    '<span style="font-size:12px;letter-spacing:'+(vurgu?'1px':'0')+'">'+etiket+'</span>'+
+    '<span style="font-size:14px;font-weight:700">'+fmtPara(tutar,'TL')+' <span style="font-size:11px;font-weight:400;opacity:.7">('+adet+' adet)</span></span>'+
+  '</div>';
+}
+function _kasaBolumHtml(baslik,bolum){
+  return'<div style="margin-bottom:16px">'+
+    '<div style="font-size:11px;letter-spacing:2px;font-weight:700;color:#a64d3e;margin-bottom:8px">'+baslik+'</div>'+
+    '<div style="background:#fff;border:1px solid #c8a87a;border-radius:8px;overflow:hidden">'+
+      _kasaSatirHtml('Nakit',bolum.nakit.tutar,bolum.nakit.adet)+
+      _kasaSatirHtml('Havale',bolum.havale.tutar,bolum.havale.adet)+
+      _kasaSatirHtml('Açık Hesap',bolum.acikHesap.tutar,bolum.acikHesap.adet)+
+      _kasaSatirHtml('Mail Order',bolum.mailOrder.tutar,bolum.mailOrder.adet)+
+    '</div>'+
+    '<div style="margin-top:6px">'+_kasaSatirHtml('Toplam',bolum.toplam.tutar,bolum.toplam.adet,true)+'</div>'+
+  '</div>';
+}
+// Kasa (fiziksel para giriş-çıkış) raporu — Kredi Kartı/POS kasaya girmediğinden Resmi+Gayri
+// Resmi bölüm toplamları ile Genel Toplam (tüm ödeme yöntemleri) her zaman örtüşmeyebilir;
+// örtüşmezse muhtemelen o aralıkta Kredi Kartı/POS ile ödenmiş irsaliye var demektir.
+function _kasaRaporuHtmlOlustur(res){
+  var kasa=res.kasaRaporu;
+  var resmiToplam=kasa.resmi.toplam.tutar, gayriToplam=kasa.gayriResmi.toplam.tutar, genel=kasa.genelToplam.tutar;
+  if(Math.abs((resmiToplam+gayriToplam)-genel)>0.01){
+    console.warn('Kasa Raporu uyuşmazlığı: Resmi ('+resmiToplam+') + Gayri Resmi ('+gayriToplam+') = '+(resmiToplam+gayriToplam)+', Genel Toplam ise '+genel+'. Muhtemel sebep: aralıkta Kredi Kartı/POS ile ödenmiş (kasaya girmeyen) irsaliye var.');
+  }
+  var el=document.createElement('div');
+  el.style.cssText='background:#f0e4d3;border-radius:10px;border:1px solid #b8985e;padding:2rem;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#2c2419;box-sizing:border-box;width:520px';
+  el.innerHTML=
+    '<div style="text-align:center;margin-bottom:1.5rem">'+
+      '<div style="font-size:22px;font-weight:700;letter-spacing:5px;color:#2c2419">MISS NEŞEM</div>'+
+      '<div style="width:70px;height:1px;background:#b8985e;margin:10px auto"></div>'+
+      '<div style="font-size:13px;font-weight:700;letter-spacing:4px;color:#2c2419">KASA RAPORU</div>'+
+      '<div style="font-size:11px;color:#a64d3e;margin-top:4px;letter-spacing:1px">'+_raporTarihEtiketi()+'</div>'+
+    '</div>'+
+    _kasaBolumHtml('RESMİ İŞLEMLER',kasa.resmi)+
+    _kasaBolumHtml('GAYRİ RESMİ İŞLEMLER',kasa.gayriResmi)+
+    '<div style="margin-top:18px;display:flex;flex-direction:column;gap:6px">'+
+      '<div style="background:#2c2419;border-radius:8px;padding:13px 16px;display:flex;justify-content:space-between;align-items:center">'+
+        '<span style="font-size:11px;letter-spacing:2px;color:#b8985e;font-weight:700">GENEL TOPLAM</span>'+
+        '<span style="font-size:18px;font-weight:700;color:#f0e4d3">'+fmtPara(genel,'TL')+' <span style="font-size:11px;font-weight:400;opacity:.75">('+kasa.genelToplam.adet+' adet)</span></span>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;padding:8px 14px"><span style="font-size:12px;color:#c0392b;font-weight:700;letter-spacing:1px">İADE</span><span style="font-size:14px;font-weight:700;color:#c0392b">'+fmtPara(kasa.iade,'TL')+'</span></div>'+
+      '<div style="display:flex;justify-content:space-between;padding:8px 14px;background:#fff;border:1px solid #c8a87a;border-radius:8px"><span style="font-size:12px;color:#2c2419;font-weight:700;letter-spacing:1px">NET</span><span style="font-size:15px;font-weight:700;color:#2c2419">'+fmtPara(kasa.net,'TL')+'</span></div>'+
+    '</div>'+
+    '<div style="margin-top:1.5rem;text-align:center;font-size:10px;color:#a64d3e;letter-spacing:1px">MISS NEŞEM · MERTER · İSTANBUL</div>';
+  return el;
+}
+function kasaRaporuIndir(){
+  if(!_sonRaporVerisi||!_sonRaporVerisi.kasaRaporu){
+    alert('Rapor verisi henüz yüklenmedi, lütfen birkaç saniye sonra tekrar deneyin.');
+    return;
+  }
+  var el=_kasaRaporuHtmlOlustur(_sonRaporVerisi);
+  document.body.appendChild(el);
+  var opt={
+    margin:[8,8,8,8],
+    filename:'MissNesem_KasaRaporu_'+new Date().toISOString().split('T')[0]+'.pdf',
+    image:{type:'jpeg',quality:0.95},
+    html2canvas:{scale:2,backgroundColor:'#f0e4d3'},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+  };
+  html2pdf().set(opt).from(el).save().then(function(){el.remove();});
 }
 
 /* ====== CARİ TAKİP ====== */
