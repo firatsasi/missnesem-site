@@ -795,7 +795,9 @@ function apidenVeriCek(){
 var SYNC_KUYRUK_KEY='mn_sync_kuyruk';
 var SYNC_TIMEOUT_MS=10000;
 
-function _syncToastGoster(basarili){
+function _syncToastGoster(basarili,mesajlar){
+  var varsayilan={ok:'✓ Panele kaydedildi',err:'✗ Sync başarısız — tekrar Kaydet\'e basın'};
+  var m=mesajlar||varsayilan;
   var el=document.getElementById('syncToast');
   if(!el){
     el=document.createElement('div');
@@ -803,7 +805,7 @@ function _syncToastGoster(basarili){
     el.className='sync-toast';
     document.body.appendChild(el);
   }
-  el.textContent=basarili?'✓ Panele kaydedildi':'✗ Sync başarısız — tekrar Kaydet\'e basın';
+  el.textContent=basarili?m.ok:m.err;
   el.className='sync-toast show '+(basarili?'ok':'err');
   clearTimeout(el._t);
   el._t=setTimeout(function(){el.classList.remove('show');},3000);
@@ -845,19 +847,23 @@ function syncSunucu(payload){
 var SYNC_MAX_RETRY=3;
 var SYNC_RETRY_DELAY_MS=2000;
 // "Kaydet" tuşuna özel: başarısız olursa 2sn arayla 3 kez daha dener, sonucu net bir toast ile bildirir.
-function syncSunucuKaydetVeBildir(payload){
+// onTamamlandi(basarili) — deneme dizisi bitince (başarı ya da son başarısızlık) çağrılır; çağıran
+// taraf sonuca göre local'de bir işlem yapacaksa (örn. silme) bunu bekleyebilir.
+function syncSunucuKaydetVeBildir(payload,onTamamlandi,mesajlar){
   var deneme=0;
   function dene(){
     deneme++;
     _syncTekDene(payload).then(function(ok){
       if(ok){
         _syncKuyruktanCikar(payload);
-        _syncToastGoster(true);
+        _syncToastGoster(true,mesajlar);
+        if(onTamamlandi)onTamamlandi(true);
       }else if(deneme<=SYNC_MAX_RETRY){
         setTimeout(dene,SYNC_RETRY_DELAY_MS);
       }else{
         _syncKuyrukEkle(payload);
-        _syncToastGoster(false);
+        _syncToastGoster(false,mesajlar);
+        if(onTamamlandi)onTamamlandi(false);
       }
     });
   }
@@ -1300,16 +1306,24 @@ function _cariHareketGeriAl(kayit){
 }
 function kayitSil(id){
   if(!confirm('Bu kaydı silmek istediğine emin misin?'))return;
-  var liste=veriCek();
-  var kayit=liste.find(function(k){return k.id===id;});
-  veriYaz(liste.filter(function(k){return k.id!==id;}));
-  // Açık hesap ise cari hareketi de sil ve bakiyeyi güncelle
-  if(kayit&&kayit.odeme==='AcikHesap'){
-    _cariHareketGeriAl(kayit);
-  }
-  if(_duzenlemeId===id)duzenlemeIptal(); // düzenlenmekte olan kayıt silindiyse düzenleme modundan çık
-  syncSunucu({tip:'irsaliye_sil',id:id});
-  raporGuncelle();
+  var kayit=veriCek().find(function(k){return k.id===id;});
+  if(!kayit)return;
+  // Önce panele sil isteği gönderilir (3 deneme); ancak panelden gerçekten silindiği
+  // doğrulanınca local kayıt kaldırılır. Aksi halde local'den silinip panelde kalıcı
+  // olarak asılı kalan, kullanıcının fark etmediği kayıtlar oluşuyordu.
+  syncSunucuKaydetVeBildir({tip:'irsaliye_sil',id:id},function(basarili){
+    if(!basarili){
+      alert('❌ Kayıt panelden silinemedi (bağlantı sorunu). İnternet bağlantınızı kontrol edip tekrar deneyin — kayıt listede kaldı.');
+      return;
+    }
+    veriYaz(veriCek().filter(function(k){return k.id!==id;}));
+    // Açık hesap ise cari hareketi de sil ve bakiyeyi güncelle
+    if(kayit.odeme==='AcikHesap'){
+      _cariHareketGeriAl(kayit);
+    }
+    if(_duzenlemeId===id)duzenlemeIptal(); // düzenlenmekte olan kayıt silindiyse düzenleme modundan çık
+    raporGuncelle();
+  },{ok:'✓ Panelden silindi',err:'✗ Silme başarısız — kayıt listede kaldı'});
 }
 function _duzenlemeBanneriGuncelle(){
   var banner=document.getElementById('duzenlemeBanner');
