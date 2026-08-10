@@ -138,6 +138,29 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .sync-toast.ok{background:#2e7d32}
 .sync-toast.err{background:#c0392b}
 
+/* ── Mobil uyumluluk ──────────────────────────────────── */
+@media(max-width:600px){
+  body{padding:.6rem}
+  .card,.rapor-card{padding:1.2rem}
+  .login-box{padding:1.6rem 1.2rem}
+  .opts{flex-direction:column;align-items:stretch;gap:10px}
+  .opt-grp{width:100%}
+  select.opt-sel{flex:1;width:auto}
+  .total-box{flex-wrap:wrap;row-gap:8px}
+  .rapor-tbl{min-width:640px}
+  .rapor-grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  .btns{flex-direction:column;align-items:stretch}
+  .btns>*{width:100%;justify-content:center;text-align:center}
+  .date-pick{gap:8px}
+  .date-pick input{flex:1;min-width:130px}
+
+  /* Touch-friendly tap target'lar (min. 44px yükseklik) */
+  .btn-sec,.btn-pri,.btn-drk,.btn-gld,.btn-wa,.add-btn,.kullanici-cikis-btn,
+  .tab,.login-box button{min-height:44px}
+  input.finp,input.ri,.fiyat-wrap,select.opt-sel,.kargo-grid input,
+  .bakiye-grid input,.date-pick input,.login-box input{min-height:44px}
+}
+
 @media print {
   @page { size: A4 portrait; margin: 10mm; }
   body {
@@ -613,12 +636,7 @@ function tabGoster(t){
   document.getElementById('tab2').classList.toggle('active',t==='rap');
   document.body.dataset.printMode=t;
   if(t==='rap'){
-    var lokal=localStorage.getItem('mn_irsaliye');
-    if(!lokal||JSON.parse(lokal).length===0){
-      apidenVeriCek().then(function(){raporGuncelle();});
-    }else{
-      raporGuncelle();
-    }
+    raporGuncelle(); // artık panel DB'sinden çekiyor, local veriye bakmaya gerek yok
   }
 }
 
@@ -1025,62 +1043,70 @@ function raporBugün(){
   document.getElementById('raporBitis').value=bugun;
   raporGuncelle();
 }
+// Günlük Rapor artık localStorage'a değil gerçek panel DB'sine bakıyor (/api/gunluk-rapor) —
+// böylece farklı cihazdan girildiğinde de boş gelmiyor. Kişiye özel: sadece giriş yapan
+// kullanıcının kestiği irsaliyeler görünür (kullanici parametresi ile filtrelenir).
 function raporGuncelle(){
-  // Günlük Rapor kişiye özel: sadece giriş yapan kullanıcının kestiği irsaliyeler görünür.
-  // kullanici alanı olmayan (bu özellikten önceki) eski kayıtlar kimseye ait sayılmaz, hiç görünmez.
-  var v=veriCek().filter(function(k){return k.kullanici===aktifKullanici;});
   var bas=document.getElementById('raporBaslangic').value;
   var bit=document.getElementById('raporBitis').value;
-  var filtreli=v;
+  var params=new URLSearchParams();
   if(raporFiltre==='gun'){
-    if(bas&&bit){filtreli=v.filter(function(k){return k.tarih>=bas&&k.tarih<=bit;});}
-    else if(bas){filtreli=v.filter(function(k){return k.tarih>=bas;});}
-    else if(bit){filtreli=v.filter(function(k){return k.tarih<=bit;});}
+    if(bas)params.set('baslangic',bas);
+    if(bit)params.set('bitis',bit);
   }
-  document.getElementById('rIrs').textContent=filtreli.length;
-  var parca=0,resmi=_paraBos(),gayri=_paraBos(),nakit=_paraBos(),havale=_paraBos(),kredi=_paraBos(),mail=_paraBos(),acik=_paraBos();
-  var satis=_paraBos(),iadeT=_paraBos();
-  filtreli.forEach(function(k){
-    parca+=k.parca;
-    var para=k.para||'TL';
-    if(k.tur==='Resmi')resmi[para]+=k.genel;else gayri[para]+=k.genel;
-    if(k.odeme==='Nakit')nakit[para]+=k.genel;
-    else if(k.odeme==='Havale')havale[para]+=k.genel;
-    else if(k.odeme==='KrediKarti'||k.odeme==='POS')kredi[para]+=k.genel;
-    else if(k.odeme==='MailOrder')mail[para]+=k.genel;
-    else if(k.odeme==='AcikHesap'||k.odeme==='Veresiye')acik[para]+=k.genel;
-    satis[para]+=(typeof k.satisToplam==='number')?k.satisToplam:k.genel;
-    iadeT[para]+=(typeof k.iadeToplam==='number')?k.iadeToplam:0;
+  if(aktifKullanici)params.set('kullanici',aktifKullanici);
+
+  var liste=document.getElementById('raporListe');
+  liste.innerHTML='<div class="bos">Yükleniyor...</div>';
+
+  fetch('https://panel.missnesem.com/api/gunluk-rapor?'+params.toString())
+    .then(function(r){if(!r.ok)throw new Error('Sunucu hatası: '+r.status);return r.json();})
+    .then(function(res){_raporDoldur(res);})
+    .catch(function(err){
+      liste.innerHTML='<div class="bos">Rapor yüklenemedi — internet bağlantınızı kontrol edin.<br>('+err.message+')</div>';
+    });
+}
+function _raporDoldur(res){
+  document.getElementById('rIrs').textContent=res.irsaliyeAdedi||0;
+  document.getElementById('rParca').textContent=(res.toplamParca||0).toLocaleString('tr-TR');
+  document.getElementById('rResmi').textContent=fmtPara(res.resmiToplam||0,'TL');
+  document.getElementById('rGayri').textContent=fmtPara(res.gayriResmiToplam||0,'TL');
+  document.getElementById('rGenel').textContent=fmtPara(res.genelToplam||0,'TL');
+  document.getElementById('rNakit').textContent=fmtPara(res.nakit||0,'TL');
+  document.getElementById('rHavale').textContent=fmtPara(res.havale||0,'TL');
+  document.getElementById('rKredi').textContent=fmtPara(res.krediKarti||0,'TL');
+  document.getElementById('rMail').textContent=fmtPara(res.mailOrder||0,'TL');
+  document.getElementById('rAcik').textContent=fmtPara(res.acikHesap||0,'TL');
+  document.getElementById('rSatis').textContent=fmtPara(res.toplamSatis||0,'TL');
+  document.getElementById('rIade').textContent=fmtPara(res.toplamIade||0,'TL');
+  document.getElementById('rNet').textContent=fmtPara(res.netTutar||0,'TL');
+  raporListeYapUzak(res.irsaliyeler||[]);
+}
+// Panel API'sinden gelen özet satırları için — localStorage kaydına özel görüntüle/düzenle/sil
+// aksiyonları burada yok (o alanlar API yanıtında da yok), sadece salt-okunur liste.
+function raporListeYapUzak(liste){
+  var el=document.getElementById('raporListe');
+  if(!liste.length){el.innerHTML='<div class="bos">Bu tarihte irsaliye yok</div>';return;}
+  var html='<div class="table-scroll"><table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th>KESEN</th></tr></thead><tbody>';
+  liste.forEach(function(k){
+    var tagCls=k.tur==='Resmi'?'res':'gay';
+    var tp=k.tarih?k.tarih.split('-'):['','',''];
+    var tarihKisa=tp[2]+'.'+tp[1];
+    html+='<tr>';
+    html+='<td>'+(k.saat||'')+'</td>';
+    html+='<td style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px">'+(k.musteri||'')+'</td>';
+    html+='<td>'+(k.parca||0)+'</td>';
+    html+='<td class="r">'+fmtPara(k.tutar||0,'TL')+'</td>';
+    html+='<td>'+(k.odeme||'')+'</td>';
+    html+='<td><span class="tag '+tagCls+'">'+(k.tur||'').toUpperCase()+'</span><br><span style="font-size:9px;color:#a64d3e;font-weight:700;letter-spacing:0.5px">'+tarihKisa+'</span></td>';
+    html+='<td>'+(k.kesen||'—')+'</td>';
+    html+='</tr>';
   });
-  document.getElementById('rParca').textContent=parca.toLocaleString('tr-TR');
-  document.getElementById('rResmi').textContent=fmtParaGrup(resmi);
-  document.getElementById('rGayri').textContent=fmtParaGrup(gayri);
-  document.getElementById('rGenel').textContent=fmtParaGrup(_paraTopla(resmi,gayri));
-  document.getElementById('rNakit').textContent=fmtParaGrup(nakit);
-  document.getElementById('rHavale').textContent=fmtParaGrup(havale);
-  document.getElementById('rKredi').textContent=fmtParaGrup(kredi);
-  document.getElementById('rMail').textContent=fmtParaGrup(mail);
-  document.getElementById('rAcik').textContent=fmtParaGrup(acik);
-  document.getElementById('rSatis').textContent=fmtParaGrup(satis);
-  document.getElementById('rIade').textContent=fmtParaGrup(iadeT);
-  document.getElementById('rNet').textContent=fmtParaGrup({TL:(satis.TL||0)-(iadeT.TL||0),USD:(satis.USD||0)-(iadeT.USD||0),EUR:(satis.EUR||0)-(iadeT.EUR||0)});
-  raporListeYap(filtreli);
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
 }
-function _paraBos(){return{TL:0,USD:0,EUR:0};}
-function _paraTopla(a,b){a=a||_paraBos();b=b||_paraBos();return{TL:(a.TL||0)+(b.TL||0),USD:(a.USD||0)+(b.USD||0),EUR:(a.EUR||0)+(b.EUR||0)};}
-function fmtParaGrup(g){
-  g=g||_paraBos();
-  var parts=[fmtPara(g.TL||0,'TL')];
-  if(g.USD)parts.push(fmtPara(g.USD,'USD'));
-  if(g.EUR)parts.push(fmtPara(g.EUR,'EUR'));
-  return parts.join(' | ');
-}
-function odemeAdi(o){
-  if(o==='KrediKarti')return'Kredi Kartı';
-  if(o==='MailOrder')return'Mail Order';
-  if(o==='AcikHesap'||o==='Veresiye')return'Açık Hesap';
-  return o;
-}
+// raporListeYap (aşağıda, artık hiçbir yerden çağrılmıyor ama ileride yeniden
+// kullanılabilsin diye kod içinde bırakıldı) bu iki fonksiyona ihtiyaç duyuyor.
 function odemeSecenekleri(tur,secili){
   var resmiOps=[['KrediKarti','Kredi Kartı'],['Havale','Havale'],['MailOrder','Mail Order'],['AcikHesap','Açık Hesap']];
   var gayriOps=[['Nakit','Nakit'],['Havale','Havale'],['AcikHesap','Açık Hesap']];
@@ -1270,7 +1296,7 @@ function popPng(id){
 function raporListeYap(liste){
   var el=document.getElementById('raporListe');
   if(liste.length===0){el.innerHTML='<div class="bos">Bu tarihte irsaliye yok</div>';return;}
-  var html='<table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th></th></tr></thead><tbody>';
+  var html='<div class="table-scroll"><table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th></th></tr></thead><tbody>';
   liste.sort(function(a,b){return b.id-a.id;});
   liste.forEach(function(k){
     var d=new Date(k.id);
@@ -1292,7 +1318,7 @@ function raporListeYap(liste){
     html+='</td>';
     html+='</tr>';
   });
-  html+='</tbody></table>';
+  html+='</tbody></table></div>';
   el.innerHTML=html;
 }
 function _cariHareketGeriAl(kayit){
