@@ -1093,7 +1093,7 @@ function raporListeYapUzak(liste){
   // Düzenle butonu sadece yerelde eşleşen kayıt varsa gösterilir.
   var yerelIdler={};
   veriCek().forEach(function(k){yerelIdler[k.id]=true;});
-  var html='<div class="table-scroll"><table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th>KESEN</th><th></th></tr></thead><tbody>';
+  var html='<div class="table-scroll"><table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th></th></tr></thead><tbody>';
   liste.forEach(function(k){
     var tagCls=k.tur==='Resmi'?'res':'gay';
     var tp=k.tarih?k.tarih.split('-'):['','',''];
@@ -1105,7 +1105,6 @@ function raporListeYapUzak(liste){
     html+='<td class="r">'+fmtPara(k.tutar||0,'TL')+'</td>';
     html+='<td>'+(k.odeme||'')+'</td>';
     html+='<td><span class="tag '+tagCls+'">'+(k.tur||'').toUpperCase()+'</span><br><span style="font-size:9px;color:#a64d3e;font-weight:700;letter-spacing:0.5px">'+tarihKisa+'</span></td>';
-    html+='<td>'+(k.kesen||'—')+'</td>';
     html+='<td style="white-space:nowrap">';
     html+='<a href="https://panel.missnesem.com/Invoices/Detail?id='+k.panelId+'" target="_blank" rel="noopener" title="Panelde Görüntüle" style="text-decoration:none;color:#2c2419;font-size:16px;padding:2px 4px">👁</a>';
     if(yerelIdler[k.id]){
