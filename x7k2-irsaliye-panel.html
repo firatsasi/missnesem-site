@@ -1742,7 +1742,12 @@ function _kasaRaporuHtmlOlustur(res){
     console.warn('Kasa Raporu uyuşmazlığı: Resmi ('+resmiToplam+') + Gayri Resmi ('+gayriToplam+') = '+(resmiToplam+gayriToplam)+', Genel Toplam ise '+genel+'. Muhtemel sebep: aralıkta Kredi Kartı/POS ile ödenmiş (kasaya girmeyen) irsaliye var.');
   }
   var el=document.createElement('div');
-  el.style.cssText='background:#f0e4d3;border-radius:10px;border:1px solid #b8985e;padding:2rem;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#2c2419;box-sizing:border-box;width:520px';
+  // position:fixed — Kasa Raporu butonu sayfanın en altında, uzun bir irsaliye listesinden sonra
+  // geliyor. Normal akışta (static) eklenen bir eleman document scroll'una göre konumlanıyor ve
+  // html2canvas o anki scroll pozisyonuna göre yanlış bölgeyi kırpıp boş PDF üretiyordu (üretimde
+  // doğrulandı). fixed, elementi viewport'a sabitleyip scroll'dan bağımsız/tutarlı bir
+  // getBoundingClientRect() sağlıyor; left:-9999px ile de kullanıcıya görünmeden capture ediliyor.
+  el.style.cssText='position:fixed;top:0;left:-9999px;background:#f0e4d3;border-radius:10px;border:1px solid #b8985e;padding:2rem;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#2c2419;box-sizing:border-box;width:520px';
   el.innerHTML=
     '<div style="text-align:center;margin-bottom:1.5rem">'+
       '<div style="font-size:22px;font-weight:700;letter-spacing:5px;color:#2c2419">MISS NEŞEM</div>'+
