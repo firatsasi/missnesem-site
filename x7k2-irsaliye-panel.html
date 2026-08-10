@@ -417,9 +417,11 @@ function musteriAutocomplete(val){
 function _musteriDropdownLocal(val){
   cariMigrasyon();
   var d=cariVeriCek();
-  var v=val.toLowerCase();
+  // toLowerCase() yerine toLocaleLowerCase('tr-TR'): düz toLowerCase Türkçe İ/I harflerini
+  // yanlış küçültür (İ→i̇ nokta işaretli, I→i noktasız değil) — "askı" yazınca "ASKI" bulunmaz.
+  var v=val.toLocaleLowerCase('tr-TR');
   var list=Object.values(d.musteri)
-    .filter(function(m){return m.isim.toLowerCase().indexOf(v)!==-1||(m.kod&&m.kod.toLowerCase().indexOf(v)!==-1);})
+    .filter(function(m){return m.isim.toLocaleLowerCase('tr-TR').indexOf(v)!==-1||(m.kod&&m.kod.toLocaleLowerCase('tr-TR').indexOf(v)!==-1);})
     .slice(0,10)
     .map(function(m){return{name:m.isim,cariKod:m.kod||'',bakiye:m.bakiye||0,bakiyeler:m.bakiyeler||{}};});
   _musteriDropdownGoster(list);
