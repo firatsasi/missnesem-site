@@ -1026,7 +1026,9 @@ function raporBugün(){
   raporGuncelle();
 }
 function raporGuncelle(){
-  var v=veriCek();
+  // Günlük Rapor kişiye özel: sadece giriş yapan kullanıcının kestiği irsaliyeler görünür.
+  // kullanici alanı olmayan (bu özellikten önceki) eski kayıtlar kimseye ait sayılmaz, hiç görünmez.
+  var v=veriCek().filter(function(k){return k.kullanici===aktifKullanici;});
   var bas=document.getElementById('raporBaslangic').value;
   var bit=document.getElementById('raporBitis').value;
   var filtreli=v;
