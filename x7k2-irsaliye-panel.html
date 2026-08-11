@@ -1050,8 +1050,10 @@ function raporBugün(){
   raporGuncelle();
 }
 // Günlük Rapor artık localStorage'a değil gerçek panel DB'sine bakıyor (/api/gunluk-rapor) —
-// böylece farklı cihazdan girildiğinde de boş gelmiyor. Kullanıcıya göre filtrelenmiyor —
-// hem Fırat hem Gürhan aynı tam listeyi görür ve düzenleyebilir (bkz. irsaliyeDuzenle).
+// böylece farklı cihazdan girildiğinde de boş gelmiyor. Kişiye özel: sadece giriş yapan
+// kullanıcının kestiği irsaliyeler görünür (kullanici parametresi ile filtrelenir). Düzenle
+// butonu kendi listesindeki her satırda çalışır — API artık urunler/iade bilgisini de
+// döndürdüğü için, o irsaliyeyi bu cihazda ilk kez görüyor olsa bile açılabilir (bkz. irsaliyeDuzenle).
 function raporGuncelle(){
   var bas=document.getElementById('raporBaslangic').value;
   var bit=document.getElementById('raporBitis').value;
@@ -1060,6 +1062,7 @@ function raporGuncelle(){
     if(bas)params.set('baslangic',bas);
     if(bit)params.set('bitis',bit);
   }
+  if(aktifKullanici)params.set('kullanici',aktifKullanici);
 
   var liste=document.getElementById('raporListe');
   liste.innerHTML='<div class="bos">Yükleniyor...</div>';
