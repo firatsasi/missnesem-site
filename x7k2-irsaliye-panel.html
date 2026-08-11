@@ -1050,8 +1050,8 @@ function raporBugün(){
   raporGuncelle();
 }
 // Günlük Rapor artık localStorage'a değil gerçek panel DB'sine bakıyor (/api/gunluk-rapor) —
-// böylece farklı cihazdan girildiğinde de boş gelmiyor. Kişiye özel: sadece giriş yapan
-// kullanıcının kestiği irsaliyeler görünür (kullanici parametresi ile filtrelenir).
+// böylece farklı cihazdan girildiğinde de boş gelmiyor. Kullanıcıya göre filtrelenmiyor —
+// hem Fırat hem Gürhan aynı tam listeyi görür ve düzenleyebilir (bkz. irsaliyeDuzenle).
 function raporGuncelle(){
   var bas=document.getElementById('raporBaslangic').value;
   var bit=document.getElementById('raporBitis').value;
@@ -1060,7 +1060,6 @@ function raporGuncelle(){
     if(bas)params.set('baslangic',bas);
     if(bit)params.set('bitis',bit);
   }
-  if(aktifKullanici)params.set('kullanici',aktifKullanici);
 
   var liste=document.getElementById('raporListe');
   liste.innerHTML='<div class="bos">Yükleniyor...</div>';
@@ -1093,17 +1092,12 @@ function _raporDoldur(res){
   document.getElementById('rNet').textContent=fmtPara(res.netTutar||0,'TL');
   raporListeYapUzak(res.irsaliyeler||[]);
 }
-// Panel API'sinden gelen özet satırları için — localStorage kaydına özel görüntüle/düzenle/sil
-// aksiyonları burada yok (o alanlar API yanıtında da yok), sadece salt-okunur liste.
+// Panel API'sinden gelen özet satırları için. Düzenle artık bu cihazda hiç kaydı olmayan
+// (başka cihazda/kullanıcıda kesilmiş) irsaliyelerde de çalışır — API artık urunler/iade
+// bilgisini de döndürüyor, irsaliyeDuzenle() yerelde bulamazsa buradan tamamlar.
 function raporListeYapUzak(liste){
   var el=document.getElementById('raporListe');
   if(!liste.length){el.innerHTML='<div class="bos">Bu tarihte irsaliye yok</div>';return;}
-  // Düzenle sadece bu cihazda zaten kayıtlı irsaliyelerde çalışır — panelin InvoiceItem'ı
-  // satır bazında iade bilgisi tutmadığından başka cihazda kesilmiş bir kaydı burada
-  // düzenlemeye açmak iade satırlarını sessizce normal satışa çevirir. Bu riski almamak için
-  // Düzenle butonu sadece yerelde eşleşen kayıt varsa gösterilir.
-  var yerelIdler={};
-  veriCek().forEach(function(k){yerelIdler[k.id]=true;});
   var html='<div class="table-scroll"><table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th></th></tr></thead><tbody>';
   liste.forEach(function(k){
     var tagCls=k.tur==='Resmi'?'res':'gay';
@@ -1118,9 +1112,7 @@ function raporListeYapUzak(liste){
     html+='<td><span class="tag '+tagCls+'">'+(k.tur||'').toUpperCase()+'</span><br><span style="font-size:9px;color:#a64d3e;font-weight:700;letter-spacing:0.5px">'+tarihKisa+'</span></td>';
     html+='<td style="white-space:nowrap">';
     html+='<a href="https://panel.missnesem.com/Invoices/Detail?id='+k.panelId+'" target="_blank" rel="noopener" title="Panelde Görüntüle" style="text-decoration:none;color:#2c2419;font-size:16px;padding:2px 4px">👁</a>';
-    if(yerelIdler[k.id]){
-      html+='<button title="Düzenle" onclick="irsaliyeDuzenle('+k.id+')" style="background:none;border:none;cursor:pointer;color:#2c2419;font-size:16px;padding:2px 4px">✏️</button>';
-    }
+    html+='<button title="Düzenle" onclick="irsaliyeDuzenle('+k.id+')" style="background:none;border:none;cursor:pointer;color:#2c2419;font-size:16px;padding:2px 4px">✏️</button>';
     html+='<button title="Sil" onclick="kayitSil('+k.id+')" style="background:none;border:none;cursor:pointer;color:#a64d3e;font-size:16px;padding:2px 4px">🗑️</button>';
     html+='</td>';
     html+='</tr>';
@@ -1393,10 +1385,30 @@ function _duzenlemeBanneriGuncelle(){
 function duzenlemeIptal(){
   temizle();
 }
+// Bu cihazda yerel kaydı olmayan (başka cihazda/kullanıcıda kesilmiş) bir irsaliye
+// düzenlenmek istendiğinde, son çekilen Günlük Rapor API yanıtından (_sonRaporVerisi,
+// artık urunler/iade/para/kdvOran da içeriyor) forma yetecek kadar bir kayıt kurar.
+// Kargo bilgisi panelde hiç saklanmadığı için burada boş kalır (mevcut davranış zaten öyle).
+function _uzaktanKayitKur(id){
+  var liste=(_sonRaporVerisi&&_sonRaporVerisi.irsaliyeler)||[];
+  var u=liste.find(function(k){return k.id===id;});
+  if(!u)return null;
+  return{
+    id:u.id,
+    tarih:u.tarih,
+    musteri:u.musteri,
+    para:u.para||'TL',
+    tur:u.tur||'Resmi',
+    odeme:u.odemeKodu||u.odeme,
+    kdvOran:u.kdvOran||0,
+    urunler:(u.urunler||[]).map(function(p){return{adet:p.adet,ad:p.ad,fiyat:p.fiyat,iade:p.iade};})
+  };
+}
 function irsaliyeDuzenle(id){
   var v=veriCek();
   var kayit=v.find(function(k){return k.id===id;});
-  if(!kayit)return;
+  if(!kayit)kayit=_uzaktanKayitKur(id);
+  if(!kayit){alert('Bu irsaliyenin ayrıntıları bulunamadı.');return;}
   kapatPop();
   tabGoster('irs');
 
