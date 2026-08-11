@@ -124,10 +124,10 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .rapor-cell.dark{background:#2c2419}
 .rapor-cell.dark .lbl{color:#b8985e}
 .rapor-cell.dark .val{color:#f0e4d3}
-.rapor-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:1rem}
-.rapor-tbl th{padding:8px 10px;font-size:10px;letter-spacing:1px;color:#f0e4d3;background:#2c2419;text-align:left}
-.rapor-tbl th.r{text-align:right}
-.rapor-tbl td{padding:8px 10px;border-bottom:1px solid #e0cdb5;background:#fff}
+.rapor-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:1rem;table-layout:fixed}
+.rapor-tbl th{padding:8px 10px;font-size:10px;letter-spacing:1px;color:#f0e4d3;background:#2c2419;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rapor-tbl th.r,.rapor-tbl td.r{text-align:right}
+.rapor-tbl td{padding:8px 10px;border-bottom:1px solid #e0cdb5;background:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rapor-tbl tr:nth-child(even) td{background:#faf6f0}
 .rapor-tbl .si{color:#a64d3e;cursor:pointer;font-size:16px;font-weight:700;background:none;border:none}
 .bos{text-align:center;padding:3rem;color:#a64d3e;font-size:13px}
@@ -354,6 +354,11 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
     <div class="rapor-cell"><div class="lbl">RESMİ TOPLAM</div><div class="val" id="rResmi">0 ₺</div></div>
     <div class="rapor-cell"><div class="lbl">GAYRİ RESMİ TOPLAM</div><div class="val" id="rGayri">0 ₺</div></div>
     <div class="rapor-cell dark"><div class="lbl">GENEL TOPLAM</div><div class="val" id="rGenel">0 ₺</div></div>
+  </div>
+
+  <div class="rapor-grid" id="rDovizGrid" style="display:none">
+    <div class="rapor-cell" id="rDolarCell" style="display:none"><div class="lbl">DOLAR CİRO</div><div class="val" id="rDolar">$0</div></div>
+    <div class="rapor-cell" id="rEuroCell" style="display:none"><div class="lbl">EURO CİRO</div><div class="val" id="rEuro">€0</div></div>
   </div>
 
   <div class="rapor-grid">
@@ -1083,16 +1088,25 @@ function _raporDoldur(res){
   document.getElementById('rGenel').textContent=fmtPara(res.genelToplam||0,'TL');
   document.getElementById('rNakit').textContent=fmtPara(res.nakit||0,'TL');
   // Havale artık Resmi/Gayri Resmi kırılımıyla gösteriliyor — irsaliyelerde Tür ve Ödeme
-  // zaten birlikte tutuluyor, kasaRaporu bu ikisini çapraz tablosunda karşılaştırır.
-  var kasa=res.kasaRaporu||{};
-  document.getElementById('rHavaleResmi').textContent=fmtPara((kasa.resmi&&kasa.resmi.havale&&kasa.resmi.havale.tutar)||0,'TL');
-  document.getElementById('rHavaleGayri').textContent=fmtPara((kasa.gayriResmi&&kasa.gayriResmi.havale&&kasa.gayriResmi.havale.tutar)||0,'TL');
+  // zaten birlikte tutuluyor, kasaRaporu (para birimi bazlı) bu ikisini çapraz tablosunda karşılaştırır.
+  var kasaTL=(res.kasaRaporu&&res.kasaRaporu.TRY)||{};
+  document.getElementById('rHavaleResmi').textContent=fmtPara((kasaTL.resmi&&kasaTL.resmi.havale&&kasaTL.resmi.havale.tutar)||0,'TL');
+  document.getElementById('rHavaleGayri').textContent=fmtPara((kasaTL.gayriResmi&&kasaTL.gayriResmi.havale&&kasaTL.gayriResmi.havale.tutar)||0,'TL');
   document.getElementById('rKredi').textContent=fmtPara(res.krediKarti||0,'TL');
   document.getElementById('rMail').textContent=fmtPara(res.mailOrder||0,'TL');
   document.getElementById('rAcik').textContent=fmtPara(res.acikHesap||0,'TL');
   document.getElementById('rSatis').textContent=fmtPara(res.toplamSatis||0,'TL');
   document.getElementById('rIade').textContent=fmtPara(res.toplamIade||0,'TL');
   document.getElementById('rNet').textContent=fmtPara(res.netTutar||0,'TL');
+
+  // Dolar/Euro ciro — TL kartlarından ayrı, sadece işlem varsa gösterilir.
+  var dolarVar=(res.dolarAdet||0)>0, euroVar=(res.euroAdet||0)>0;
+  document.getElementById('rDovizGrid').style.display=(dolarVar||euroVar)?'':'none';
+  document.getElementById('rDolarCell').style.display=dolarVar?'':'none';
+  document.getElementById('rEuroCell').style.display=euroVar?'':'none';
+  if(dolarVar)document.getElementById('rDolar').textContent=fmtPara(res.dolarToplam||0,'USD')+' ('+res.dolarAdet+' adet)';
+  if(euroVar)document.getElementById('rEuro').textContent=fmtPara(res.euroToplam||0,'EUR')+' ('+res.euroAdet+' adet)';
+
   raporListeYapUzak(res.irsaliyeler||[]);
 }
 // Panel API'sinden gelen özet satırları için. Düzenle artık bu cihazda hiç kaydı olmayan
@@ -1101,17 +1115,24 @@ function _raporDoldur(res){
 function raporListeYapUzak(liste){
   var el=document.getElementById('raporListe');
   if(!liste.length){el.innerHTML='<div class="bos">Bu tarihte irsaliye yok</div>';return;}
-  var html='<div class="table-scroll"><table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th></th></tr></thead><tbody>';
+  var paraSym={TL:'₺',USD:'$',EUR:'€'};
+  var html='<div class="table-scroll"><table class="rapor-tbl">'+
+    '<colgroup><col style="width:55px"><col><col style="width:50px">'+
+    '<col style="width:95px"><col style="width:45px"><col style="width:90px">'+
+    '<col style="width:90px"><col style="width:85px"></colgroup>'+
+    '<thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>PARA</th><th>ÖDEME</th><th>TÜR / TARİH</th><th></th></tr></thead><tbody>';
   liste.forEach(function(k){
+    var para=k.para||'TL';
     var tagCls=k.tur==='Resmi'?'res':'gay';
     var tp=k.tarih?k.tarih.split('-'):['','',''];
     var tarihKisa=tp[2]+'.'+tp[1];
     html+='<tr>';
     html+='<td>'+(k.saat||'')+'</td>';
-    html+='<td style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px">'+(k.musteri||'')+'</td>';
+    html+='<td title="'+(k.musteri||'')+'">'+(k.musteri||'')+'</td>';
     html+='<td>'+(k.parca||0)+'</td>';
-    html+='<td class="r">'+fmtPara(k.tutar||0,'TL')+'</td>';
-    html+='<td>'+(k.odeme||'')+'</td>';
+    html+='<td class="r">'+fmtPara(k.tutar||0,para)+'</td>';
+    html+='<td><span class="tag" style="background:#e8dcc4;color:#2c2419">'+(paraSym[para]||para)+'</span></td>';
+    html+='<td title="'+(k.odeme||'')+'">'+(k.odeme||'')+'</td>';
     html+='<td><span class="tag '+tagCls+'">'+(k.tur||'').toUpperCase()+'</span><br><span style="font-size:9px;color:#a64d3e;font-weight:700;letter-spacing:0.5px">'+tarihKisa+'</span></td>';
     html+='<td style="white-space:nowrap">';
     html+='<a href="https://panel.missnesem.com/Invoices/Detail?id='+k.panelId+'" target="_blank" rel="noopener" title="Panelde Görüntüle" style="text-decoration:none;color:#2c2419;font-size:16px;padding:2px 4px">👁</a>';
@@ -1761,72 +1782,90 @@ function _notoFontYukle(){
 // Resmi bölüm toplamları ile Genel Toplam (tüm ödeme yöntemleri) her zaman örtüşmeyebilir;
 // örtüşmezse muhtemelen o aralıkta Kredi Kartı/POS ile ödenmiş irsaliye var demektir.
 function _kasaRaporuPdfYaz(doc,res){
-  var kasa=res.kasaRaporu;
-  var resmiToplam=kasa.resmi.toplam.tutar, gayriToplam=kasa.gayriResmi.toplam.tutar, genel=kasa.genelToplam.tutar;
-  if(Math.abs((resmiToplam+gayriToplam)-genel)>0.01){
-    console.warn('Kasa Raporu uyuşmazlığı: Resmi ('+resmiToplam+') + Gayri Resmi ('+gayriToplam+') = '+(resmiToplam+gayriToplam)+', Genel Toplam ise '+genel+'. Muhtemel sebep: aralıkta Kredi Kartı/POS ile ödenmiş (kasaya girmeyen) irsaliye var.');
-  }
+  var kasaParaBirimleri=res.kasaRaporu||{};
+  // Her para birimi (TRY/USD/EUR) ayrı bölüm — işlem olmayan para birimleri atlanır.
+  var bolumler=[
+    {kod:'TRY',para:'TL',baslik:'TL İŞLEMLER',kasa:kasaParaBirimleri.TRY},
+    {kod:'USD',para:'USD',baslik:'DOLAR İŞLEMLER',kasa:kasaParaBirimleri.USD},
+    {kod:'EUR',para:'EUR',baslik:'EURO İŞLEMLER',kasa:kasaParaBirimleri.EUR}
+  ].filter(function(b){return b.kasa&&b.kasa.genelToplam&&b.kasa.genelToplam.adet>0;});
+
+  if(bolumler.length===0)bolumler=[{kod:'TRY',para:'TL',baslik:'TL İŞLEMLER',kasa:kasaParaBirimleri.TRY||{resmi:{nakit:{tutar:0,adet:0},havale:{tutar:0,adet:0},acikHesap:{tutar:0,adet:0},mailOrder:{tutar:0,adet:0},toplam:{tutar:0,adet:0}},gayriResmi:{nakit:{tutar:0,adet:0},havale:{tutar:0,adet:0},acikHesap:{tutar:0,adet:0},mailOrder:{tutar:0,adet:0},toplam:{tutar:0,adet:0}},genelToplam:{tutar:0,adet:0},iade:0,net:0}}];
+
+  bolumler.forEach(function(b){
+    var kasa=b.kasa;
+    var resmiToplam=kasa.resmi.toplam.tutar, gayriToplam=kasa.gayriResmi.toplam.tutar, genel=kasa.genelToplam.tutar;
+    if(Math.abs((resmiToplam+gayriToplam)-genel)>0.01){
+      console.warn('Kasa Raporu uyuşmazlığı ('+b.para+'): Resmi ('+resmiToplam+') + Gayri Resmi ('+gayriToplam+') = '+(resmiToplam+gayriToplam)+', Genel Toplam ise '+genel+'. Muhtemel sebep: aralıkta Kredi Kartı/POS ile ödenmiş (kasaya girmeyen) irsaliye var.');
+    }
+  });
+
   var pageW=doc.internal.pageSize.getWidth();
-  var marginX=20, rightX=pageW-marginX, y=22;
+  var marginX=20, rightX=pageW-marginX;
   var renkKoyu=[44,36,25], renkVurgu=[166,77,62], renkIade=[192,57,43];
 
-  doc.setFont('NotoSans','bold');
-  doc.setFontSize(18);
-  doc.setTextColor.apply(doc,renkKoyu);
-  doc.text('MISS NEŞEM',pageW/2,y,{align:'center'});
-  y+=7;
-  doc.setFont('NotoSans','normal');
-  doc.setFontSize(11);
-  doc.setTextColor.apply(doc,renkVurgu);
-  doc.text('KASA RAPORU — '+_raporTarihEtiketi(),pageW/2,y,{align:'center'});
-  y+=12;
+  bolumler.forEach(function(b,idx){
+    if(idx>0)doc.addPage();
+    var kasa=b.kasa, y=22;
 
-  function satir(etiket,b,vurgu){
-    doc.setFont('NotoSans',vurgu?'bold':'normal');
+    doc.setFont('NotoSans','bold');
+    doc.setFontSize(18);
     doc.setTextColor.apply(doc,renkKoyu);
-    doc.text(etiket+':',marginX+3,y);
-    doc.text(fmtPara(b.tutar,'TL')+'  ('+b.adet+' adet)',rightX,y,{align:'right'});
-    y+=6.5;
-  }
-  function bolum(baslik,b){
+    doc.text('MISS NEŞEM',pageW/2,y,{align:'center'});
+    y+=7;
+    doc.setFont('NotoSans','normal');
+    doc.setFontSize(11);
+    doc.setTextColor.apply(doc,renkVurgu);
+    doc.text('KASA RAPORU — '+_raporTarihEtiketi()+' — '+b.baslik,pageW/2,y,{align:'center'});
+    y+=12;
+
+    function satir(etiket,bk,vurgu){
+      doc.setFont('NotoSans',vurgu?'bold':'normal');
+      doc.setTextColor.apply(doc,renkKoyu);
+      doc.text(etiket+':',marginX+3,y);
+      doc.text(fmtPara(bk.tutar,b.para)+'  ('+bk.adet+' adet)',rightX,y,{align:'right'});
+      y+=6.5;
+    }
+    function bolum(baslik,bk){
+      doc.setFont('NotoSans','bold');
+      doc.setFontSize(12);
+      doc.setTextColor.apply(doc,renkVurgu);
+      doc.text(baslik,marginX,y);
+      y+=7.5;
+      doc.setFontSize(11);
+      satir('Nakit',bk.nakit);
+      satir('Havale',bk.havale);
+      satir('Açık Hesap',bk.acikHesap);
+      satir('Mail Order',bk.mailOrder);
+      satir('Toplam',bk.toplam,true);
+      y+=4;
+    }
+    bolum('RESMİ İŞLEMLER',kasa.resmi);
+    bolum('GAYRİ RESMİ İŞLEMLER',kasa.gayriResmi);
+
+    doc.setDrawColor(184,152,94);
+    doc.line(marginX,y,rightX,y);
+    y+=8;
+
     doc.setFont('NotoSans','bold');
     doc.setFontSize(12);
-    doc.setTextColor.apply(doc,renkVurgu);
-    doc.text(baslik,marginX,y);
-    y+=7.5;
+    doc.setTextColor.apply(doc,renkKoyu);
+    doc.text('GENEL TOPLAM:',marginX,y);
+    doc.text(fmtPara(kasa.genelToplam.tutar,b.para)+'  ('+kasa.genelToplam.adet+' adet)',rightX,y,{align:'right'});
+    y+=8;
+
+    doc.setFont('NotoSans','normal');
     doc.setFontSize(11);
-    satir('Nakit',b.nakit);
-    satir('Havale',b.havale);
-    satir('Açık Hesap',b.acikHesap);
-    satir('Mail Order',b.mailOrder);
-    satir('Toplam',b.toplam,true);
-    y+=4;
-  }
-  bolum('RESMİ İŞLEMLER',kasa.resmi);
-  bolum('GAYRİ RESMİ İŞLEMLER',kasa.gayriResmi);
+    doc.setTextColor.apply(doc,renkIade);
+    doc.text('İADE:',marginX,y);
+    doc.text(fmtPara(kasa.iade,b.para),rightX,y,{align:'right'});
+    y+=7;
 
-  doc.setDrawColor(184,152,94);
-  doc.line(marginX,y,rightX,y);
-  y+=8;
-
-  doc.setFont('NotoSans','bold');
-  doc.setFontSize(12);
-  doc.setTextColor.apply(doc,renkKoyu);
-  doc.text('GENEL TOPLAM:',marginX,y);
-  doc.text(fmtPara(genel,'TL')+'  ('+kasa.genelToplam.adet+' adet)',rightX,y,{align:'right'});
-  y+=8;
-
-  doc.setFont('NotoSans','normal');
-  doc.setFontSize(11);
-  doc.setTextColor.apply(doc,renkIade);
-  doc.text('İADE:',marginX,y);
-  doc.text(fmtPara(kasa.iade,'TL'),rightX,y,{align:'right'});
-  y+=7;
-
-  doc.setFont('NotoSans','bold');
-  doc.setTextColor.apply(doc,renkKoyu);
-  doc.text('NET:',marginX,y);
-  doc.text(fmtPara(kasa.net,'TL'),rightX,y,{align:'right'});
+    doc.setFont('NotoSans','bold');
+    doc.setTextColor.apply(doc,renkKoyu);
+    doc.text('NET:',marginX,y);
+    doc.text(fmtPara(kasa.net,b.para),rightX,y,{align:'right'});
+  });
 }
 function kasaRaporuIndir(btn){
   if(!_sonRaporVerisi||!_sonRaporVerisi.kasaRaporu){
