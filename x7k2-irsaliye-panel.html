@@ -393,6 +393,9 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 </div>
 
 <script>
+// Panel API'sinin cross-origin (session cookie'siz) uçlarını korumak için paylaşılan anahtar.
+var MN_API_KEY='7s-rGV2Bmk0fkQ7gDQ_vFGTnhdUOSXkAsfL_eZVD-kA';
+
 /* ====== LOGIN ====== */
 // Panel'deki (panel.missnesem.com) gerçek kullanıcı hesaplarıyla birebir eşleşir.
 // Kullanıcı adı → giriş yapan kişinin görünen adı (KESEN etiketi ve sipariş no harfi bundan gelir).
@@ -442,7 +445,7 @@ function musteriAutocomplete(val){
   if(val===_lastAutoMusteri){return;}
   _lastAutoMusteri=''; // kullanıcı yeni bir şey yazıyor
   _musteriTimer=setTimeout(function(){
-    fetch('https://panel.missnesem.com/api/customers/search?q='+encodeURIComponent(val))
+    fetch('https://panel.missnesem.com/api/customers/search?q='+encodeURIComponent(val),{headers:{'X-Api-Key':MN_API_KEY}})
       .then(function(r){return r.json();})
       .then(function(list){_musteriDropdownGoster(list);})
       .catch(function(){_musteriDropdownLocal(val);});
@@ -886,7 +889,7 @@ function _syncTekDene(payload){
   return new Promise(function(resolve){
     var controller=new AbortController();
     var timer=setTimeout(function(){controller.abort();},SYNC_TIMEOUT_MS);
-    fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal})
+    fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json','X-Api-Key':MN_API_KEY},body:JSON.stringify(payload),signal:controller.signal})
       .then(function(r){clearTimeout(timer);resolve(!!r.ok);})
       .catch(function(){clearTimeout(timer);resolve(false);});
   });
@@ -945,7 +948,7 @@ async function tumunuSyncEt(){
   for(var i=0;i<v.length;i++){
     var kayit=v[i];
     try{
-      var r=await fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({tip:'irsaliye_kaydet'},kayit))});
+      var r=await fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json','X-Api-Key':MN_API_KEY},body:JSON.stringify(Object.assign({tip:'irsaliye_kaydet'},kayit))});
       if(r.ok){basarili++;}else{hatali++;console.error('Hatalı:',kayit.id,kayit.musteri,r.status);}
     }catch(e){hatali++;console.error('Hatalı:',kayit.id,kayit.musteri,e);}
   }
@@ -1101,7 +1104,7 @@ function raporGuncelle(){
   var liste=document.getElementById('raporListe');
   liste.innerHTML='<div class="bos">Yükleniyor...</div>';
 
-  fetch('https://panel.missnesem.com/api/gunluk-rapor?'+params.toString())
+  fetch('https://panel.missnesem.com/api/gunluk-rapor?'+params.toString(),{headers:{'X-Api-Key':MN_API_KEY}})
     .then(function(r){if(!r.ok)throw new Error('Sunucu hatası: '+r.status);return r.json();})
     .then(function(res){_raporDoldur(res);})
     .catch(function(err){
