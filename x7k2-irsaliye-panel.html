@@ -546,7 +546,7 @@ function goster(){
   document.getElementById('raporBaslangic').value=bugun;
   document.getElementById('raporBitis').value=bugun;
   raporGuncelle();
-  odemeGuncelle();
+  sonAyarlariUygula(); // PARA/KDV/ÖDEME/TÜR/KARGO son kullanılan değerlere döner
   kullaniciBarGuncelle();
 }
 
@@ -574,6 +574,44 @@ function odemeGuncelle(){
     op.value=o[0];op.textContent=o[1];
     odeme.appendChild(op);
   });
+  bakiyeGoster();
+}
+
+/* ====== SON KULLANILAN İRSALİYE AYARLARI (yeni irsaliye açıldığında hatırlanır) ======
+   Düzenleme modunda hiç çağrılmaz — irsaliyeDuzenle() kendi kayıtlı değerlerini uygular,
+   kaydet() da düzenleme sırasında bu ayarları localStorage'a yazmaz. */
+function sonAyarlariKaydet(){
+  localStorage.setItem('missnesem_son_para',document.getElementById('para').value);
+  localStorage.setItem('missnesem_son_kdv',document.getElementById('kdvOran').value);
+  localStorage.setItem('missnesem_son_odeme',document.getElementById('odeme').value);
+  localStorage.setItem('missnesem_son_tur',document.getElementById('tur').value);
+  localStorage.setItem('missnesem_son_kargo_checkbox',document.getElementById('kargoChk').checked?'1':'0');
+  localStorage.setItem('missnesem_son_kargo_firma',document.getElementById('kargoFirma').value||'');
+}
+function sonAyarlariUygula(){
+  var para=localStorage.getItem('missnesem_son_para');
+  var paraSel=document.getElementById('para');
+  if(para&&[].slice.call(paraSel.options).some(function(o){return o.value===para;}))paraSel.value=para;
+
+  var tur=localStorage.getItem('missnesem_son_tur');
+  var turSel=document.getElementById('tur');
+  if(tur&&[].slice.call(turSel.options).some(function(o){return o.value===tur;}))turSel.value=tur;
+
+  odemeGuncelle(); // tür'e göre ödeme seçeneklerini kurar, altta kayıtlı ödeme varsa uygulanır
+
+  var odeme=localStorage.getItem('missnesem_son_odeme');
+  var odemeSel=document.getElementById('odeme');
+  if(odeme&&[].slice.call(odemeSel.options).some(function(o){return o.value===odeme;}))odemeSel.value=odeme;
+
+  var kdv=localStorage.getItem('missnesem_son_kdv');
+  var kdvSel=document.getElementById('kdvOran');
+  if(kdv!==null&&[].slice.call(kdvSel.options).some(function(o){return o.value===kdv;}))kdvSel.value=kdv;
+
+  var kargoAcik=localStorage.getItem('missnesem_son_kargo_checkbox')==='1';
+  document.getElementById('kargoChk').checked=kargoAcik;
+  kargoGoster(); // kapalıysa kutuyu gizler ve kargoFirma'yı temizler
+  if(kargoAcik)document.getElementById('kargoFirma').value=localStorage.getItem('missnesem_son_kargo_firma')||'';
+
   bakiyeGoster();
 }
 
@@ -775,20 +813,14 @@ function temizle(){
   document.getElementById('musteri').value='';
   var bugun=new Date().toISOString().split('T')[0];
   document.getElementById('tarih').value=bugun;
-  document.getElementById('kdvOran').value='0';
-  document.getElementById('para').value='TL';
-  document.getElementById('tur').value='Resmi';
   document.getElementById('eskiBakiye').value='';
   document.getElementById('bakiyeInfo').textContent='';
   document.getElementById('bakiyeBox').classList.remove('aktif');
-  document.getElementById('kargoChk').checked=false;
-  document.getElementById('kargoBox').classList.remove('aktif');
-  document.getElementById('kargoFirma').value='';
   document.getElementById('kargoKod').value='';
   document.getElementById('kargoUcret').value='';
   document.getElementById('buIslemRow').style.display='none';
   document.getElementById('eskiBakiyeSatir').style.display='none';
-  odemeGuncelle();
+  sonAyarlariUygula(); // PARA/KDV/ÖDEME/TÜR/KARGO son kullanılan değerlere döner
   document.getElementById('araRow').style.display='none';
   document.getElementById('kdvRow').style.display='none';
   document.getElementById('iadeRow').style.display='none';
@@ -987,6 +1019,9 @@ function kaydet(sessiz,skipSync){
     kullanici:aktifKullanici
   };
   if(eskiKayit&&eskiKayit.siparisNo)kayit.siparisNo=eskiKayit.siparisNo;
+
+  // Düzenleme modunda son-kullanılan-ayarlar localStorage'ına dokunulmaz — sadece yeni kayıtta yazılır.
+  if(!duzenleniyor)sonAyarlariKaydet();
 
   // Düzenlemede eski Açık Hesap etkisini geri al (yeni etki aşağıda tekrar uygulanır)
   if(duzenleniyor&&eskiKayit&&eskiKayit.odeme==='AcikHesap'){
