@@ -546,7 +546,7 @@ function goster(){
   document.getElementById('raporBaslangic').value=bugun;
   document.getElementById('raporBitis').value=bugun;
   raporGuncelle();
-  sonAyarlariUygula(); // PARA/KDV/ÖDEME/TÜR/KARGO son kullanılan değerlere döner
+  sonAyarlariUygula(); // PARA/KDV/ÖDEME/TÜR son kullanılan değerlere döner
   kullaniciBarGuncelle();
 }
 
@@ -585,8 +585,6 @@ function sonAyarlariKaydet(){
   localStorage.setItem('missnesem_son_kdv',document.getElementById('kdvOran').value);
   localStorage.setItem('missnesem_son_odeme',document.getElementById('odeme').value);
   localStorage.setItem('missnesem_son_tur',document.getElementById('tur').value);
-  localStorage.setItem('missnesem_son_kargo_checkbox',document.getElementById('kargoChk').checked?'1':'0');
-  localStorage.setItem('missnesem_son_kargo_firma',document.getElementById('kargoFirma').value||'');
 }
 function sonAyarlariUygula(){
   var para=localStorage.getItem('missnesem_son_para');
@@ -606,11 +604,6 @@ function sonAyarlariUygula(){
   var kdv=localStorage.getItem('missnesem_son_kdv');
   var kdvSel=document.getElementById('kdvOran');
   if(kdv!==null&&[].slice.call(kdvSel.options).some(function(o){return o.value===kdv;}))kdvSel.value=kdv;
-
-  var kargoAcik=localStorage.getItem('missnesem_son_kargo_checkbox')==='1';
-  document.getElementById('kargoChk').checked=kargoAcik;
-  kargoGoster(); // kapalıysa kutuyu gizler ve kargoFirma'yı temizler
-  if(kargoAcik)document.getElementById('kargoFirma').value=localStorage.getItem('missnesem_son_kargo_firma')||'';
 
   bakiyeGoster();
 }
@@ -820,7 +813,7 @@ function temizle(){
   document.getElementById('kargoUcret').value='';
   document.getElementById('buIslemRow').style.display='none';
   document.getElementById('eskiBakiyeSatir').style.display='none';
-  sonAyarlariUygula(); // PARA/KDV/ÖDEME/TÜR/KARGO son kullanılan değerlere döner
+  sonAyarlariUygula(); // PARA/KDV/ÖDEME/TÜR son kullanılan değerlere döner
   document.getElementById('araRow').style.display='none';
   document.getElementById('kdvRow').style.display='none';
   document.getElementById('iadeRow').style.display='none';
