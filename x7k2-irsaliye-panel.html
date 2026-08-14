@@ -256,7 +256,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
         <label class="flbl">MÜŞTERİ</label>
         <input class="finp cell" type="text" id="musteri" placeholder="Müşteri adı veya MN-kodu"
           onblur="musteriBakiyeYukle()"
-          oninput="musteriAutocomplete(this.value)"
+          oninput="musteriAutocomplete(this.value);bakiyeGoster()"
           autocomplete="off" />
         <div id="musteriDropdown" style="display:none;position:absolute;top:100%;left:0;width:100%;z-index:1000;background:#fff;border:1px solid #c8a87a;border-radius:0 0 6px 6px;box-shadow:0 4px 12px rgba(44,36,25,0.15);max-height:220px;overflow-y:auto"></div>
       </div>
@@ -550,7 +550,7 @@ function _musteriSonIrsaliyeDefaultlariniUygula(isim){
         kdvSel.value=String(d.kdvOran);
       }
       _musteriBakiyeKutusunaYaz(isim);
-      hesapla();
+      bakiyeGoster(); // odeme AcikHesap olarak değiştiyse bakiye kutusunu göster (hesapla() da içinde çağrılıyor)
     })
     .catch(function(){}); // sessizce yoksay — statik varsayılanlar zaten uygulanmış durumda
 }
@@ -680,8 +680,9 @@ function cariKey(m){return (m||'').trim().toLocaleLowerCase('tr-TR');}
 
 function bakiyeGoster(){
   var odeme=document.getElementById('odeme').value;
+  var musteri=document.getElementById('musteri').value.trim();
   var box=document.getElementById('bakiyeBox');
-  if(odeme==='AcikHesap'){
+  if(odeme==='AcikHesap'&&musteri){
     box.classList.add('aktif');
   }else{
     box.classList.remove('aktif');
