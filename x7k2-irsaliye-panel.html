@@ -654,23 +654,24 @@ function sonAyarlariKaydet(){
   localStorage.setItem('missnesem_son_tur',document.getElementById('tur').value);
 }
 function sonAyarlariUygula(){
-  var para=localStorage.getItem('missnesem_son_para');
+  // localStorage'da hiç kayıt yoksa (ilk kullanım) devreye giren varsayılanlar.
+  var para=localStorage.getItem('missnesem_son_para')||'TL';
   var paraSel=document.getElementById('para');
-  if(para&&[].slice.call(paraSel.options).some(function(o){return o.value===para;}))paraSel.value=para;
+  if([].slice.call(paraSel.options).some(function(o){return o.value===para;}))paraSel.value=para;
 
-  var tur=localStorage.getItem('missnesem_son_tur');
+  var tur=localStorage.getItem('missnesem_son_tur')||'Gayri Resmi';
   var turSel=document.getElementById('tur');
-  if(tur&&[].slice.call(turSel.options).some(function(o){return o.value===tur;}))turSel.value=tur;
+  if([].slice.call(turSel.options).some(function(o){return o.value===tur;}))turSel.value=tur;
 
   odemeGuncelle(); // tür'e göre ödeme seçeneklerini kurar, altta kayıtlı ödeme varsa uygulanır
 
-  var odeme=localStorage.getItem('missnesem_son_odeme');
+  var odeme=localStorage.getItem('missnesem_son_odeme')||'Havale';
   var odemeSel=document.getElementById('odeme');
-  if(odeme&&[].slice.call(odemeSel.options).some(function(o){return o.value===odeme;}))odemeSel.value=odeme;
+  if([].slice.call(odemeSel.options).some(function(o){return o.value===odeme;}))odemeSel.value=odeme;
 
-  var kdv=localStorage.getItem('missnesem_son_kdv');
+  var kdv=localStorage.getItem('missnesem_son_kdv')||'0';
   var kdvSel=document.getElementById('kdvOran');
-  if(kdv!==null&&[].slice.call(kdvSel.options).some(function(o){return o.value===kdv;}))kdvSel.value=kdv;
+  if([].slice.call(kdvSel.options).some(function(o){return o.value===kdv;}))kdvSel.value=kdv;
 
   bakiyeGoster();
 }
