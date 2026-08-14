@@ -396,40 +396,70 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 // Panel API'sinin cross-origin (session cookie'siz) uçlarını korumak için paylaşılan anahtar.
 var MN_API_KEY='7s-rGV2Bmk0fkQ7gDQ_vFGTnhdUOSXkAsfL_eZVD-kA';
 
-/* ====== LOGIN ====== */
-// Panel'deki (panel.missnesem.com) gerçek kullanıcı hesaplarıyla birebir eşleşir.
-// Kullanıcı adı → giriş yapan kişinin görünen adı (KESEN etiketi ve sipariş no harfi bundan gelir).
-var GIRIS_HESAPLAR={
-  admin:{sifre:'212440012zX',kullanici:'Fırat'},
-  gurhan:{sifre:'12345',kullanici:'Gürhan'}
-};
+/* ====== LOGIN ======
+   Kullanıcı adı/şifre artık burada saklanmıyor — panel.missnesem.com/api/auth/login'e
+   gönderilip server-side (Users tablosu + PasswordHasher) doğrulanıyor. Bu repo public
+   olduğu için gerçek panel şifrelerinin client-side'da sabit kodlanmaması önemli. */
+// Kullanıcı adı → görünen ad (KESEN etiketi ve sipariş no harfi bundan gelir). Sır değil, sadece etiket eşlemesi.
+var GORUNEN_ADLAR={admin:'Fırat',gurhan:'Gürhan'};
 var OTURUM_KEY='mn_oturum';
+var AUTH_TOKEN=null; // login sonrası dolar, /api/sync, /api/customers/search, /api/gunluk-rapor çağrılarında Authorization: Bearer olarak kullanılır
+
 function login(){
   var u=document.getElementById('user').value.trim().toLowerCase();
   var p=document.getElementById('pass').value;
-  var hesap=GIRIS_HESAPLAR[u];
-  if(hesap&&hesap.sifre===p){
-    localStorage.setItem(OTURUM_KEY,JSON.stringify({kullaniciAdi:u,kullanici:hesap.kullanici}));
-    aktifKullanici=hesap.kullanici;
+  var errEl=document.getElementById('err');
+  errEl.textContent='';
+  if(!u||!p){errEl.textContent='Kullanıcı adı ve şifre gerekli';return;}
+  fetch('https://panel.missnesem.com/api/auth/login',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:u,password:p})
+  })
+  .then(function(r){
+    if(r.status===429){throw new Error('Çok fazla deneme yapıldı, biraz sonra tekrar deneyin.');}
+    if(!r.ok){throw new Error('Hatalı kullanıcı adı veya şifre');}
+    return r.json();
+  })
+  .then(function(res){
+    var kullanici=GORUNEN_ADLAR[res.username]||res.username;
+    AUTH_TOKEN=res.token;
+    localStorage.setItem(OTURUM_KEY,JSON.stringify({kullaniciAdi:res.username,kullanici:kullanici,token:res.token}));
+    aktifKullanici=kullanici;
     goster();
-  }else{
-    document.getElementById('err').textContent="Hatalı kullanıcı adı veya şifre";
-  }
+  })
+  .catch(function(err){
+    errEl.textContent=err.message;
+  });
 }
+
 function oturumKontrolEt(){
   var v=localStorage.getItem(OTURUM_KEY);
   if(!v)return;
   try{
     var oturum=JSON.parse(v);
-    var hesap=oturum&&GIRIS_HESAPLAR[oturum.kullaniciAdi];
-    if(hesap&&hesap.kullanici===oturum.kullanici){
+    if(oturum&&oturum.token&&oturum.kullanici){
+      AUTH_TOKEN=oturum.token;
       aktifKullanici=oturum.kullanici;
       goster();
     }
   }catch(e){}
 }
+
+// Token panel tarafında geçersiz/süresi dolmuş olduğunda (ör. deploy sonrası servis
+// yeniden başladığında — token'lar bellek-içi tutulduğu için sıfırlanır) çağrılır.
+function _oturumGecersizce(){
+  if(document.getElementById('loginOverlay').style.display==='flex')return;
+  localStorage.removeItem(OTURUM_KEY);
+  AUTH_TOKEN=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginOverlay').style.display='flex';
+  document.getElementById('err').textContent='Oturumunuz sona erdi, tekrar giriş yapın.';
+}
+
 function cikisYap(){
   localStorage.removeItem(OTURUM_KEY);
+  AUTH_TOKEN=null;
   document.getElementById('app').style.display='none';
   document.getElementById('loginOverlay').style.display='flex';
   document.getElementById('user').value='';
@@ -445,8 +475,8 @@ function musteriAutocomplete(val){
   if(val===_lastAutoMusteri){return;}
   _lastAutoMusteri=''; // kullanıcı yeni bir şey yazıyor
   _musteriTimer=setTimeout(function(){
-    fetch('https://panel.missnesem.com/api/customers/search?q='+encodeURIComponent(val),{headers:{'X-Api-Key':MN_API_KEY}})
-      .then(function(r){return r.json();})
+    fetch('https://panel.missnesem.com/api/customers/search?q='+encodeURIComponent(val),{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
+      .then(function(r){if(r.status===401)_oturumGecersizce();if(!r.ok)throw new Error('arama başarısız');return r.json();})
       .then(function(list){_musteriDropdownGoster(list);})
       .catch(function(){_musteriDropdownLocal(val);});
   },250);
@@ -889,8 +919,8 @@ function _syncTekDene(payload){
   return new Promise(function(resolve){
     var controller=new AbortController();
     var timer=setTimeout(function(){controller.abort();},SYNC_TIMEOUT_MS);
-    fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json','X-Api-Key':MN_API_KEY},body:JSON.stringify(payload),signal:controller.signal})
-      .then(function(r){clearTimeout(timer);resolve(!!r.ok);})
+    fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json','X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN},body:JSON.stringify(payload),signal:controller.signal})
+      .then(function(r){clearTimeout(timer);if(r.status===401)_oturumGecersizce();resolve(!!r.ok);})
       .catch(function(){clearTimeout(timer);resolve(false);});
   });
 }
@@ -948,7 +978,7 @@ async function tumunuSyncEt(){
   for(var i=0;i<v.length;i++){
     var kayit=v[i];
     try{
-      var r=await fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json','X-Api-Key':MN_API_KEY},body:JSON.stringify(Object.assign({tip:'irsaliye_kaydet'},kayit))});
+      var r=await fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json','X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN},body:JSON.stringify(Object.assign({tip:'irsaliye_kaydet'},kayit))});
       if(r.ok){basarili++;}else{hatali++;console.error('Hatalı:',kayit.id,kayit.musteri,r.status);}
     }catch(e){hatali++;console.error('Hatalı:',kayit.id,kayit.musteri,e);}
   }
@@ -1104,8 +1134,8 @@ function raporGuncelle(){
   var liste=document.getElementById('raporListe');
   liste.innerHTML='<div class="bos">Yükleniyor...</div>';
 
-  fetch('https://panel.missnesem.com/api/gunluk-rapor?'+params.toString(),{headers:{'X-Api-Key':MN_API_KEY}})
-    .then(function(r){if(!r.ok)throw new Error('Sunucu hatası: '+r.status);return r.json();})
+  fetch('https://panel.missnesem.com/api/gunluk-rapor?'+params.toString(),{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
+    .then(function(r){if(r.status===401)_oturumGecersizce();if(!r.ok)throw new Error('Sunucu hatası: '+r.status);return r.json();})
     .then(function(res){_raporDoldur(res);})
     .catch(function(err){
       liste.innerHTML='<div class="bos">Rapor yüklenemedi — internet bağlantınızı kontrol edin.<br>('+err.message+')</div>';
