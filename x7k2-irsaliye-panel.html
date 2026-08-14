@@ -274,7 +274,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
     <div class="opt-grp"><span class="opt-lbl">PARA</span><select class="opt-sel" id="para" onchange="paraDegisti()"><option value="TL">₺ TL</option><option value="USD">$ USD</option><option value="EUR">€ EUR</option></select></div>
     <div class="opt-grp"><span class="opt-lbl">KDV</span><select class="opt-sel" id="kdvOran" onchange="hesapla()"><option value="0">Yok</option><option value="1">%1</option><option value="5">%5</option><option value="10">%10</option><option value="20">%20</option></select></div>
     <div class="opt-grp"><span class="opt-lbl">ÖDEME</span><select class="opt-sel" id="odeme" onchange="bakiyeGoster()"></select></div>
-    <div class="opt-grp"><span class="opt-lbl">TÜR</span><select class="opt-sel" id="tur" onchange="odemeGuncelle()"><option value="Resmi">Resmi</option><option value="Gayri Resmi">Gayri Resmi</option></select></div>
+    <div class="opt-grp"><span class="opt-lbl">TÜR</span><select class="opt-sel" id="tur" onchange="odemeGuncelle()"><option value="Resmi">Resmi</option><option value="Gayri Resmi" selected>Gayri Resmi</option></select></div>
   </div>
   <div class="bakiye-box" id="bakiyeBox">
     <div class="bakiye-grid">
@@ -630,9 +630,11 @@ oturumKontrolEt();
 function odemeGuncelle(){
   var tur=document.getElementById('tur').value;
   var odeme=document.getElementById('odeme');
+  // Gayri Resmi listesinde Havale ilk sırada: localStorage'da kayıtlı ödeme yokken
+  // (yeni tarayıcı/ilk kullanım) select'in doğal ilk-seçenek varsayılanı Havale olsun diye.
   var ops=tur==='Resmi'
     ?[['KrediKarti','Kredi Kartı'],['Havale','Havale'],['MailOrder','Mail Order'],['AcikHesap','Açık Hesap']]
-    :[['Nakit','Nakit'],['Havale','Havale'],['AcikHesap','Açık Hesap']];
+    :[['Havale','Havale'],['Nakit','Nakit'],['AcikHesap','Açık Hesap']];
   odeme.innerHTML='';
   ops.forEach(function(o){
     var op=document.createElement('option');
