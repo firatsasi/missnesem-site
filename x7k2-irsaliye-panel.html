@@ -518,9 +518,41 @@ function _musteriSec(isim,bakiye,musteriData){
   _lastAutoMusteri=isim; // blur'da localStorage bulamazsa eskiBakiye'yi ezmemesi için
   _lastMusteriBakiyeler=(musteriData&&musteriData.bakiyeler)||null;
   document.getElementById('musteriDropdown').style.display='none';
-  _musteriDefaultlariUygula(musteriData); // önce varsayılan PARA/ÖDEME/TÜR uygulanır
-  _musteriBakiyeKutusunaYaz(isim); // sonra güncel PARA'ya göre doğru bakiye yazılır
+  _musteriDefaultlariUygula(musteriData); // önce Müşteriler sayfasındaki sabit varsayılanlar uygulanır
+  _musteriSonIrsaliyeDefaultlariniUygula(isim); // sonra (varsa) son irsaliyenin gerçek değerleri bunun üzerine yazar
+  _musteriBakiyeKutusunaYaz(isim); // güncel PARA'ya göre doğru bakiye yazılır
   hesapla(); // GENEL TOPLAM'ı da güncelle (bakiyeHesapla sadece üst kutuyu günceller)
+}
+// Müşterinin EN SON irsaliyesindeki PARA/KDV/ÖDEME/TÜR'ü çeker ve dropdown'lara uygular.
+// _musteriDefaultlariUygula'daki statik Müşteri varsayılanlarından farklı olarak bu, o
+// müşteri için gerçekten kaydedilmiş son irsaliyeyi yansıtır (panel: Api/CustomerDefaultsApi.cs).
+function _musteriSonIrsaliyeDefaultlariniUygula(isim){
+  fetch('https://panel.missnesem.com/api/customers/'+encodeURIComponent(isim)+'/defaults',{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
+    .then(function(r){if(r.status===401)_oturumGecersizce();if(!r.ok)throw new Error('son irsaliye bilgisi alınamadı');return r.json();})
+    .then(function(d){
+      if(!d||!d.found)return;
+      if(document.getElementById('musteri').value!==isim)return; // bu sırada başka bir müşteri seçilmiş olabilir
+      var turSel=document.getElementById('tur');
+      if(d.tur&&[].slice.call(turSel.options).some(function(o){return o.value===d.tur;})){
+        turSel.value=d.tur;
+        odemeGuncelle(); // ödeme seçeneklerini türe göre yeniden oluşturur
+      }
+      var odemeSel=document.getElementById('odeme');
+      if(d.odeme&&[].slice.call(odemeSel.options).some(function(o){return o.value===d.odeme;})){
+        odemeSel.value=d.odeme;
+      }
+      var paraSel=document.getElementById('para');
+      if(d.para&&[].slice.call(paraSel.options).some(function(o){return o.value===d.para;})){
+        paraSel.value=d.para;
+      }
+      var kdvSel=document.getElementById('kdvOran');
+      if(d.kdvOran!==undefined&&d.kdvOran!==null&&[].slice.call(kdvSel.options).some(function(o){return o.value===String(d.kdvOran);})){
+        kdvSel.value=String(d.kdvOran);
+      }
+      _musteriBakiyeKutusunaYaz(isim);
+      hesapla();
+    })
+    .catch(function(){}); // sessizce yoksay — statik varsayılanlar zaten uygulanmış durumda
 }
 function _paraApiAnahtari(para){return para==='TL'?'TRY':para;}
 function _musteriBakiyeKutusunaYaz(isim){
@@ -842,7 +874,8 @@ function temizle(){
   document.getElementById('eskiBakiye').value='';
   document.getElementById('bakiyeInfo').textContent='';
   document.getElementById('bakiyeBox').classList.remove('aktif');
-  document.getElementById('kargoKod').value='';
+  document.getElementById('kargoChk').checked=false;
+  kargoGoster(); // kutuyu gizler, kargoFirma/kargoKod'u temizler
   document.getElementById('kargoUcret').value='';
   document.getElementById('buIslemRow').style.display='none';
   document.getElementById('eskiBakiyeSatir').style.display='none';
