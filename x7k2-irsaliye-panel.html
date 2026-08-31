@@ -506,7 +506,7 @@ function _musteriDropdownGoster(list){
     var kod=m.cariKod||'';
     var bak=parseFloat(m.bakiye)||0;
     el.innerHTML='<div style="font-weight:600;color:#2c2419">'+name+(kod?' <span style="color:#a64d3e;font-weight:700">['+kod+']</span>':'')+'</div>'
-      +(bak>0?'<div style="font-size:11px;color:#a64d3e;margin-top:1px">'+fmtTL(bak)+'</div>':'');
+      +(bak!==0?'<div style="font-size:11px;color:#a64d3e;margin-top:1px">'+fmtTL(bak)+'</div>':'');
     el.onmousedown=function(e){e.preventDefault();_musteriSec(name,bak,m);};
     dd.appendChild(el);
   });
@@ -558,7 +558,7 @@ function _paraApiAnahtari(para){return para==='TL'?'TRY':para;}
 function _musteriBakiyeKutusunaYaz(isim){
   var para=document.getElementById('para').value;
   var bak=(_lastMusteriBakiyeler&&_lastMusteriBakiyeler[_paraApiAnahtari(para)])||0;
-  if(bak>0){
+  if(bak!==0){
     document.getElementById('eskiBakiye').value=bak.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
     document.getElementById('bakiyeInfo').textContent='💡 "'+isim+'" için '+para+' bakiye yüklendi.';
   }else{
@@ -706,7 +706,7 @@ function musteriBakiyeYukle(){
   var legacyKey=cariKey(m); // eski TL-only kayıtlar (para son eki olmadan)
   var info=document.getElementById('bakiyeInfo');
   var bak=cari[key]!==undefined?cari[key]:(para==='TL'?cari[legacyKey]:undefined);
-  if(bak!==undefined && bak>0){
+  if(bak!==undefined && bak!==0){
     document.getElementById('eskiBakiye').value=bak.toLocaleString('tr-TR');
     info.textContent='💡 "'+m+'" için kayıtlı '+para+' bakiye otomatik yüklendi.';
   }else{
@@ -718,7 +718,7 @@ function musteriBakiyeYukle(){
 
 function bakiyeHesapla(){
   var eb=document.getElementById('eskiBakiye');
-  if(eb)eb.value=eb.value.replace(/[^0-9.,]/g,'');
+  if(eb)eb.value=eb.value.replace(/[^0-9.,-]/g,'').replace(/(?!^)-/g,'');
   var ebRaw=(eb?eb.value:'').replace(/\./g,'').replace(',','.');
   var eski=parseFloat(ebRaw)||0;
   var genel=window.sonGenel||0;
@@ -728,7 +728,7 @@ function bakiyeHesapla(){
   // Alt satırlar (irsaliye totals kısmında görünür)
   var biRow=document.getElementById('buIslemRow');
   var ebSatir=document.getElementById('eskiBakiyeSatir');
-  if(eski>0){
+  if(eski!==0){
     biRow.style.display='flex';
     ebSatir.style.display='flex';
     document.getElementById('buIslemSatir').textContent=fmt(genel);
