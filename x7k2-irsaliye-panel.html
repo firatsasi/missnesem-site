@@ -1736,6 +1736,7 @@ function _siparisNoGetirVeyaUret(){
   return siparisNoAl();
 }
 function seriMetni(parca,seri,kalan){
+  if(kalan===0)return parca+' parça ('+seri+' seri)';
   return parca+' parça ('+seri+' seri + '+kalan+' adet)';
 }
 function siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,kargoFirma,kargoKod,seri,kalan){
