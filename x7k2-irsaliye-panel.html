@@ -351,7 +351,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 
   <div class="rapor-grid">
     <div class="rapor-cell"><div class="lbl">İRSALİYE ADEDİ</div><div class="val" id="rIrs">0</div></div>
-    <div class="rapor-cell"><div class="lbl">TOPLAM PARÇA</div><div class="val" id="rParca">0</div></div>
+    <div class="rapor-cell"><div class="lbl">TOPLAM ADET</div><div class="val" id="rParca">0</div></div>
     <div class="rapor-cell"><div class="lbl">RESMİ TOPLAM</div><div class="val" id="rResmi">0 ₺</div></div>
     <div class="rapor-cell"><div class="lbl">GAYRİ RESMİ TOPLAM</div><div class="val" id="rGayri">0 ₺</div></div>
     <div class="rapor-cell dark"><div class="lbl">GENEL TOPLAM</div><div class="val" id="rGenel">0 ₺</div></div>
@@ -1225,7 +1225,7 @@ function raporListeYapUzak(liste){
     '<colgroup><col style="width:55px"><col><col style="width:50px">'+
     '<col style="width:100px"><col style="width:95px"><col style="width:90px">'+
     '<col style="width:120px"></colgroup>'+
-    '<thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th></th></tr></thead><tbody>';
+    '<thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>ADET</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th></th></tr></thead><tbody>';
   liste.forEach(function(k){
     var para=k.para||'TL';
     var tagCls=k.tur==='Resmi'?'res':'gay';
@@ -1439,7 +1439,7 @@ function popPng(id){
 function raporListeYap(liste){
   var el=document.getElementById('raporListe');
   if(liste.length===0){el.innerHTML='<div class="bos">Bu tarihte irsaliye yok</div>';return;}
-  var html='<div class="table-scroll"><table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>PARÇA</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th></th></tr></thead><tbody>';
+  var html='<div class="table-scroll"><table class="rapor-tbl"><thead><tr><th>SAAT</th><th>MÜŞTERİ</th><th>ADET</th><th class="r">TUTAR</th><th>ÖDEME</th><th>TÜR / TARİH</th><th></th></tr></thead><tbody>';
   liste.sort(function(a,b){return b.id-a.id;});
   liste.forEach(function(k){
     var d=new Date(k.id);
