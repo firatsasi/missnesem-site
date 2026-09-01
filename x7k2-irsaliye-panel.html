@@ -264,8 +264,8 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   </div>
   <div class="table-scroll">
   <table>
-    <colgroup><col style="width:95px"><col style="width:50px"><col><col style="width:135px"><col style="width:115px"><col style="width:46px" class="iade-col"><col style="width:36px" class="del-col"></colgroup>
-    <thead><tr><th>ADET</th><th>SERİ</th><th>KOD / ÜRÜN / RENK</th><th class="r">BİRİM FİYAT</th><th class="r">TOPLAM</th><th class="iade-col">İADE</th><th class="del-col"></th></tr></thead>
+    <colgroup><col style="width:95px"><col style="width:50px" class="seri-col"><col><col style="width:135px"><col style="width:115px"><col style="width:46px" class="iade-col"><col style="width:36px" class="del-col"></colgroup>
+    <thead><tr><th>ADET</th><th class="seri-col">SERİ</th><th>KOD / ÜRÜN / RENK</th><th class="r">BİRİM FİYAT</th><th class="r">TOPLAM</th><th class="iade-col">İADE</th><th class="del-col"></th></tr></thead>
     <tbody id="tb"></tbody>
   </table>
   </div>
@@ -768,7 +768,7 @@ function ekle(){
   i1.type='text';i1.inputMode='numeric';i1.placeholder='';i1.className='ri cell';i1.style.textAlign='center';
   i1.addEventListener('input',function(){i1.value=i1.value.replace(/[^0-9]/g,'');hesapla();});
   td1.appendChild(i1);
-  var tdSeri=document.createElement('td');
+  var tdSeri=document.createElement('td');tdSeri.className='td-seri';
   var iSeri=document.createElement('input');
   iSeri.type='number';iSeri.value='5';iSeri.className='ri cell seri-input';iSeri.style.width='50px';iSeri.style.textAlign='center';
   tdSeri.appendChild(iSeri);
@@ -1629,6 +1629,8 @@ function hazirla(){
   var delCols=document.querySelectorAll('.del-col');
   var iadeCells=document.querySelectorAll('.td-iade');
   var iadeCols=document.querySelectorAll('.iade-col');
+  var seriCells=document.querySelectorAll('.td-seri');
+  var seriCols=document.querySelectorAll('.seri-col');
   var kargoUcretRow=document.getElementById('kargoUcretRow');
   var kargoUcretVal=parseFloat((document.getElementById('kargoUcret').value||'').replace(/\./g,'').replace(',','.'))||0;
   var kargoUcretGizli=kargoUcretVal<=0;
@@ -1643,9 +1645,11 @@ function hazirla(){
   delCols.forEach(function(c){c.style.display='none';});
   iadeCells.forEach(function(c){c.style.display='none';});
   iadeCols.forEach(function(c){c.style.display='none';});
+  seriCells.forEach(function(c){c.style.display='none';});
+  seriCols.forEach(function(c){c.style.display='none';});
   if(kargoUcretGizli)kargoUcretRow.style.display='none';
   var saved=inputlariMetneCevir();
-  return {addBtn:addBtn,optsRow:optsRow,bakBox:bakBox,bakAktif:bakAktif,delCells:delCells,delCols:delCols,iadeCells:iadeCells,iadeCols:iadeCols,kargoUcretRow:kargoUcretRow,kargoUcretGizli:kargoUcretGizli,saved:saved};
+  return {addBtn:addBtn,optsRow:optsRow,bakBox:bakBox,bakAktif:bakAktif,delCells:delCells,delCols:delCols,iadeCells:iadeCells,iadeCols:iadeCols,seriCells:seriCells,seriCols:seriCols,kargoUcretRow:kargoUcretRow,kargoUcretGizli:kargoUcretGizli,saved:saved};
 }
 function geriAl(s){
   s.addBtn.style.display='';
@@ -1657,6 +1661,8 @@ function geriAl(s){
   s.delCols.forEach(function(c){c.style.display='';});
   s.iadeCells.forEach(function(c){c.style.display='';});
   s.iadeCols.forEach(function(c){c.style.display='';});
+  s.seriCells.forEach(function(c){c.style.display='';});
+  s.seriCols.forEach(function(c){c.style.display='';});
   if(s.kargoUcretGizli)s.kargoUcretRow.style.display='';
   inputlariGeriYukle(s.saved);
 }
