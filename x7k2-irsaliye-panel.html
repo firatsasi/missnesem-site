@@ -840,6 +840,67 @@ function renkDropdownFiltrele(tr,q){
   });
 }
 
+// "SİYAH 1 / BEYAZ 2 / KAHVE 3" ya da "syh 1 - byz 2" gibi bir metni renk/seri çiftlerine
+// ayırır. "/" veya "-" ile ayrılmış en az 2 parça yoksa (toplu giriş değilse) null döner —
+// tek renk yazan normal kullanım bundan etkilenmez. Her parça "<renk adı> <sayı>" biçiminde
+// olmalı (renk adı birden fazla kelime olabilir, ör. "AÇIK ANTRASİT 2"); parse edilemeyen bir
+// parça varsa da null döner (toplu giriş olarak yorumlanmaz, kullanıcı normal yazmaya devam eder).
+function _topluRenkParseEt(deger){
+  var parcalar=(deger||'').split(/\s*[\/\-]+\s*/).map(function(s){return s.trim();}).filter(function(s){return s;});
+  if(parcalar.length<2)return null;
+
+  var sonuc=[];
+  for(var i=0;i<parcalar.length;i++){
+    var m=parcalar[i].match(/^(.*\S)\s+(\d+)$/);
+    if(!m)return null;
+    var renkAdi=m[1].trim().toLocaleUpperCase('tr-TR');
+    var kisaltmaHedef=MN_RENK_KISALTMA[renkAdi];
+    sonuc.push({renk:kisaltmaHedef||renkAdi, seri:parseInt(m[2],10)});
+  }
+  return sonuc;
+}
+// Bir satırın RENK/SERİ/ADET alanlarını tek bir toplu-giriş kalemine göre doldurur.
+function _satiraRenkUygula(tr,kalem){
+  tr.querySelector('.ri-renk').value=kalem.renk;
+  tr.querySelector('.seri-input').value=kalem.seri;
+  tr.querySelector('td:nth-child(1) input').value=kalem.seri*5;
+}
+// Toplu renk girişini uygular: toplam (seri×5) satırdaki ADET ile tutmuyorsa hata verip hiçbir
+// şey oluşturmaz. Tutuyorsa kaynak satır ilk renge dönüşür, kalan renkler için (aynı kod/ürün/
+// fiyat ile) hemen altına yeni satırlar eklenir.
+function _topluRenkUygula(tr,parsed){
+  var toplamSeri=parsed.reduce(function(s,p){return s+p.seri;},0);
+  var toplamAdet=toplamSeri*5;
+  var adetInput=tr.querySelector('td:nth-child(1) input');
+  var girilenAdet=parseFloat(adetInput.value)||0;
+
+  if(girilenAdet!==toplamAdet){
+    alert('Toplam adet uyuşmuyor! '+girilenAdet+' adet girdiniz ama renkler toplamı '+toplamAdet+' adet');
+    return;
+  }
+
+  var kod=(tr.querySelector('.ri-kod')||{}).value||'';
+  var urun=(tr.querySelector('.ri-urun')||{}).value||'';
+  var fiyat=(tr.querySelector('.fiyat-wrap input')||{}).value||'';
+  var urunSecim=tr._urunSecim;
+
+  _satiraRenkUygula(tr,parsed[0]);
+
+  var oncekiTr=tr;
+  for(var i=1;i<parsed.length;i++){
+    var yeniTr=_satirOlustur();
+    oncekiTr.parentNode.insertBefore(yeniTr,oncekiTr.nextSibling);
+    yeniTr.querySelector('.ri-kod').value=kod;
+    yeniTr.querySelector('.ri-urun').value=urun;
+    yeniTr.querySelector('.fiyat-wrap input').value=fiyat;
+    yeniTr._urunSecim=urunSecim;
+    _satiraRenkUygula(yeniTr,parsed[i]);
+    oncekiTr=yeniTr;
+  }
+
+  hesapla();
+}
+
 // Bir satırın KOD/ÜRÜN/RENK alanlarını okuyup irsaliye kalemi için gereken bilgiyi üretir.
 function satirKalemBilgisi(tr){
   var kod=(tr.querySelector('.ri-kod')||{}).value||'';
@@ -882,8 +943,16 @@ function birim(){var el=document.getElementById('para');var v=el?el.value:'TL';r
 function fmt(n){var el=document.getElementById('para');var p=el?el.value:'TL';if(p==='TL')return n.toLocaleString('tr-TR')+' ₺';return ((sym&&sym[p])||'')+' '+n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtTL(n){return n.toLocaleString('tr-TR')+' ₺';}
 function ekle(){
+  var tr=_satirOlustur();
+  document.getElementById('tb').appendChild(tr);
+  hesapla();
+  return tr;
+}
+// Satırı oluşturur ama tbody'ye eklemez — toplu renk girişi (bkz. _topluRenkUygula) kaynak
+// satırın hemen altına yeni satır eklemek için bunu doğrudan kullanır; normal "+ Satır ekle"
+// akışı ekle() sarmalayıcısı üzerinden en sona ekler.
+function _satirOlustur(){
   sc++;
-  var tbody=document.getElementById('tb');
   var tr=document.createElement('tr');
   var td1=document.createElement('td');
   var i1=document.createElement('input');
@@ -945,6 +1014,17 @@ function ekle(){
       }
     },150);
   });
+  // Toplu renk girişi: "SİYAH 1 / BEYAZ 2 / KAHVE 3" gibi yazıp Enter/Tab'a basınca, ADET'teki
+  // toplamla (seri × 5) karşılaştırılıp tutuyorsa bu satır ilk renge dönüşür, kalan renkler için
+  // hemen altına yeni satırlar eklenir (bkz. _topluRenkUygula).
+  iRenk.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!=='Tab')return;
+    var parsed=_topluRenkParseEt(iRenk.value);
+    if(!parsed)return;
+    e.preventDefault();
+    _riDropdownGizle(renkDd);
+    _topluRenkUygula(tr,parsed);
+  });
   var td3=document.createElement('td');
   var fw=document.createElement('div');fw.className='fiyat-wrap';
   var sspan=document.createElement('span');sspan.className='fiyat-sym';sspan.textContent=birim();fw.appendChild(sspan);
@@ -962,7 +1042,7 @@ function ekle(){
   btn.onclick=function(){tr.remove();hesapla();};
   td5.appendChild(btn);
   tr.appendChild(td1);tr.appendChild(tdSeri);tr.appendChild(td2);tr.appendChild(td3);tr.appendChild(td4);tr.appendChild(tdIade);tr.appendChild(td5);
-  tbody.appendChild(tr);hesapla();
+  return tr;
 }
 function toggleIadeRow(tr,checked){
   tr.classList.toggle('iade-row',checked);
