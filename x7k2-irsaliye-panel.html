@@ -13,7 +13,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,Helvetica,sans-serif;background:#e8ddc9;padding:1rem;color:#2c2419}
-.wrap{max-width:760px;margin:0 auto;font-size:13px}
+.wrap{max-width:1200px;margin:0 auto;font-size:13px}
 .card{background:#f0e4d3;border-radius:10px;border:1px solid #b8985e;padding:2rem}
 .brand{text-align:center;margin-bottom:1.5rem}
 .bn{font-size:24px;font-weight:700;letter-spacing:6px;color:#2c2419}
@@ -27,7 +27,7 @@ input.finp{width:100%;font-size:15px;padding:9px 10px}
 input.finp:focus,input.ri:focus{outline:1.5px solid #a64d3e;border-color:#a64d3e}
 .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;min-width:560px}
-#tblKalemler{min-width:720px}
+#tblKalemler{min-width:900px}
 thead{background:#2c2419}
 th{padding:9px 10px;font-size:10px;font-weight:700;letter-spacing:1px;color:#f0e4d3;text-align:left;white-space:nowrap}
 th.r{text-align:right}
@@ -38,15 +38,20 @@ input.ri{width:100%;font-size:15px;padding:9px}
 input.ri::placeholder{color:#c0a070;font-size:12px}
 .ri-urun-cell{display:flex;align-items:center;gap:4px;flex-wrap:wrap;position:relative}
 .ri-kod-wrap,.ri-renk-wrap{position:relative;flex:0 0 auto}
-.ri-kod-wrap{width:56px}
-.ri-renk-wrap{width:82px}
-input.ri-urun{flex:1 1 70px;min-width:60px}
+.ri-kod-wrap{width:90px}
+.ri-renk-wrap{width:130px}
+input.ri-urun{flex:1 1 140px;min-width:120px}
 .ri-dropdown{display:none;position:absolute;top:100%;left:0;min-width:100%;z-index:1000;background:#fff;border:1px solid #c8a87a;border-radius:0 0 6px 6px;box-shadow:0 4px 12px rgba(44,36,25,0.15);max-height:220px;overflow-y:auto}
 .ri-dropdown.ri-dropdown-wide{min-width:230px}
 .ri-dd-item{padding:7px 10px;cursor:pointer;font-size:13px;line-height:1.35;color:#2c2419;border-bottom:1px solid #f0e4d3}
 .ri-dd-item:last-child{border-bottom:none}
 .ri-dd-item:hover{background:#fdf5e6}
 .ri-dd-item b{color:#a64d3e}
+.ri-seri-popup{position:absolute;top:100%;left:0;z-index:1001;background:#fff;border:1.5px solid #a64d3e;border-radius:6px;box-shadow:0 4px 12px rgba(44,36,25,0.2);padding:8px;min-width:150px;display:flex;flex-direction:column;gap:6px}
+.ri-seri-lbl{font-size:11px;font-weight:700;color:#a64d3e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri-seri-inp{width:100%;font-size:14px;padding:6px 8px;border:1px solid #c8a87a;border-radius:5px;font-family:Arial,sans-serif;box-sizing:border-box}
+.ri-seri-inp:focus{outline:1.5px solid #a64d3e;border-color:#a64d3e}
+.ri-seri-ok{font-size:12px;font-weight:700;padding:6px 8px;border:none;border-radius:5px;background:#a64d3e;color:#fff;cursor:pointer}
 .fiyat-wrap{display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #c8a87a;border-radius:6px;padding:0 8px}
 .fiyat-wrap input{border:none !important;outline:none !important;background:transparent !important;padding:9px 0;text-align:right;width:100%;font-size:15px;color:#2c2419 !important;-webkit-text-fill-color:#2c2419 !important;min-width:0}
 .fiyat-sym{font-size:13px;color:#a64d3e;font-weight:700;white-space:nowrap}
@@ -276,7 +281,7 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
   </div>
   <div class="table-scroll">
   <table id="tblKalemler">
-    <colgroup><col style="width:95px"><col style="width:50px" class="seri-col"><col><col style="width:135px"><col style="width:115px"><col style="width:46px" class="iade-col"><col style="width:36px" class="del-col"></colgroup>
+    <colgroup><col style="width:100px"><col style="width:55px" class="seri-col"><col><col style="width:170px"><col style="width:150px"><col style="width:50px" class="iade-col"><col style="width:40px" class="del-col"></colgroup>
     <thead><tr><th>ADET</th><th class="seri-col">SERİ</th><th>KOD / ÜRÜN / RENK</th><th class="r">BİRİM FİYAT</th><th class="r">TOPLAM</th><th class="iade-col">İADE</th><th class="del-col"></th></tr></thead>
     <tbody id="tb"></tbody>
   </table>
@@ -815,18 +820,32 @@ function kodDropdownFiltrele(tr,q){
 function _kodSec(tr,p){
   var iKod=tr.querySelector('.ri-kod'),iUrun=tr.querySelector('.ri-urun'),iRenk=tr.querySelector('.ri-renk');
   iKod.value=p.code;
-  iUrun.value=p.category||'';
+  iUrun.value=(p.category||'').toLocaleUpperCase('tr-TR'); // ör. ELBİSE, GÖMLEK — API zaten büyük harf dönüyor, burada garanti altına alınıyor
   iRenk.value='';
+  tr._renkKomitli='';
+  tr._sonEklenenSatir=null; // yeni kod = yeni renk zinciri
   tr._urunSecim=p;
   _riDropdownGizle(tr.querySelector('.ri-kod-dd'));
   iRenk.focus();
 }
+// RENK dropdown'ı: kod seçilmiş ürünün stoktaki renklerini (kısaltma desteğiyle) listeler.
+// Aynı kod için tabloda zaten kullanılmış renkler listeden çıkarılır (bir rengin iki kez
+// eklenmesini engeller). Renk seçimi SADECE bu dropdown'dan yapılır — RENK alanına yazılan
+// metin yalnızca filtreleme amaçlıdır, gerçek değeri tıklanan öğe belirler (bkz. _satirOlustur'daki
+// input/blur davranışı ve _renkSecildi).
 function renkDropdownFiltrele(tr,q){
   var secim=tr._urunSecim;
   var dd=tr.querySelector('.ri-renk-dd');
   if(!secim||!secim.colors||!secim.colors.length){_riDropdownGizle(dd);return;}
+  var kod=(tr.querySelector('.ri-kod')||{}).value||'';
+  var kullanilan={};
+  document.querySelectorAll('#tb tr').forEach(function(r){
+    var rKod=(r.querySelector('.ri-kod')||{}).value||'';
+    var rRenk=(r.querySelector('.ri-renk')||{}).value||'';
+    if(rKod===kod&&rRenk)kullanilan[rRenk.toLocaleUpperCase('tr-TR')]=true;
+  });
   var query=(q||'').trim().toLocaleUpperCase('tr-TR');
-  var list=secim.colors;
+  var list=secim.colors.filter(function(c){return !kullanilan[c.toLocaleUpperCase('tr-TR')];});
   if(query){
     var kisaltmaHedef=MN_RENK_KISALTMA[query];
     list=list.filter(function(c){
@@ -834,71 +853,79 @@ function renkDropdownFiltrele(tr,q){
       return cUpper.indexOf(query)!==-1||(kisaltmaHedef&&cUpper===kisaltmaHedef);
     });
   }
-  _riDropdownDoldur(dd,list,function(el,c){el.textContent=c;},function(c){
-    tr.querySelector('.ri-renk').value=c;
-    _riDropdownGizle(dd);
+  _riDropdownDoldur(dd,list,function(el,c){el.textContent=c;},function(c){_renkSecildi(tr,c);});
+}
+
+// Dropdown'dan bir renk tıklandığında çağrılır. Satırın RENK'i hâlâ boşsa doğrudan bu satıra
+// yazılır; doluysa (kullanıcı aynı ürün için başka bir renk daha eklemek üzere dropdown'ı tekrar
+// açmış demektir) aynı kod/ürün/fiyatla hemen altına yeni bir satır eklenip oraya yazılır. Ardından
+// "Kaç seri?" popup'ı açılır; onaylanınca SERİ ve ADET (seri×5) otomatik yazılır.
+function _renkSecildi(tr,renk){
+  _riDropdownGizle(tr.querySelector('.ri-renk-dd'));
+  var mevcutRenk=tr.querySelector('.ri-renk').value.trim();
+  var hedefTr=mevcutRenk?_yeniRenkSatiriEkle(tr):tr;
+  hedefTr.querySelector('.ri-renk').value=renk;
+  hedefTr._renkKomitli=renk;
+  _seriPopupGoster(hedefTr,renk,function(seri){
+    hedefTr.querySelector('.seri-input').value=seri;
+    hedefTr.querySelector('td:nth-child(1) input').value=seri*5;
+    hedefTr._seriDogrulamaGerekli=true; // kaydet()'teki ADET=SERİ×5 kontrolü bu satırda uygulansın
+    hesapla();
   });
 }
 
-// "SİYAH 1 / BEYAZ 2 / KAHVE 3" ya da "syh 1 - byz 2" gibi bir metni renk/seri çiftlerine
-// ayırır. "/" veya "-" ile ayrılmış en az 2 parça yoksa (toplu giriş değilse) null döner —
-// tek renk yazan normal kullanım bundan etkilenmez. Her parça "<renk adı> <sayı>" biçiminde
-// olmalı (renk adı birden fazla kelime olabilir, ör. "AÇIK ANTRASİT 2"); parse edilemeyen bir
-// parça varsa da null döner (toplu giriş olarak yorumlanmaz, kullanıcı normal yazmaya devam eder).
-function _topluRenkParseEt(deger){
-  var parcalar=(deger||'').split(/\s*[\/\-]+\s*/).map(function(s){return s.trim();}).filter(function(s){return s;});
-  if(parcalar.length<2)return null;
-
-  var sonuc=[];
-  for(var i=0;i<parcalar.length;i++){
-    var m=parcalar[i].match(/^(.*\S)\s+(\d+)$/);
-    if(!m)return null;
-    var renkAdi=m[1].trim().toLocaleUpperCase('tr-TR');
-    var kisaltmaHedef=MN_RENK_KISALTMA[renkAdi];
-    sonuc.push({renk:kisaltmaHedef||renkAdi, seri:parseInt(m[2],10)});
-  }
-  return sonuc;
+// Aynı kod/ürün/fiyatla, verilen satır için daha önce eklenmiş son rengin (yoksa satırın kendisinin)
+// hemen altına yeni, boş bir satır ekler — çoklu renk ekleme zincirini sıralı/bitişik tutar.
+function _yeniRenkSatiriEkle(anchorTr){
+  var kaynakTr=(anchorTr._sonEklenenSatir&&anchorTr._sonEklenenSatir.parentNode)?anchorTr._sonEklenenSatir:anchorTr;
+  var yeniTr=_satirOlustur();
+  kaynakTr.parentNode.insertBefore(yeniTr,kaynakTr.nextSibling);
+  yeniTr.querySelector('.ri-kod').value=anchorTr.querySelector('.ri-kod').value;
+  yeniTr.querySelector('.ri-urun').value=anchorTr.querySelector('.ri-urun').value;
+  yeniTr.querySelector('.fiyat-wrap input').value=anchorTr.querySelector('.fiyat-wrap input').value;
+  yeniTr._urunSecim=anchorTr._urunSecim;
+  anchorTr._sonEklenenSatir=yeniTr;
+  return yeniTr;
 }
-// Bir satırın RENK/SERİ/ADET alanlarını tek bir toplu-giriş kalemine göre doldurur.
-function _satiraRenkUygula(tr,kalem){
-  tr.querySelector('.ri-renk').value=kalem.renk;
-  tr.querySelector('.seri-input').value=kalem.seri;
-  tr.querySelector('td:nth-child(1) input').value=kalem.seri*5;
-}
-// Toplu renk girişini uygular: toplam (seri×5) satırdaki ADET ile tutmuyorsa hata verip hiçbir
-// şey oluşturmaz. Tutuyorsa kaynak satır ilk renge dönüşür, kalan renkler için (aynı kod/ürün/
-// fiyat ile) hemen altına yeni satırlar eklenir.
-function _topluRenkUygula(tr,parsed){
-  var toplamSeri=parsed.reduce(function(s,p){return s+p.seri;},0);
-  var toplamAdet=toplamSeri*5;
-  var adetInput=tr.querySelector('td:nth-child(1) input');
-  var girilenAdet=parseFloat(adetInput.value)||0;
 
-  if(girilenAdet!==toplamAdet){
-    alert('Toplam adet uyuşmuyor! '+girilenAdet+' adet girdiniz ama renkler toplamı '+toplamAdet+' adet');
-    return;
+// Renk seçildikten sonra çıkan küçük "Kaç seri?" popup'ı — native prompt()/confirm() KULLANILMIYOR
+// (tarayıcı otomasyonunu ve sayfayı dondurur, bkz. proje notları). 1-100 arası tam sayı ister;
+// onaylanınca callback(seri) çağrılır. Dışarı tıklanınca veya Esc'e basılınca sessizce kapanır (iptal,
+// callback çağrılmaz — satırın RENK'i seçili kalır ama SERİ/ADET boş kalır, kullanıcı istediğinde
+// tekrar tıklayıp popup'ı yeniden açabilir).
+function _seriPopupGoster(tr,renk,callback){
+  var wrap=tr.querySelector('.ri-renk-wrap');
+  var eski=wrap.querySelector('.ri-seri-popup');
+  if(eski)eski.remove();
+  var pop=document.createElement('div');
+  pop.className='ri-seri-popup';
+  pop.innerHTML='<div class="ri-seri-lbl">'+renk+' — kaç seri?</div>'
+    +'<input type="number" class="ri-seri-inp" min="1" max="100" step="1" placeholder="1-100">'
+    +'<button type="button" class="ri-seri-ok">Ekle</button>';
+  wrap.appendChild(pop);
+  var inp=pop.querySelector('.ri-seri-inp');
+  var btn=pop.querySelector('.ri-seri-ok');
+  inp.focus();
+  var kapandi=false;
+  function kapat(){
+    if(kapandi)return;
+    kapandi=true;
+    pop.remove();
+    document.removeEventListener('mousedown',disariTikla,true);
   }
-
-  var kod=(tr.querySelector('.ri-kod')||{}).value||'';
-  var urun=(tr.querySelector('.ri-urun')||{}).value||'';
-  var fiyat=(tr.querySelector('.fiyat-wrap input')||{}).value||'';
-  var urunSecim=tr._urunSecim;
-
-  _satiraRenkUygula(tr,parsed[0]);
-
-  var oncekiTr=tr;
-  for(var i=1;i<parsed.length;i++){
-    var yeniTr=_satirOlustur();
-    oncekiTr.parentNode.insertBefore(yeniTr,oncekiTr.nextSibling);
-    yeniTr.querySelector('.ri-kod').value=kod;
-    yeniTr.querySelector('.ri-urun').value=urun;
-    yeniTr.querySelector('.fiyat-wrap input').value=fiyat;
-    yeniTr._urunSecim=urunSecim;
-    _satiraRenkUygula(yeniTr,parsed[i]);
-    oncekiTr=yeniTr;
+  function onayla(){
+    var s=parseInt(inp.value,10);
+    if(!s||s<1||s>100){inp.style.borderColor='#c0392b';inp.focus();return;}
+    kapat();
+    callback(s);
   }
-
-  hesapla();
+  function disariTikla(e){if(!pop.contains(e.target))kapat();}
+  btn.addEventListener('mousedown',function(e){e.preventDefault();onayla();});
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){e.preventDefault();onayla();}
+    else if(e.key==='Escape'){e.preventDefault();kapat();}
+  });
+  setTimeout(function(){document.addEventListener('mousedown',disariTikla,true);},0);
 }
 
 // Bir satırın KOD/ÜRÜN/RENK alanlarını okuyup irsaliye kalemi için gereken bilgiyi üretir.
@@ -932,6 +959,7 @@ function satirKalemDoldur(tr,u){
       iUrun.value=ad;
     }
   }
+  tr._renkKomitli=(iRenk&&iRenk.value)||''; // düzenlemede geri yüklenen renk blur'da silinmesin
 }
 
 /* ====== İRSALİYE ====== */
@@ -948,9 +976,9 @@ function ekle(){
   hesapla();
   return tr;
 }
-// Satırı oluşturur ama tbody'ye eklemez — toplu renk girişi (bkz. _topluRenkUygula) kaynak
-// satırın hemen altına yeni satır eklemek için bunu doğrudan kullanır; normal "+ Satır ekle"
-// akışı ekle() sarmalayıcısı üzerinden en sona ekler.
+// Satırı oluşturur ama tbody'ye eklemez — çoklu renk ekleme akışı (bkz. _yeniRenkSatiriEkle)
+// kaynak satırın hemen altına yeni satır eklemek için bunu doğrudan kullanır; normal
+// "+ Satır ekle" akışı ekle() sarmalayıcısı üzerinden en sona ekler.
 function _satirOlustur(){
   sc++;
   var tr=document.createElement('tr');
@@ -1002,28 +1030,21 @@ function _satirOlustur(){
 
   iUrun.addEventListener('input',function(){trUpperInplace(iUrun);});
 
-  iRenk.addEventListener('input',function(){trUpperInplace(iRenk);renkDropdownFiltrele(tr,iRenk.value);});
-  iRenk.addEventListener('focus',function(){renkDropdownFiltrele(tr,iRenk.value);});
+  // RENK: yazılan metin sadece dropdown'ı filtrelemek içindir (kısaltma desteğiyle) — rakam
+  // girilemez, gerçek değer SADECE dropdown'dan tıklanarak seçilir (bkz. _renkSecildi). Odaktan
+  // çıkıldığında (bir öğe tıklanmadıysa) alan son komitli değerine geri döner; elle yazılan metin
+  // kalıcı olmaz.
+  iRenk.addEventListener('input',function(){
+    iRenk.value=iRenk.value.replace(/[0-9]/g,'');
+    trUpperInplace(iRenk);
+    renkDropdownFiltrele(tr,iRenk.value);
+  });
+  iRenk.addEventListener('focus',function(){renkDropdownFiltrele(tr,'');});
   iRenk.addEventListener('blur',function(){
     setTimeout(function(){
       _riDropdownGizle(renkDd);
-      var val=iRenk.value.trim().toLocaleUpperCase('tr-TR');
-      var hedef=MN_RENK_KISALTMA[val];
-      if(hedef&&tr._urunSecim&&tr._urunSecim.colors&&tr._urunSecim.colors.indexOf(hedef)!==-1){
-        iRenk.value=hedef;
-      }
+      iRenk.value=tr._renkKomitli||'';
     },150);
-  });
-  // Toplu renk girişi: "SİYAH 1 / BEYAZ 2 / KAHVE 3" gibi yazıp Enter/Tab'a basınca, ADET'teki
-  // toplamla (seri × 5) karşılaştırılıp tutuyorsa bu satır ilk renge dönüşür, kalan renkler için
-  // hemen altına yeni satırlar eklenir (bkz. _topluRenkUygula).
-  iRenk.addEventListener('keydown',function(e){
-    if(e.key!=='Enter'&&e.key!=='Tab')return;
-    var parsed=_topluRenkParseEt(iRenk.value);
-    if(!parsed)return;
-    e.preventDefault();
-    _riDropdownGizle(renkDd);
-    _topluRenkUygula(tr,parsed);
   });
   var td3=document.createElement('td');
   var fw=document.createElement('div');fw.className='fiyat-wrap';
@@ -1277,6 +1298,22 @@ function kaydet(sessiz,skipSync){
   if(!musteri){if(!sessiz)alert('Müşteri adı boş olamaz');return false;}
   var tarih=document.getElementById('tarih').value;
   if(!tarih){if(!sessiz)alert('Tarih boş olamaz');return false;}
+  // ADET tutarlılık kontrolü: sadece renk dropdown + "kaç seri?" popup akışından geçmiş satırlarda
+  // (bkz. _renkSecildi'nin _seriDogrulamaGerekli bayrağı) ADET'in SERİ×5'e eşit olması zorunlu —
+  // eski/düzenlenen kayıtlardaki satırlar bu bayrağı taşımadığı için etkilenmez.
+  var adetHata=null;
+  document.querySelectorAll('#tb tr').forEach(function(tr){
+    if(adetHata||!tr._seriDogrulamaGerekli)return;
+    var adet=parseFloat((tr.querySelector('td:nth-child(1) input')||{}).value)||0;
+    var seri=parseFloat((tr.querySelector('.seri-input')||{}).value)||0;
+    if(adet!==seri*5){
+      adetHata={renk:(tr.querySelector('.ri-renk')||{}).value||'',adet:adet,beklenen:seri*5};
+    }
+  });
+  if(adetHata){
+    if(!sessiz)alert('Toplam adet uyuşmuyor! "'+adetHata.renk+'" satırında '+adetHata.adet+' adet var, ama seri×5\'e göre '+adetHata.beklenen+' adet olmalı.');
+    return false;
+  }
   var urunler=[];
   var parca=0;
   var ara=0;
