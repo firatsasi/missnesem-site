@@ -86,18 +86,18 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .btn-gld{font-size:13px;padding:10px 20px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:#d4b896;font-weight:700}
 .btn-wa{font-size:13px;padding:10px 20px;cursor:pointer;color:#fff;border:none;border-radius:6px;background:#25D366;font-weight:700;display:inline-flex;align-items:center;gap:7px}
 .btn-wa svg{width:16px;height:16px;fill:#fff}
-/* ── PDF/PNG çıktısı: ekran formu 1200px geniş kalır, ama çıktı eski kompakt
-   (760px) boyutuna daralır — KOD/ÜRÜN/RENK tek satırda kalsın diye eski dar
-   sütun genişlikleri de geri getiriliyor (bkz. pdfIndir/pngIndir → hazirla/geriAl). ── */
+/* ── PDF/PNG çıktısı: ekran formu 1200px geniş kalır, ama çıktı 760px kompakt
+   container'a daralır — KOD dar/ÜRÜN orta/RENK orta sabit genişliklerle tek
+   satırda yan yana sığar, kesilmez (bkz. pdfIndir/pngIndir → hazirla/geriAl). ── */
 body.export-compact .wrap{max-width:760px !important}
-body.export-compact #tblKalemler{min-width:720px !important}
+body.export-compact #tblKalemler{min-width:660px !important}
 body.export-compact .ri-urun-cell{flex-wrap:nowrap !important}
-body.export-compact .ri-kod-wrap{width:56px !important}
-body.export-compact .ri-renk-wrap{width:82px !important}
-body.export-compact input.ri-urun{flex:1 1 70px !important;min-width:60px !important}
-body.export-compact #tblKalemler col:nth-child(1){width:95px !important}
-body.export-compact #tblKalemler col:nth-child(4){width:135px !important}
-body.export-compact #tblKalemler col:nth-child(5){width:115px !important}
+body.export-compact .ri-kod-wrap{width:60px !important}
+body.export-compact .ri-renk-wrap{width:100px !important}
+body.export-compact input.ri-urun{flex:0 0 120px !important;width:120px !important;min-width:0 !important}
+body.export-compact #tblKalemler col:nth-child(1){width:90px !important}
+body.export-compact #tblKalemler col:nth-child(4){width:125px !important}
+body.export-compact #tblKalemler col:nth-child(5){width:125px !important}
 
 @media(max-width:480px){.fields{grid-template-columns:1fr}.bn{font-size:20px;letter-spacing:3px}}
 
@@ -881,8 +881,8 @@ function _renkSecildi(tr,renk){
   hedefTr._renkKomitli=renk;
   _seriPopupGoster(hedefTr,renk,function(seri){
     hedefTr.querySelector('.seri-input').value=seri;
-    hedefTr.querySelector('td:nth-child(1) input').value=seri*5;
-    hedefTr._seriDogrulamaGerekli=true; // kaydet()'teki ADET=SERİ×5 kontrolü bu satırda uygulansın
+    hedefTr.querySelector('td:nth-child(1) input').value=seri; // ADET'te gerçek adet (seri×5) değil, seri sayısı gösterilir (bkz. gercekAdet)
+    hedefTr._seriDogrulamaGerekli=true; // kaydet()'teki ADET=SERİ kontrolü + para/stok hesaplarında gercekAdet() kullanımı bu satırda uygulansın
     hesapla();
   });
 }
@@ -939,6 +939,17 @@ function _seriPopupGoster(tr,renk,callback){
     else if(e.key==='Escape'){e.preventDefault();kapat();}
   });
   setTimeout(function(){document.addEventListener('mousedown',disariTikla,true);},0);
+}
+
+// "Kaç seri?" popup'ından geçen satırlarda ADET alanı artık SERİ sayısını gösteriyor
+// (ör. 1 seri seçildiyse ADET'te "1" yazar, 5 değil) — kullanıcıya kolay okunsun diye.
+// Ama para/toplam/kaydetme/stok düşme gibi gerçek miktar gereken her yerde bu fonksiyon
+// kullanılmalı: SERİ×5'i (gerçek adet) döner. Bu akıştan geçmemiş satırlarda (manuel
+// eklenen/eski kayıtlar, bkz. _seriDogrulamaGerekli) ADET alanı zaten gerçek adettir.
+function gercekAdet(tr){
+  var inp=tr.querySelector('td:nth-child(1) input');
+  var v=parseFloat(inp&&inp.value)||0;
+  return tr._seriDogrulamaGerekli?v*5:v;
 }
 
 // Bir satırın KOD/ÜRÜN/RENK alanlarını okuyup irsaliye kalemi için gereken bilgiyi üretir.
@@ -1089,11 +1100,10 @@ function hesapla(){
   var ara=0; // sadece normal satış satırları
   var iadeTutar=0; // iade satırları toplamı (pozitif)
   document.querySelectorAll('#tb tr').forEach(function(tr){
-    var qty=tr.querySelector('td:nth-child(1) input');
     var prc=tr.querySelector('.fiyat-wrap input');
     var chk=tr.querySelector('.iade-chk');
     var isIade=!!(chk&&chk.checked);
-    var a=parseFloat(qty.value)||0;
+    var a=gercekAdet(tr);
     var f=parseFloat((prc.value||'').replace(',','.'))||0;
     var tutar=a*f;
     var h=tr.querySelector('.td-top');
@@ -1312,19 +1322,20 @@ function kaydet(sessiz,skipSync){
   var tarih=document.getElementById('tarih').value;
   if(!tarih){if(!sessiz)alert('Tarih boş olamaz');return false;}
   // ADET tutarlılık kontrolü: sadece renk dropdown + "kaç seri?" popup akışından geçmiş satırlarda
-  // (bkz. _renkSecildi'nin _seriDogrulamaGerekli bayrağı) ADET'in SERİ×5'e eşit olması zorunlu —
-  // eski/düzenlenen kayıtlardaki satırlar bu bayrağı taşımadığı için etkilenmez.
+  // (bkz. _renkSecildi'nin _seriDogrulamaGerekli bayrağı) ADET alanının SERİ sayısına eşit olması
+  // zorunlu (ADET burada gerçek adet değil, seri sayısıdır — bkz. gercekAdet) — eski/düzenlenen
+  // kayıtlardaki satırlar bu bayrağı taşımadığı için etkilenmez.
   var adetHata=null;
   document.querySelectorAll('#tb tr').forEach(function(tr){
     if(adetHata||!tr._seriDogrulamaGerekli)return;
     var adet=parseFloat((tr.querySelector('td:nth-child(1) input')||{}).value)||0;
     var seri=parseFloat((tr.querySelector('.seri-input')||{}).value)||0;
-    if(adet!==seri*5){
-      adetHata={renk:(tr.querySelector('.ri-renk')||{}).value||'',adet:adet,beklenen:seri*5};
+    if(adet!==seri){
+      adetHata={renk:(tr.querySelector('.ri-renk')||{}).value||'',adet:adet,beklenen:seri};
     }
   });
   if(adetHata){
-    if(!sessiz)alert('Toplam adet uyuşmuyor! "'+adetHata.renk+'" satırında '+adetHata.adet+' adet var, ama seri×5\'e göre '+adetHata.beklenen+' adet olmalı.');
+    if(!sessiz)alert('ADET/SERİ uyuşmuyor! "'+adetHata.renk+'" satırında ADET '+adetHata.adet+', ama SERİ sayısı '+adetHata.beklenen+' olmalı.');
     return false;
   }
   var urunler=[];
@@ -1333,13 +1344,12 @@ function kaydet(sessiz,skipSync){
   var satisToplam=0;
   var iadeToplam=0;
   document.querySelectorAll('#tb tr').forEach(function(tr){
-    var qty=tr.querySelector('td:nth-child(1) input').value;
     var bilgi=satirKalemBilgisi(tr);
     var ad=bilgi.ad;
     var fi=tr.querySelector('.fiyat-wrap input').value;
     var chk=tr.querySelector('.iade-chk');
     var isIade=!!(chk&&chk.checked);
-    var a=parseFloat(qty)||0;
+    var a=gercekAdet(tr); // gerçek adet: seri akışından geçen satırlarda SERİ×5, diğerlerinde ADET alanının kendisi
     var f=parseFloat((fi||'').replace(',','.'))||0;
     if(a>0&&ad){
       var tutar=a*f;
@@ -1349,7 +1359,8 @@ function kaydet(sessiz,skipSync){
       // "Genel" beden etiketi: toptan çalışıldığı için S/M/L değil, ürün+renk toplamından düşülür
       // (Stok Düzeltme/Petkom Satış'ta da aynı yaklaşım kullanılıyor).
       urunler.push({adet:a,ad:ad,fiyat:f,toplam:t,iade:isIade,kod:bilgi.kod,urun:bilgi.urun,
-        renk:bilgi.renk||undefined,beden:bilgi.renk?'Genel':undefined});
+        renk:bilgi.renk||undefined,beden:bilgi.renk?'Genel':undefined,
+        seri:tr._seriDogrulamaGerekli?(parseFloat((tr.querySelector('.seri-input')||{}).value)||0):undefined});
       parca+=a;
       if(isIade){iadeToplam+=tutar;}else{satisToplam+=tutar;ara+=tutar;}
     }
@@ -1831,7 +1842,7 @@ function _uzaktanKayitKur(id){
     tur:u.tur||'Resmi',
     odeme:u.odemeKodu||u.odeme,
     kdvOran:u.kdvOran||0,
-    urunler:(u.urunler||[]).map(function(p){return{adet:p.adet,ad:p.ad,fiyat:p.fiyat,iade:p.iade,kod:p.kod,urun:p.urun,renk:p.renk};})
+    urunler:(u.urunler||[]).map(function(p){return{adet:p.adet,ad:p.ad,fiyat:p.fiyat,iade:p.iade,kod:p.kod,urun:p.urun,renk:p.renk,seri:p.seri};})
   };
 }
 function irsaliyeDuzenle(id){
@@ -1856,7 +1867,15 @@ function irsaliyeDuzenle(id){
     ekle();
     var rows=document.querySelectorAll('#tb tr');
     var tr=rows[rows.length-1];
-    tr.querySelector('td:nth-child(1) input').value=u.adet;
+    // Seri akışından geçmiş kalemlerde (u.seri var) ADET'te gerçek adet değil, seri sayısı
+    // gösterilir — kaydet buna bağlı, bkz. gercekAdet/_seriDogrulamaGerekli.
+    if(u.seri){
+      tr.querySelector('td:nth-child(1) input').value=u.seri;
+      tr.querySelector('.seri-input').value=u.seri;
+      tr._seriDogrulamaGerekli=true;
+    }else{
+      tr.querySelector('td:nth-child(1) input').value=u.adet;
+    }
     satirKalemDoldur(tr,u);
     tr.querySelector('.fiyat-wrap input').value=u.fiyat;
     var chk=tr.querySelector('.iade-chk');
@@ -2102,16 +2121,19 @@ function whatsappSiparis(){
   var gruplar=[],gruplarMap={};
   var parca=0,seriToplam=0,kalanToplam=0;
   document.querySelectorAll('#tb tr').forEach(function(tr){
-    var qty=tr.querySelector('td:nth-child(1) input').value;
     var bilgi=satirKalemBilgisi(tr);
     var chk=tr.querySelector('.iade-chk');
     var isIade=!!(chk&&chk.checked);
-    var a=parseFloat(qty)||0;
+    var a=gercekAdet(tr); // gerçek adet (parça sayısı) — parantezdeki seri sayısıyla karıştırılmasın
     if(isIade)return; // İade satırları WhatsApp Sipariş PNG'sine dahil edilmez
     if(a>0&&bilgi.ad){
-      var seriInp=tr.querySelector('.seri-input');
-      var seriDeger=parseInt(seriInp&&seriInp.value,10);
-      if(!seriDeger||seriDeger<=0)seriDeger=5;
+      // Parantez içindeki "seri sayısı": seri akışından geçmiş satırlarda SERİ alanının
+      // kendisi (kullanıcının seçtiği değer); geçmemiş (manuel/eski) satırlarda SERİ alanı
+      // güvenilir değil (varsayılan '5' kalmış olabilir), gerçek adetten türetilir —
+      // bkz. "8376 TAKIM ANTRASİT (1)" formatı.
+      var seriDeger=tr._seriDogrulamaGerekli
+        ?(parseInt((tr.querySelector('.seri-input')||{}).value,10)||0)
+        :(Math.floor(a/5)||1);
       if(bilgi.renk){
         var anahtar=bilgi.kod+'|'+bilgi.urun;
         var g=gruplarMap[anahtar];
@@ -2122,8 +2144,8 @@ function whatsappSiparis(){
         gruplar.push({adet:a,renkler:[],ad:bilgi.ad});
       }
       parca+=a;
-      seriToplam+=Math.floor(a/seriDeger);
-      kalanToplam+=a%seriDeger;
+      seriToplam+=Math.floor(a/5); // 1 seri = 5 adet sabiti (bkz. gercekAdet)
+      kalanToplam+=a%5;
     }
   });
   if(gruplar.length===0){alert('En az 1 ürün girin');return;}
