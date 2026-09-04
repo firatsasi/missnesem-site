@@ -55,7 +55,6 @@ input.ri-urun{flex:1 1 140px;min-width:120px}
 .ri-renk-chips{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:3px}
 .ri-renk-chip{display:inline-flex;align-items:center;gap:3px;background:#fdf5e6;border:1px solid #c8a87a;border-radius:4px;padding:2px 4px;font-size:11px;line-height:1.2;color:#2c2419;white-space:nowrap}
 .ri-renk-chip-del{border:none;background:none;color:#a64d3e;font-weight:700;font-size:13px;line-height:1;padding:0;cursor:pointer}
-.seri-badge{display:block;text-align:center;font-size:12px;color:#a64d3e;font-weight:700}
 .fiyat-wrap{display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #c8a87a;border-radius:6px;padding:0 8px}
 .fiyat-wrap input{border:none !important;outline:none !important;background:transparent !important;padding:9px 0;text-align:right;width:100%;font-size:15px;color:#2c2419 !important;-webkit-text-fill-color:#2c2419 !important;min-width:0}
 .fiyat-sym{font-size:13px;color:#a64d3e;font-weight:700;white-space:nowrap}
@@ -100,8 +99,8 @@ body.export-compact .ri-kod-wrap{width:60px !important}
 body.export-compact .ri-renk-wrap{width:100px !important}
 body.export-compact input.ri-urun{flex:0 0 120px !important;width:120px !important;min-width:0 !important}
 body.export-compact #tblKalemler col:nth-child(1){width:90px !important}
+body.export-compact #tblKalemler col:nth-child(3){width:125px !important}
 body.export-compact #tblKalemler col:nth-child(4){width:125px !important}
-body.export-compact #tblKalemler col:nth-child(5){width:125px !important}
 
 @media(max-width:480px){.fields{grid-template-columns:1fr}.bn{font-size:20px;letter-spacing:3px}}
 
@@ -298,8 +297,8 @@ body.export-compact #tblKalemler col:nth-child(5){width:125px !important}
   </div>
   <div class="table-scroll">
   <table id="tblKalemler">
-    <colgroup><col style="width:100px"><col style="width:55px" class="seri-col"><col><col style="width:170px"><col style="width:150px"><col style="width:50px" class="iade-col"><col style="width:40px" class="del-col"></colgroup>
-    <thead><tr><th>SERİ</th><th class="seri-col"></th><th>KOD / ÜRÜN / RENK</th><th class="r">BİRİM FİYAT</th><th class="r">TOPLAM</th><th class="iade-col">İADE</th><th class="del-col"></th></tr></thead>
+    <colgroup><col style="width:100px"><col><col style="width:170px"><col style="width:150px"><col style="width:50px" class="iade-col"><col style="width:40px" class="del-col"></colgroup>
+    <thead><tr><th>ADET</th><th>KOD / ÜRÜN / RENK</th><th class="r">BİRİM FİYAT</th><th class="r">TOPLAM</th><th class="iade-col">İADE</th><th class="del-col"></th></tr></thead>
     <tbody id="tb"></tbody>
   </table>
   </div>
@@ -918,12 +917,13 @@ function _renkKaldir(tr,idx){
   _seriToplamGuncelle(tr);
   hesapla();
 }
-// SERİ (eski ADET) alanını tr._renkKalemleri'ndeki seri sayılarının toplamına eşitler.
+// ADET alanına tr._renkKalemleri'ndeki seri sayılarının toplamı×5'i (gerçek adet) ÖNERİ
+// olarak yazılır — sabit bir bağ değildir, kullanıcı bundan sonra ADET'i elle değiştirebilir
+// (override), bir sonraki renk eklenene/kaldırılana kadar o değer kalıcıdır (bkz. _renkSecildi/_renkKaldir).
 function _seriToplamGuncelle(tr){
   var kalemler=tr._renkKalemleri||[];
-  var toplam=kalemler.reduce(function(s,k){return s+(k.seri||0);},0);
-  tr.querySelector('td:nth-child(1) input').value=toplam>0?toplam:'';
-  tr._seriDogrulamaGerekli=kalemler.length>0;
+  var toplamSeri=kalemler.reduce(function(s,k){return s+(k.seri||0);},0);
+  tr.querySelector('td:nth-child(1) input').value=toplamSeri>0?(toplamSeri*5):'';
 }
 
 // Renk seçildikten sonra çıkan küçük "Kaç seri?" popup'ı — native prompt()/confirm() KULLANILMIYOR
@@ -966,19 +966,19 @@ function _seriPopupGoster(tr,renk,callback){
   setTimeout(function(){document.addEventListener('mousedown',disariTikla,true);},0);
 }
 
-// Renk çipi akışından geçen satırlarda ilk sütun (başlıkta "SERİ") toplam seri sayısını
-// gösterir (bkz. _seriToplamGuncelle) — 1 seri = 5 adet sabittir (yanındaki "×5" rozeti).
-// Para/toplam/kaydetme/stok düşme gibi gerçek miktar gereken her yerde bu fonksiyon
-// kullanılmalı: SERİ×5'i (gerçek adet) döner. Bu akıştan geçmemiş satırlarda (manuel
-// eklenen/eski kayıtlar, bkz. _seriDogrulamaGerekli) ilk sütun zaten gerçek adettir.
+// Satırın ADET alanının sayısal değeri — TOPLAM/ARA TOPLAM (para) hep bunu kullanır. Renk
+// çipi eklenince/kaldırılınca bu alana öneri olarak toplam seri×5 yazılır (bkz.
+// _seriToplamGuncelle), ama kullanıcı isterse elle değiştirebilir (override) — para her
+// zaman ADET'in o anki (elle değiştirilmiş olabilecek) değerine göre hesaplanır.
 function gercekAdet(tr){
   var inp=tr.querySelector('td:nth-child(1) input');
-  var v=parseFloat(inp&&inp.value)||0;
-  return tr._seriDogrulamaGerekli?v*5:v;
+  return parseFloat(inp&&inp.value)||0;
 }
-// Bir satırın kalemlerini ayrı ayrı döner — çoklu renk akışından geçmişse (tr._renkKalemleri)
-// HER RENK ayrı bir kalem olarak (kaydet()'te ayrı stok hareketi gönderebilmek için); geçmemiş
-// (manuel/eski) satırlarda satırın kendisi tek kalem olarak. Her kalemin adet'i gerçek adettir.
+// Bir satırın STOK için kalemlerini ayrı ayrı döner — çoklu renk akışından geçmişse
+// (tr._renkKalemleri) HER RENK kendi (seri×5) gerçek adediyle ayrı bir kalem olarak (kaydet()'te
+// ayrı stok hareketi gönderebilmek için) — bu, ADET alanı elle değiştirilmiş (override) olsa
+// bile DEĞİŞMEZ, stok her zaman rengin kendi seri sayısına göre düşer. Çip olmayan
+// (manuel/eski) satırlarda satırın kendisi (ADET alanının o anki değeri) tek kalem olarak.
 function satirKalemleri(tr){
   var bilgi=satirKalemBilgisi(tr);
   if(tr._renkKalemleri&&tr._renkKalemleri.length){
@@ -1049,9 +1049,6 @@ function _satirOlustur(){
   i1.type='text';i1.inputMode='numeric';i1.placeholder='';i1.className='ri cell';i1.style.textAlign='center';
   i1.addEventListener('input',function(){i1.value=i1.value.replace(/[^0-9]/g,'');hesapla();});
   td1.appendChild(i1);
-  var tdSeri=document.createElement('td');tdSeri.className='td-seri';
-  var seriBadge=document.createElement('span');seriBadge.className='seri-badge';seriBadge.textContent='×5';
-  tdSeri.appendChild(seriBadge);
   var td2=document.createElement('td');
   td2.className='ri-urun-cell';
   var iadeTag=document.createElement('span');iadeTag.className='iade-tag';iadeTag.textContent='İADE:';
@@ -1128,7 +1125,7 @@ function _satirOlustur(){
   var btn=document.createElement('button');btn.textContent='×';
   btn.onclick=function(){tr.remove();hesapla();};
   td5.appendChild(btn);
-  tr.appendChild(td1);tr.appendChild(tdSeri);tr.appendChild(td2);tr.appendChild(td3);tr.appendChild(td4);tr.appendChild(tdIade);tr.appendChild(td5);
+  tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(td3);tr.appendChild(td4);tr.appendChild(tdIade);tr.appendChild(td5);
   return tr;
 }
 function toggleIadeRow(tr,checked){
@@ -1373,19 +1370,28 @@ function kaydet(sessiz,skipSync){
     var chk=tr.querySelector('.iade-chk');
     var isIade=!!(chk&&chk.checked);
     var f=parseFloat((fi||'').replace(',','.'))||0;
-    // Çoklu renk satırlarında (tr._renkKalemleri) HER RENK ayrı bir kalem olarak gönderilir —
-    // panel (Api/SyncApi.cs) kod+renk eşleştirmesiyle stoktan her rengi ayrı ayrı düşer/iade
-    // eklerse geri ekler. "Genel" beden etiketi: toptan çalışıldığı için S/M/L değil, ürün+renk
-    // toplamından düşülür (Stok Düzeltme/Petkom Satış'ta da aynı yaklaşım kullanılıyor).
-    satirKalemleri(tr).forEach(function(k){
+    var kalemler=satirKalemleri(tr);
+    if(kalemler.length===0)return;
+    // PARA: satırın ADET alanının o anki değerine göre hesaplanır (kullanıcı elle değiştirmiş
+    // olabilir — override, bkz. gercekAdet) — fatura toplamları (ara/satisToplam/parca) buna göre.
+    var rowAdet=gercekAdet(tr);
+    if(rowAdet>0){
+      var rowTutar=rowAdet*f;
+      parca+=rowAdet;
+      if(isIade){iadeToplam+=rowTutar;}else{satisToplam+=rowTutar;ara+=rowTutar;}
+    }
+    // STOK: çoklu renk satırlarında (tr._renkKalemleri) HER RENK KENDİ (seri×5) gerçek
+    // adediyle ayrı bir urunler[] kalemi olarak gönderilir — ADET override edilmiş olsa bile
+    // bundan ETKİLENMEZ; panel (Api/SyncApi.cs) kod+renk eşleştirmesiyle stoktan her rengi
+    // ayrı ayrı düşer/iade eklerse geri ekler. "Genel" beden etiketi: toptan çalışıldığı için
+    // S/M/L değil, ürün+renk toplamından düşülür (Stok Düzeltme/Petkom Satış'ta da aynı yaklaşım).
+    kalemler.forEach(function(k){
       var ad=[k.kod,k.urun,k.renk].filter(Boolean).join(' ');
       if(k.adet<=0||!ad)return;
       var tutar=k.adet*f;
       var t=isIade?-tutar:tutar;
       urunler.push({adet:k.adet,ad:ad,fiyat:f,toplam:t,iade:isIade,kod:k.kod,urun:k.urun,
         renk:k.renk||undefined,beden:k.renk?'Genel':undefined,seri:k.seri});
-      parca+=k.adet;
-      if(isIade){iadeToplam+=tutar;}else{satisToplam+=tutar;ara+=tutar;}
     });
   });
   if(urunler.length===0){if(!sessiz)alert('En az 1 ürün girin');return false;}
@@ -1997,8 +2003,6 @@ function hazirla(){
   var delCols=document.querySelectorAll('.del-col');
   var iadeCells=document.querySelectorAll('.td-iade');
   var iadeCols=document.querySelectorAll('.iade-col');
-  var seriCells=document.querySelectorAll('.td-seri');
-  var seriCols=document.querySelectorAll('.seri-col');
   var kargoUcretRow=document.getElementById('kargoUcretRow');
   var kargoUcretVal=parseFloat((document.getElementById('kargoUcret').value||'').replace(/\./g,'').replace(',','.'))||0;
   var kargoUcretGizli=kargoUcretVal<=0;
@@ -2013,8 +2017,6 @@ function hazirla(){
   delCols.forEach(function(c){c.style.display='none';});
   iadeCells.forEach(function(c){c.style.display='none';});
   iadeCols.forEach(function(c){c.style.display='none';});
-  seriCells.forEach(function(c){c.style.display='none';});
-  seriCols.forEach(function(c){c.style.display='none';});
   if(kargoUcretGizli)kargoUcretRow.style.display='none';
   document.body.classList.add('export-compact'); // PDF/PNG çıktısı eski dar (760px) layout'a dönsün
   // Çoklu renk çipleri (tr._renkKalemleri) çıktıda interaktif × butonlarıyla görünmesin diye
@@ -2030,7 +2032,7 @@ function hazirla(){
     if(renkInp)renkInp.value=tr._renkKalemleri.map(function(k){return k.renk+' ('+k.seri+')';}).join(' / ');
   });
   var saved=inputlariMetneCevir();
-  return {addBtn:addBtn,optsRow:optsRow,bakBox:bakBox,bakAktif:bakAktif,delCells:delCells,delCols:delCols,iadeCells:iadeCells,iadeCols:iadeCols,seriCells:seriCells,seriCols:seriCols,kargoUcretRow:kargoUcretRow,kargoUcretGizli:kargoUcretGizli,renkChipRows:renkChipRows,saved:saved};
+  return {addBtn:addBtn,optsRow:optsRow,bakBox:bakBox,bakAktif:bakAktif,delCells:delCells,delCols:delCols,iadeCells:iadeCells,iadeCols:iadeCols,kargoUcretRow:kargoUcretRow,kargoUcretGizli:kargoUcretGizli,renkChipRows:renkChipRows,saved:saved};
 }
 function geriAl(s){
   s.addBtn.style.display='';
@@ -2042,8 +2044,6 @@ function geriAl(s){
   s.delCols.forEach(function(c){c.style.display='';});
   s.iadeCells.forEach(function(c){c.style.display='';});
   s.iadeCols.forEach(function(c){c.style.display='';});
-  s.seriCells.forEach(function(c){c.style.display='';});
-  s.seriCols.forEach(function(c){c.style.display='';});
   if(s.kargoUcretGizli)s.kargoUcretRow.style.display='';
   document.body.classList.remove('export-compact');
   s.renkChipRows.forEach(function(r){
