@@ -880,9 +880,11 @@ function _renkSecildi(tr,renk){
   hedefTr.querySelector('.ri-renk').value=renk;
   hedefTr._renkKomitli=renk;
   _seriPopupGoster(hedefTr,renk,function(seri){
-    hedefTr.querySelector('.seri-input').value=seri;
-    hedefTr.querySelector('td:nth-child(1) input').value=seri; // ADET'te gerçek adet (seri×5) değil, seri sayısı gösterilir (bkz. gercekAdet)
-    hedefTr._seriDogrulamaGerekli=true; // kaydet()'teki ADET=SERİ kontrolü + para/stok hesaplarında gercekAdet() kullanımı bu satırda uygulansın
+    // ADET'e SEÇİLEN SERİ SAYISI yazılır (ör. 3 seri seçildiyse "3"). SERİ alanına
+    // DOKUNULMAZ — o alan "1 seride kaç adet var" sabitini tutar (varsayılan 5) ve
+    // gerçek adet hesabında çarpan olarak kullanılır (bkz. gercekAdet).
+    hedefTr.querySelector('td:nth-child(1) input').value=seri;
+    hedefTr._seriDogrulamaGerekli=true; // gercekAdet()/kaydet()'te ADET×SERİ çarpımı bu satırda uygulansın
     hesapla();
   });
 }
@@ -941,15 +943,18 @@ function _seriPopupGoster(tr,renk,callback){
   setTimeout(function(){document.addEventListener('mousedown',disariTikla,true);},0);
 }
 
-// "Kaç seri?" popup'ından geçen satırlarda ADET alanı artık SERİ sayısını gösteriyor
-// (ör. 1 seri seçildiyse ADET'te "1" yazar, 5 değil) — kullanıcıya kolay okunsun diye.
-// Ama para/toplam/kaydetme/stok düşme gibi gerçek miktar gereken her yerde bu fonksiyon
-// kullanılmalı: SERİ×5'i (gerçek adet) döner. Bu akıştan geçmemiş satırlarda (manuel
-// eklenen/eski kayıtlar, bkz. _seriDogrulamaGerekli) ADET alanı zaten gerçek adettir.
+// "Kaç seri?" popup'ından geçen satırlarda ADET alanı SEÇİLEN SERİ SAYISINI gösterir
+// (ör. 3 seri seçildiyse ADET'te "3" yazar), SERİ alanı ise dokunulmadan "1 seride kaç
+// adet var" sabitini (varsayılan 5) korur. Ama para/toplam/kaydetme/stok düşme gibi
+// gerçek miktar gereken her yerde bu fonksiyon kullanılmalı: ADET×SERİ'yi (gerçek adet)
+// döner. Bu akıştan geçmemiş satırlarda (manuel eklenen/eski kayıtlar, bkz.
+// _seriDogrulamaGerekli) ADET alanı zaten gerçek adettir.
 function gercekAdet(tr){
   var inp=tr.querySelector('td:nth-child(1) input');
   var v=parseFloat(inp&&inp.value)||0;
-  return tr._seriDogrulamaGerekli?v*5:v;
+  if(!tr._seriDogrulamaGerekli)return v;
+  var paket=parseFloat((tr.querySelector('.seri-input')||{}).value)||5;
+  return v*paket;
 }
 
 // Bir satırın KOD/ÜRÜN/RENK alanlarını okuyup irsaliye kalemi için gereken bilgiyi üretir.
@@ -1321,23 +1326,6 @@ function kaydet(sessiz,skipSync){
   if(!musteri){if(!sessiz)alert('Müşteri adı boş olamaz');return false;}
   var tarih=document.getElementById('tarih').value;
   if(!tarih){if(!sessiz)alert('Tarih boş olamaz');return false;}
-  // ADET tutarlılık kontrolü: sadece renk dropdown + "kaç seri?" popup akışından geçmiş satırlarda
-  // (bkz. _renkSecildi'nin _seriDogrulamaGerekli bayrağı) ADET alanının SERİ sayısına eşit olması
-  // zorunlu (ADET burada gerçek adet değil, seri sayısıdır — bkz. gercekAdet) — eski/düzenlenen
-  // kayıtlardaki satırlar bu bayrağı taşımadığı için etkilenmez.
-  var adetHata=null;
-  document.querySelectorAll('#tb tr').forEach(function(tr){
-    if(adetHata||!tr._seriDogrulamaGerekli)return;
-    var adet=parseFloat((tr.querySelector('td:nth-child(1) input')||{}).value)||0;
-    var seri=parseFloat((tr.querySelector('.seri-input')||{}).value)||0;
-    if(adet!==seri){
-      adetHata={renk:(tr.querySelector('.ri-renk')||{}).value||'',adet:adet,beklenen:seri};
-    }
-  });
-  if(adetHata){
-    if(!sessiz)alert('ADET/SERİ uyuşmuyor! "'+adetHata.renk+'" satırında ADET '+adetHata.adet+', ama SERİ sayısı '+adetHata.beklenen+' olmalı.');
-    return false;
-  }
   var urunler=[];
   var parca=0;
   var ara=0;
@@ -1349,7 +1337,7 @@ function kaydet(sessiz,skipSync){
     var fi=tr.querySelector('.fiyat-wrap input').value;
     var chk=tr.querySelector('.iade-chk');
     var isIade=!!(chk&&chk.checked);
-    var a=gercekAdet(tr); // gerçek adet: seri akışından geçen satırlarda SERİ×5, diğerlerinde ADET alanının kendisi
+    var a=gercekAdet(tr); // gerçek adet: seri akışından geçen satırlarda ADET(seri sayısı)×SERİ(paket), diğerlerinde ADET alanının kendisi
     var f=parseFloat((fi||'').replace(',','.'))||0;
     if(a>0&&ad){
       var tutar=a*f;
@@ -1867,11 +1855,12 @@ function irsaliyeDuzenle(id){
     ekle();
     var rows=document.querySelectorAll('#tb tr');
     var tr=rows[rows.length-1];
-    // Seri akışından geçmiş kalemlerde (u.seri var) ADET'te gerçek adet değil, seri sayısı
-    // gösterilir — kaydet buna bağlı, bkz. gercekAdet/_seriDogrulamaGerekli.
+    // Seri akışından geçmiş kalemlerde (u.seri = kaydedildiği andaki paket büyüklüğü, ör. 5)
+    // SERİ alanı bu paket büyüklüğüne, ADET alanı ise gerçek adet/paket = seri sayısına
+    // geri yüklenir (u.adet her zaman gerçek adettir) — bkz. gercekAdet/_seriDogrulamaGerekli.
     if(u.seri){
-      tr.querySelector('td:nth-child(1) input').value=u.seri;
       tr.querySelector('.seri-input').value=u.seri;
+      tr.querySelector('td:nth-child(1) input').value=Math.round((u.adet||0)/u.seri);
       tr._seriDogrulamaGerekli=true;
     }else{
       tr.querySelector('td:nth-child(1) input').value=u.adet;
@@ -2127,12 +2116,12 @@ function whatsappSiparis(){
     var a=gercekAdet(tr); // gerçek adet (parça sayısı) — parantezdeki seri sayısıyla karıştırılmasın
     if(isIade)return; // İade satırları WhatsApp Sipariş PNG'sine dahil edilmez
     if(a>0&&bilgi.ad){
-      // Parantez içindeki "seri sayısı": seri akışından geçmiş satırlarda SERİ alanının
-      // kendisi (kullanıcının seçtiği değer); geçmemiş (manuel/eski) satırlarda SERİ alanı
-      // güvenilir değil (varsayılan '5' kalmış olabilir), gerçek adetten türetilir —
-      // bkz. "8376 TAKIM ANTRASİT (1)" formatı.
+      // Parantez içindeki "seri sayısı": seri akışından geçmiş satırlarda bu, ADET alanının
+      // kendisidir (kullanıcının popup'ta seçtiği seri sayısı — SERİ alanı burada paket
+      // büyüklüğüdür, seri sayısı değil); geçmemiş (manuel/eski) satırlarda gerçek adetten
+      // türetilir — bkz. "8376 / TAKIM / ANTRASİT (1)" formatı.
       var seriDeger=tr._seriDogrulamaGerekli
-        ?(parseInt((tr.querySelector('.seri-input')||{}).value,10)||0)
+        ?(parseInt((tr.querySelector('td:nth-child(1) input')||{}).value,10)||0)
         :(Math.floor(a/5)||1);
       if(bilgi.renk){
         var anahtar=bilgi.kod+'|'+bilgi.urun;
@@ -2144,8 +2133,12 @@ function whatsappSiparis(){
         gruplar.push({adet:a,renkler:[],ad:bilgi.ad});
       }
       parca+=a;
-      seriToplam+=Math.floor(a/5); // 1 seri = 5 adet sabiti (bkz. gercekAdet)
-      kalanToplam+=a%5;
+      if(tr._seriDogrulamaGerekli){
+        seriToplam+=seriDeger; // gerçek seri sayısı zaten biliniyor, a/5 varsayımına gerek yok
+      }else{
+        seriToplam+=Math.floor(a/5); // 1 seri = 5 adet varsayımı (seri akışından geçmemiş satırlar)
+        kalanToplam+=a%5;
+      }
     }
   });
   if(gruplar.length===0){alert('En az 1 ürün girin');return;}
