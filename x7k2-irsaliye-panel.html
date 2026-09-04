@@ -2150,7 +2150,7 @@ function whatsappSiparis(){
   });
   if(gruplar.length===0){alert('En az 1 ürün girin');return;}
   var urunler=gruplar.map(function(g){
-    var ad=g.renkler.length?((g.kod+' '+g.urun).trim()+' '+g.renkler.join(' / ')):g.ad;
+    var ad=g.renkler.length?[g.kod,g.urun].filter(Boolean).concat(g.renkler).join(' / '):g.ad;
     return {adet:g.adet,ad:ad,iade:false};
   });
   var tarihVal=document.getElementById('tarih').value;
