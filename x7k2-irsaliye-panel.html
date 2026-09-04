@@ -86,6 +86,19 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .btn-gld{font-size:13px;padding:10px 20px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:#d4b896;font-weight:700}
 .btn-wa{font-size:13px;padding:10px 20px;cursor:pointer;color:#fff;border:none;border-radius:6px;background:#25D366;font-weight:700;display:inline-flex;align-items:center;gap:7px}
 .btn-wa svg{width:16px;height:16px;fill:#fff}
+/* ── PDF/PNG çıktısı: ekran formu 1200px geniş kalır, ama çıktı eski kompakt
+   (760px) boyutuna daralır — KOD/ÜRÜN/RENK tek satırda kalsın diye eski dar
+   sütun genişlikleri de geri getiriliyor (bkz. pdfIndir/pngIndir → hazirla/geriAl). ── */
+body.export-compact .wrap{max-width:760px !important}
+body.export-compact #tblKalemler{min-width:720px !important}
+body.export-compact .ri-urun-cell{flex-wrap:nowrap !important}
+body.export-compact .ri-kod-wrap{width:56px !important}
+body.export-compact .ri-renk-wrap{width:82px !important}
+body.export-compact input.ri-urun{flex:1 1 70px !important;min-width:60px !important}
+body.export-compact #tblKalemler col:nth-child(1){width:95px !important}
+body.export-compact #tblKalemler col:nth-child(4){width:135px !important}
+body.export-compact #tblKalemler col:nth-child(5){width:115px !important}
+
 @media(max-width:480px){.fields{grid-template-columns:1fr}.bn{font-size:20px;letter-spacing:3px}}
 
 .kargo-toggle{display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer;user-select:none}
@@ -1937,6 +1950,7 @@ function hazirla(){
   seriCells.forEach(function(c){c.style.display='none';});
   seriCols.forEach(function(c){c.style.display='none';});
   if(kargoUcretGizli)kargoUcretRow.style.display='none';
+  document.body.classList.add('export-compact'); // PDF/PNG çıktısı eski dar (760px) layout'a dönsün
   var saved=inputlariMetneCevir();
   return {addBtn:addBtn,optsRow:optsRow,bakBox:bakBox,bakAktif:bakAktif,delCells:delCells,delCols:delCols,iadeCells:iadeCells,iadeCols:iadeCols,seriCells:seriCells,seriCols:seriCols,kargoUcretRow:kargoUcretRow,kargoUcretGizli:kargoUcretGizli,saved:saved};
 }
@@ -1953,6 +1967,7 @@ function geriAl(s){
   s.seriCells.forEach(function(c){c.style.display='';});
   s.seriCols.forEach(function(c){c.style.display='';});
   if(s.kargoUcretGizli)s.kargoUcretRow.style.display='';
+  document.body.classList.remove('export-compact');
   inputlariGeriYukle(s.saved);
 }
 function _pdfUrunKontrol(){
@@ -2081,26 +2096,41 @@ function siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,kargoFirma,kargoKo
 function whatsappSiparis(){
   var musteri=document.getElementById('musteri').value.trim();
   if(!musteri){alert('Müşteri adı boş olamaz');return;}
-  var urunler=[];
+  // Aynı KOD/ÜRÜN'e sahip satırlar tek satırda birleştirilir; her rengin yanına
+  // kendi seri sayısı parantez içinde eklenir: "8376 TAKIM ANTRASİT (1) / SİYAH (2)".
+  // Renksiz satırlar (eski/manuel kayıtlar) birleştirmeye dahil edilmez, olduğu gibi listelenir.
+  var gruplar=[],gruplarMap={};
   var parca=0,seriToplam=0,kalanToplam=0;
   document.querySelectorAll('#tb tr').forEach(function(tr){
     var qty=tr.querySelector('td:nth-child(1) input').value;
-    var ad=satirKalemBilgisi(tr).ad;
+    var bilgi=satirKalemBilgisi(tr);
     var chk=tr.querySelector('.iade-chk');
     var isIade=!!(chk&&chk.checked);
     var a=parseFloat(qty)||0;
     if(isIade)return; // İade satırları WhatsApp Sipariş PNG'sine dahil edilmez
-    if(a>0&&ad){
-      urunler.push({adet:a,ad:ad,iade:false});
-      parca+=a;
+    if(a>0&&bilgi.ad){
       var seriInp=tr.querySelector('.seri-input');
       var seriDeger=parseInt(seriInp&&seriInp.value,10);
       if(!seriDeger||seriDeger<=0)seriDeger=5;
+      if(bilgi.renk){
+        var anahtar=bilgi.kod+'|'+bilgi.urun;
+        var g=gruplarMap[anahtar];
+        if(!g){g={kod:bilgi.kod,urun:bilgi.urun,adet:0,renkler:[]};gruplarMap[anahtar]=g;gruplar.push(g);}
+        g.adet+=a;
+        g.renkler.push(bilgi.renk+' ('+seriDeger+')');
+      }else{
+        gruplar.push({adet:a,renkler:[],ad:bilgi.ad});
+      }
+      parca+=a;
       seriToplam+=Math.floor(a/seriDeger);
       kalanToplam+=a%seriDeger;
     }
   });
-  if(urunler.length===0){alert('En az 1 ürün girin');return;}
+  if(gruplar.length===0){alert('En az 1 ürün girin');return;}
+  var urunler=gruplar.map(function(g){
+    var ad=g.renkler.length?((g.kod+' '+g.urun).trim()+' '+g.renkler.join(' / ')):g.ad;
+    return {adet:g.adet,ad:ad,iade:false};
+  });
   var tarihVal=document.getElementById('tarih').value;
   var tarihStr=tarihVal?(function(){var p=tarihVal.split('-');return p[2]+'.'+p[1]+'.'+p[0];})():'';
   var no=_siparisNoGetirVeyaUret();
