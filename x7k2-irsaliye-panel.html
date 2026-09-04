@@ -55,6 +55,7 @@ input.ri-urun{flex:1 1 140px;min-width:120px}
 .ri-renk-chips{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:4px;max-width:100%}
 .ri-renk-chip{display:inline-flex;align-items:center;gap:4px;background:#fdf5e6;border:1px solid #c8a87a;border-radius:4px;padding:2px 6px;font-size:12px;line-height:1.4;color:#2c2419;white-space:nowrap;max-width:100%;flex-shrink:0}
 .ri-renk-chip-del{border:none;background:none;color:#a64d3e;font-weight:700;font-size:14px;line-height:1;padding:1px 2px;margin:-1px -2px -1px 0;cursor:pointer;flex-shrink:0}
+.ri-renk-export-text{display:none;font-size:12px;line-height:1.4;padding:6px 8px;background:#fff;border:1px solid #c8a87a;border-radius:6px;color:#2c2419;white-space:normal;overflow-wrap:break-word}
 .fiyat-wrap{display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #c8a87a;border-radius:6px;padding:0 8px}
 .fiyat-wrap input{border:none !important;outline:none !important;background:transparent !important;padding:9px 0;text-align:right;width:100%;font-size:15px;color:#2c2419 !important;-webkit-text-fill-color:#2c2419 !important;min-width:0}
 .fiyat-sym{font-size:13px;color:#a64d3e;font-weight:700;white-space:nowrap}
@@ -1067,8 +1068,13 @@ function _satirOlustur(){
   var renkChips=document.createElement('div');renkChips.className='ri-renk-chips';
   var iRenk=document.createElement('input');
   iRenk.type='text';iRenk.placeholder='+ RENK';iRenk.className='ri cell ri-renk';iRenk.autocomplete='off';
+  // PDF/PNG çıktısında çipler ve arama kutusu gizlenip bunun yerine gösterilen düz metin
+  // ("BEYAZ (3) / KAHVE (2)") — bkz. hazirla()/geriAl(). Ayrı bir eleman olması bilerek: RENK
+  // arama kutusunun kendi value/blur zamanlamasına (150ms gecikmeli, bkz. blur listener) bağımlı
+  // olmadan, export anında senkron ve güvenilir şekilde doldurulup gösterilir.
+  var renkExportText=document.createElement('div');renkExportText.className='ri-renk-export-text';
   var renkDd=document.createElement('div');renkDd.className='ri-dropdown ri-renk-dd';
-  renkWrap.appendChild(renkChips);renkWrap.appendChild(iRenk);renkWrap.appendChild(renkDd);
+  renkWrap.appendChild(renkChips);renkWrap.appendChild(iRenk);renkWrap.appendChild(renkExportText);renkWrap.appendChild(renkDd);
 
   td2.appendChild(kodWrap);td2.appendChild(iUrun);td2.appendChild(renkWrap);
 
@@ -1973,6 +1979,7 @@ function dataIndir(){
 function inputlariMetneCevir(){
   var saved=[];
   document.querySelectorAll('#irsaliye input:not([type="checkbox"])').forEach(function(inp){
+    if(inp.style.display==='none')return; // export öncesi bilerek gizlenmiş alanlar (bkz. hazirla → RENK arama kutusu) span'e çevrilmesin
     var span=document.createElement('span');
     span.className='pdf-temp';
     var txt=inp.value||'';
@@ -2019,17 +2026,24 @@ function hazirla(){
   iadeCols.forEach(function(c){c.style.display='none';});
   if(kargoUcretGizli)kargoUcretRow.style.display='none';
   document.body.classList.add('export-compact'); // PDF/PNG çıktısı eski dar (760px) layout'a dönsün
-  // Çoklu renk çipleri (tr._renkKalemleri) çıktıda interaktif × butonlarıyla görünmesin diye
-  // gizlenir; RENK arama kutusuna geçici olarak düz metin ("BEYAZ (3) / SİYAH (2)") yazılır —
-  // inputlariMetneCevir() bunu KOD/ÜRÜN ile aynı görünümde bir span'e çevirir (bkz. geriAl).
+  // Çoklu renk çipleri (tr._renkKalemleri) ve "+ RENK" arama kutusu çıktıda görünmesin diye
+  // gizlenir; yerine ayrı bir .ri-renk-export-text elemanına düz metin ("BEYAZ (3) / KAHVE (2)")
+  // yazılıp gösterilir. Bilerek RENK arama kutusunun kendi value/blur (150ms gecikmeli)
+  // zamanlamasına bağımlı DEĞİL — senkron, güvenilir. inputlariMetneCevir() gizlenmiş arama
+  // kutusunu (display:none) span'e çevirmez (bkz. oradaki guard).
   var renkChipRows=[];
   document.querySelectorAll('#tb tr').forEach(function(tr){
     if(!(tr._renkKalemleri&&tr._renkKalemleri.length))return;
     var chipsEl=tr.querySelector('.ri-renk-chips');
     var renkInp=tr.querySelector('.ri-renk');
-    renkChipRows.push({chipsEl:chipsEl,chipsDisplay:chipsEl?chipsEl.style.display:'',renkInp:renkInp});
+    var exportEl=tr.querySelector('.ri-renk-export-text');
+    renkChipRows.push({chipsEl:chipsEl,chipsDisplay:chipsEl?chipsEl.style.display:'',renkInp:renkInp,renkInpDisplay:renkInp?renkInp.style.display:'',exportEl:exportEl});
     if(chipsEl)chipsEl.style.display='none';
-    if(renkInp)renkInp.value=tr._renkKalemleri.map(function(k){return k.renk+' ('+k.seri+')';}).join(' / ');
+    if(renkInp)renkInp.style.display='none';
+    if(exportEl){
+      exportEl.textContent=tr._renkKalemleri.map(function(k){return k.renk+' ('+k.seri+')';}).join(' / ');
+      exportEl.style.display='block';
+    }
   });
   var saved=inputlariMetneCevir();
   return {addBtn:addBtn,optsRow:optsRow,bakBox:bakBox,bakAktif:bakAktif,delCells:delCells,delCols:delCols,iadeCells:iadeCells,iadeCols:iadeCols,kargoUcretRow:kargoUcretRow,kargoUcretGizli:kargoUcretGizli,renkChipRows:renkChipRows,saved:saved};
@@ -2048,7 +2062,8 @@ function geriAl(s){
   document.body.classList.remove('export-compact');
   s.renkChipRows.forEach(function(r){
     if(r.chipsEl)r.chipsEl.style.display=r.chipsDisplay;
-    if(r.renkInp)r.renkInp.value='';
+    if(r.renkInp){r.renkInp.style.display=r.renkInpDisplay;r.renkInp.value='';}
+    if(r.exportEl){r.exportEl.style.display='none';r.exportEl.textContent='';}
   });
   inputlariGeriYukle(s.saved);
 }
