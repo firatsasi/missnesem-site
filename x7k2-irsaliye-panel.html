@@ -1084,31 +1084,48 @@ function _satirOlustur(){
     setTimeout(function(){
       _riDropdownGizle(kodDd);
       var kodVal=iKod.value.trim();
-      if(kodVal&&(!tr._urunSecim||tr._urunSecim.code!==kodVal)){
-        urunKatalogYukle().then(function(katalog){
-          var eslesen=katalog.find(function(p){return p.code===kodVal;});
-          if(eslesen)_kodSec(tr,eslesen);
-        });
-      }
+      if(!kodVal){tr._urunSecim=null;return;}
+      if(tr._urunSecim&&tr._urunSecim.code===kodVal)return; // zaten eşleşmiş, dokunma
+      urunKatalogYukle().then(function(katalog){
+        var eslesen=katalog.find(function(p){return p.code===kodVal;});
+        if(eslesen){_kodSec(tr,eslesen);}
+        else{
+          // Kod stokta/katalogda yok: dropdown/chip sistemi devre dışı kalır, ÜRÜN/RENK/ADET
+          // serbest metin olarak elle girilir, bu satırdan stok düşülmez (bkz. renkDropdownFiltrele,
+          // satirKalemleri — kod katalogla eşleşmediği için sunucu tarafında da eşleşme bulunamaz).
+          tr._urunSecim=null;
+        }
+      });
     },150);
   });
 
   iUrun.addEventListener('input',function(){trUpperInplace(iUrun);});
 
-  // RENK alanı artık SADECE renk eklemek için bir arama/filtre kutusu — seçilen renkler
-  // satırın üstünde çip olarak birikir (bkz. tr._renkKalemleri/_renkChipleriRender), bu
-  // alanın kendi değeri hiçbir zaman kalıcı bir "seçili renk" tutmaz; yazılan metin sadece
-  // dropdown'ı filtreler (kısaltma desteğiyle), rakam girilemez, gerçek değer SADECE
-  // dropdown'dan tıklanarak seçilir (bkz. _renkSecildi). Odaktan çıkıldığında her zaman boşa döner.
+  // RENK alanı, KOD'u katalogda eşleşen bir ürün için SADECE renk eklemek üzere bir arama/filtre
+  // kutusu — seçilen renkler satırın üstünde çip olarak birikir (bkz. tr._renkKalemleri/
+  // _renkChipleriRender), yazılan metin sadece dropdown'ı filtreler (kısaltma desteğiyle), rakam
+  // girilemez, gerçek değer SADECE dropdown'dan tıklanarak seçilir (bkz. _renkSecildi).
+  // KOD katalogda bulunamadığında (tr._urunSecim yok/renksiz) bu kısıtlar devre dışı kalır —
+  // eski davranış: serbest metin, rakam dahil her şey yazılabilir ve blur'da olduğu gibi kalır.
+  function _renkEslesmisUrun(){return tr._urunSecim&&tr._urunSecim.colors&&tr._urunSecim.colors.length;}
   iRenk.addEventListener('input',function(){
-    iRenk.value=iRenk.value.replace(/[0-9]/g,'');
-    trUpperInplace(iRenk);
-    renkDropdownFiltrele(tr,iRenk.value);
+    if(_renkEslesmisUrun()){
+      iRenk.value=iRenk.value.replace(/[0-9]/g,'');
+      trUpperInplace(iRenk);
+      renkDropdownFiltrele(tr,iRenk.value);
+    }else{
+      trUpperInplace(iRenk);
+    }
   });
-  iRenk.addEventListener('focus',function(){renkDropdownFiltrele(tr,'');});
+  iRenk.addEventListener('focus',function(){if(_renkEslesmisUrun())renkDropdownFiltrele(tr,'');});
   iRenk.addEventListener('blur',function(){
     setTimeout(function(){
       _riDropdownGizle(renkDd);
+      if(!_renkEslesmisUrun()){
+        // Kod katalogda yok (veya kayıtlı rengi yok) — serbest yazılan metin olduğu gibi kalır.
+        tr._renkKomitli=iRenk.value;
+        return;
+      }
       // Çip akışına geçmiş satırlarda (tr._renkKalemleri) alan her zaman boşa döner — o
       // sadece bir sonraki rengi eklemek için arama kutusudur. Eski/tek-renk kayıtlarda
       // (chip yok) geriye dönük uyumluluk için son komitli değere döner.
