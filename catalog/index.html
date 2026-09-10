@@ -1310,15 +1310,15 @@ footer {
     <nav>
       <ul class="nav-links" id="nav-links">
         <li><a href="#catalog" id="nav-all-products">Tüm Ürünler</a></li>
-        <li><a href="#elbiseler">Elbiseler</a></li>
+        <li><a href="#trenckot">Trençkotlar</a></li>
         <li><a href="#takimlar">Takımlar</a></li>
+        <li><a href="#ceket">Ceketler</a></li>
+        <li><a href="#elbiseler">Elbiseler</a></li>
         <li><a href="#bluzlar">Bluzlar</a></li>
         <li><a href="#korseler">Korseler</a></li>
         <li><a href="#etek">Etekler</a></li>
         <li><a href="#tesettur">Tesettür</a></li>
-        <li><a href="#ceket">Ceketler</a></li>
         <li><a href="#pantolon">Pantolonlar</a></li>
-        <li><a href="#sort">Şortlar</a></li>
         <li><a href="#yelek">Yelekler</a></li>
         <li><a href="#diger">Diğer</a></li>
         <li><a href="#catalog" class="nav-indirim">İndirimler</a></li>
@@ -1346,15 +1346,15 @@ footer {
 <div class="mobile-menu" id="mobile-menu">
   <button class="mobile-menu-close" id="mobile-close"><i class="ti ti-x"></i></button>
   <a href="#catalog" class="mobile-link">Tüm Ürünler</a>
-  <a href="#elbiseler" class="mobile-link">Elbiseler</a>
+  <a href="#trenckot" class="mobile-link">Trençkotlar</a>
   <a href="#takimlar" class="mobile-link">Takımlar</a>
+  <a href="#ceket" class="mobile-link">Ceketler</a>
+  <a href="#elbiseler" class="mobile-link">Elbiseler</a>
   <a href="#bluzlar" class="mobile-link">Bluzlar</a>
   <a href="#korseler" class="mobile-link">Korseler</a>
   <a href="#etek" class="mobile-link">Etekler</a>
   <a href="#tesettur" class="mobile-link">Tesettür</a>
-  <a href="#ceket" class="mobile-link">Ceketler</a>
   <a href="#pantolon" class="mobile-link">Pantolonlar</a>
-  <a href="#sort" class="mobile-link">Şortlar</a>
   <a href="#yelek" class="mobile-link">Yelekler</a>
   <a href="#diger" class="mobile-link">Diğer</a>
   <a href="#catalog" class="mobile-link nav-indirim">İndirimler</a>
@@ -1459,15 +1459,16 @@ footer {
       <div>
         <div class="footer-col-title" data-ar="الكتالوج">Katalog</div>
         <ul class="footer-links">
-          <li><a href="#elbiseler">Elbiseler</a></li>
+          <li><a href="#trenckot">Trençkotlar</a></li>
           <li><a href="#takimlar">Takımlar</a></li>
-          <li><a href="#bluzlar">Bluzlar</a></li>
           <li><a href="#ceket">Ceketler</a></li>
-          <li><a href="#pantolon">Pantolonlar</a></li>
+          <li><a href="#elbiseler">Elbiseler</a></li>
+          <li><a href="#bluzlar">Bluzlar</a></li>
+          <li><a href="#korseler">Korseler</a></li>
           <li><a href="#etek">Etekler</a></li>
-          <li><a href="#sort">Şortlar</a></li>
-          <li><a href="#yelek">Yelekler</a></li>
           <li><a href="#tesettur">Tesettür</a></li>
+          <li><a href="#pantolon">Pantolonlar</a></li>
+          <li><a href="#yelek">Yelekler</a></li>
           <li><a href="#diger">Diğer</a></li>
           <li><a href="https://missnesem.com">Ana Sayfa</a></li>
         </ul>
@@ -2245,15 +2246,15 @@ footer {
   // ===== API ENTEGRASYONU =====
   // Sıra kataloğun varsayılan (Tüm Ürünler) görünümündeki bölüm sırasını belirler.
   const CATEGORIES = [
-    { id: 'elbiseler', name: 'Elbiseler', nameEn: 'Dresses', nameAr: 'فساتين' },
+    { id: 'trenckot', name: 'Trençkotlar', nameEn: 'Trench Coats', nameAr: 'ترنشكوت' },
     { id: 'takimlar', name: 'Takımlar', nameEn: 'Suits & Sets', nameAr: 'أطقم' },
+    { id: 'ceket', name: 'Ceketler', nameEn: 'Jackets & Vests', nameAr: 'جاكيتات' },
+    { id: 'elbiseler', name: 'Elbiseler', nameEn: 'Dresses', nameAr: 'فساتين' },
     { id: 'bluzlar', name: 'Bluzlar', nameEn: 'Blouses', nameAr: 'بلوزات' },
     { id: 'korseler', name: 'Korseler', nameEn: 'Corsets', nameAr: 'كورسيهات' },
     { id: 'etek', name: 'Etekler', nameEn: 'Skirts', nameAr: 'تنانير' },
     { id: 'tesettur', name: 'Tesettür', nameEn: 'Modest Wear', nameAr: 'حجاب' },
-    { id: 'ceket', name: 'Ceketler', nameEn: 'Jackets & Vests', nameAr: 'جاكيتات' },
     { id: 'pantolon', name: 'Pantolonlar', nameEn: 'Trousers', nameAr: 'بناطيل' },
-    { id: 'sort', name: 'Şortlar', nameEn: 'Shorts', nameAr: 'شورتات' },
     { id: 'yelek', name: 'Yelekler', nameEn: 'Vests', nameAr: 'سترات' },
     { id: 'diger', name: 'Diğer', nameEn: 'Other', nameAr: 'أخرى' },
   ];
