@@ -170,7 +170,7 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
 .rapor-tbl .si{color:#a64d3e;cursor:pointer;font-size:16px;font-weight:700;background:none;border:none}
 /* 2026-09-11: Rapor PDF/PNG export düzeni — kartlar 2 sütun, koyu toplamlar tam genişlik,
    tablo sütunları oranlı (MÜŞTERİ kesilmesin), gizli aksiyon sütunu yer kaplamasın. */
-.rapor-card.rapor-export{width:760px !important;max-width:760px !important;padding:1.6rem !important}
+.rapor-card.rapor-export{padding:1.6rem !important;box-shadow:none !important}
 .rapor-card.rapor-export .rapor-grid{grid-template-columns:1fr 1fr !important;gap:10px !important}
 .rapor-card.rapor-export .rapor-cell.dark{grid-column:1 / -1 !important}
 .rapor-card.rapor-export .table-scroll{overflow:visible !important}
@@ -2141,7 +2141,8 @@ function pdfIndir(){
   // 2026-09-11: Sabit A4'te uzun irsaliyelerde toplam/footer ikinci sayfaya düşüyordu (Kasa
   // Raporu'ndaki yaklaşım): içerik yüksekliği ölçülüp sayfa ona göre uzatılır — tek sayfa,
   // bölünme yok. Kısa irsaliyede A4'ten küçük olmasın diye alt sınır 297mm.
-  var hMM=Math.max(297,Math.ceil(el.scrollHeight/(el.offsetWidth/(210-16)))+20);
+  var _r=el.getBoundingClientRect();
+  var hMM=Math.max(297,Math.ceil(_r.height/(_r.width/(210-16)))+32);
   var opt={margin:[8,8,8,8],filename:dosyaAdi,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#f0e4d3'},jsPDF:{unit:'mm',format:[210,hMM],orientation:'portrait'}};
   html2pdf().set(opt).from(el).save().then(function(){
     kargoToggle.style.display=prevToggleDisplay;
@@ -2304,8 +2305,11 @@ function raporPdf(){
   // eşleme: kart genişliği → 194mm (210 - 2×8 margin). Dar kartta sabit oran yükseklik
   // eksik hesaplıyor, tablo 2. sayfaya düşüyordu.
   var contentWmm=210-16;
-  var pxPerMm=card.offsetWidth/contentWmm;
-  var hMM=Math.ceil(card.scrollHeight/pxPerMm)+20;
+  var rect=card.getBoundingClientRect();
+  var pxPerMm=rect.width/contentWmm;
+  // border+radius dahil gerçek yükseklik; +32mm pay (8+8 margin + güvenlik) — alt köşe
+  // 2. sayfaya taşmasın.
+  var hMM=Math.ceil(rect.height/pxPerMm)+32;
   var opt={
     margin:[8,8,8,8],
     filename:'MissNesem_Rapor_'+new Date().toISOString().split('T')[0]+'.pdf',
