@@ -423,144 +423,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   color: var(--text2);
 }
 
-/* ===== HERO SLIDER ===== */
-#hero {
-  position: relative;
-  height: 90vh;
-  min-height: max(80vh, 600px);
-  overflow: hidden;
-}
-.slide {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  opacity: 0;
-  transition: opacity 1s ease;
-  pointer-events: none;
-}
-.slide.active { opacity: 1; pointer-events: auto; }
-.slide-visual {
-  position: relative;
-  overflow: hidden;
-}
-.slide-placeholder {
-  width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column;
-  gap: 1.5rem;
-  color: rgba(255,255,255,0.55);
-  font-size: 0.85rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-}
-.slide-placeholder .ti { font-size: clamp(5rem, 9vw, 9rem); opacity: 0.45; }
-.slide-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 3.5rem 3rem;
-}
-.slide-tag {
-  font-size: 0.75rem;
-  letter-spacing: 0.4em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 1.25rem;
-  font-weight: 500;
-}
-.slide-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 400;
-  font-size: clamp(2.75rem, 5.5vw, 5.75rem);
-  line-height: 1.1;
-  margin-bottom: 0.5rem;
-}
-.slide-title-en {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 400;
-  font-size: clamp(1.15rem, 2.3vw, 1.85rem);
-  color: var(--text);
-  margin-bottom: 1.75rem;
-  font-style: italic;
-}
-.slide-desc {
-  font-size: 0.85rem;
-  letter-spacing: 0.06em;
-  color: var(--text);
-  line-height: 1.75;
-  max-width: 420px;
-  margin: 0 auto 2.25rem;
-}
-.slide-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--text);
-  font-weight: 500;
-  border-bottom: 1px solid var(--accent);
-  padding-bottom: 4px;
-  width: fit-content;
-  transition: color var(--transition), gap var(--transition);
-}
-.slide-cta:hover { color: var(--accent); gap: 1.25rem; }
-
-/* slide 1 */
-.slide-1 .slide-visual { background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); }
-.slide-1 .slide-content { background: var(--bg); }
-/* slide 2 */
-.slide-2 { grid-template-columns: 1fr 1fr; }
-.slide-2 .slide-content { background: var(--bg); order: -1; }
-.slide-2 .slide-visual { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
-/* slide 3 */
-.slide-3 .slide-visual { background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%); }
-.slide-3 .slide-content { background: var(--footer-bg); }
-.slide-3 .slide-content .slide-title,
-.slide-3 .slide-content .slide-tag,
-.slide-3 .slide-content .slide-desc { color: #ffffff; }
-.slide-3 .slide-content .slide-title-en { color: #ffffff; }
-.slide-3 .slide-content .slide-desc { color: #f0e0e4; }
-.slide-3 .slide-content .slide-cta { color: #ffffff; border-color: rgba(255,255,255,0.6); }
-
-/* hero controls */
-.hero-arrows {
-  position: absolute;
-  bottom: 2rem;
-  right: 2rem;
-  display: flex;
-  gap: 0.5rem;
-  z-index: 10;
-}
-.hero-arrow {
-  width: 44px; height: 44px;
-  border: 1px solid rgba(196,160,138,0.4);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--accent);
-  transition: var(--transition);
-  font-size: 1rem;
-}
-.hero-arrow:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
-.hero-dots {
-  position: absolute;
-  bottom: 2.25rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 0.5rem;
-  z-index: 10;
-}
-.hero-dot {
-  width: 24px; height: 2px;
-  background: rgba(196,160,138,0.3);
-  transition: var(--transition);
-}
-.hero-dot.active { background: var(--accent); width: 40px; }
-
 /* ===== SEASON HERO (video lookbook) ===== */
 #season-hero {
   position: relative;
@@ -1422,13 +1284,6 @@ footer {
   .nav-inner { grid-template-columns: 1fr auto; }
   .nav-actions { gap: 0.5rem; }
   .lang-switch .lang-btn { padding: 3px 4px; font-size: 0.44rem; }
-  .slide { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
-  .slide-visual { min-height: 62vw; }
-  .slide-content { padding: 2rem 1.5rem; }
-  .slide-title { font-size: 2.2rem; }
-  .slide-2 .slide-content { order: 0; }
-  .slide-2 .slide-visual { order: -1; }
-  #hero { height: auto; min-height: 100vh; }
   .product-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
   .modal { width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; }
   .modal.modal-portrait { max-width: 100vw; }
@@ -1466,10 +1321,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
   .splash-season { font-size: 0.7rem; letter-spacing: 0.3em; }
   .splash-enter { font-size: 0.7rem; }
 
-  /* Hero - remove forced min-height on mobile */
-  #hero { min-height: unset; }
-  .slide-content { background: var(--bg); }
-
   /* Modal - full screen */
   #modal-overlay { padding: 0; align-items: stretch; justify-content: stretch; }
   .modal-photo { max-height: calc(100vh - 240px); }
@@ -1484,9 +1335,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
   .card-name-en { font-size: 0.75rem; letter-spacing: 0.05em; }
   .product-code-overlay { font-size: 0.75rem; letter-spacing: 0.2em; }
   .section-tag { font-size: 0.75rem; letter-spacing: 0.3em; }
-  .slide-tag { font-size: 0.75rem; letter-spacing: 0.3em; }
-  .slide-desc { font-size: 0.75rem; }
-  .slide-cta { font-size: 0.75rem; letter-spacing: 0.25em; }
   .modal-title-code { font-size: 0.75rem; letter-spacing: 0.25em; }
   .modal-color-name { font-size: 0.75rem; }
   .modal-sizes-mini { font-size: 0.75rem; letter-spacing: 0.1em; }
@@ -1509,10 +1357,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
 @media (max-width: 480px) {
   /* Splash further shrink on very small screens */
   .splash-logo { font-size: clamp(1.4rem, 8vw, 2.5rem); letter-spacing: 0.15em; }
-
-  /* Hero text stays readable */
-  .slide-title { font-size: 1.85rem; }
-  .slide-content { padding: 1.5rem 1rem; }
 
   /* Modal tighter */
   .modal-body { padding: 0.75rem 1rem 1rem; }
@@ -1546,7 +1390,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
 <!-- ===== NAV ===== -->
 <header id="nav">
   <div class="nav-inner">
-    <a href="#hero" class="nav-logo">Miss Neşem</a>
+    <a href="#season-hero" class="nav-logo">Miss Neşem</a>
     <nav>
       <ul class="nav-links" id="nav-links">
         <li><a href="#yeni-sezon" class="nav-yenisezon">Yeni Sezon</a></li>
@@ -1636,69 +1480,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
     <a href="#catalog" class="season-hero-cta"><span class="cta-label">KOLEKSİYONU KEŞFET</span> <i class="ti ti-arrow-down"></i></a>
   </div>
   <div class="season-hero-scroll-hint"><i class="ti ti-chevron-down"></i></div>
-</section>
-
-<!-- ===== HERO SLIDER ===== -->
-<section id="hero">
-  <!-- Slide 1 -->
-  <div class="slide slide-1 active">
-    <div class="slide-visual">
-      <div class="slide-placeholder">
-        <i class="ti ti-camera"></i>
-        <span>Yaz Koleksiyonu</span>
-      </div>
-    </div>
-    <div class="slide-content">
-      <span class="slide-tag">Summer 2026 · Yeni Sezon</span>
-      <h1 class="slide-title" data-ar="مجموعة&lt;br&gt;الصيف">Yaz<br>Koleksiyonu</h1>
-      <p class="slide-title-en">The Summer Edit</p>
-      <p class="slide-desc" data-ar="من مِرتر إلى العالم — أحدث الألوان وأرقى القصات. مجموعة صيف 2026 متوفرة الآن في كتالوجنا.">Merter'den dünyaya — en taze renkler, en özel kesimler. Yaz 2026 koleksiyonumuz şimdi kataloğumuzda.</p>
-      <a href="#elbiseler" class="slide-cta" data-ar="استكشف المجموعة"><span class="cta-label">Koleksiyonu Keşfet</span> <i class="ti ti-arrow-right"></i></a>
-    </div>
-  </div>
-  <!-- Slide 2 -->
-  <div class="slide slide-2">
-    <div class="slide-content">
-      <span class="slide-tag">Best Sellers · En Çok Satanlar</span>
-      <h2 class="slide-title" data-ar="الأكثر&lt;br&gt;مبيعاً">En Çok<br>Satanlar</h2>
-      <p class="slide-title-en">Best Sellers</p>
-      <p class="slide-desc" data-ar="اكتشفي القطع الأكثر تفضيلاً لدى عملائنا بالجملة حول العالم.">Dünya genelinde toptan müşterilerimizin en çok tercih ettiği parçaları keşfedin.</p>
-      <a href="#bluzlar" class="slide-cta" data-ar="عرض"><span class="cta-label">Görüntüle</span> <i class="ti ti-arrow-right"></i></a>
-    </div>
-    <div class="slide-visual">
-      <div class="slide-placeholder">
-        <i class="ti ti-camera"></i>
-        <span>Best Sellers</span>
-      </div>
-    </div>
-  </div>
-  <!-- Slide 3 -->
-  <div class="slide slide-3">
-    <div class="slide-visual">
-      <div class="slide-placeholder" style="color:rgba(100,80,160,0.4)">
-        <i class="ti ti-diamond"></i>
-        <span>Exclusive</span>
-      </div>
-    </div>
-    <div class="slide-content">
-      <span class="slide-tag">Özel Tasarım · Exclusive</span>
-      <h2 class="slide-title" data-ar="تصاميم&lt;br&gt;حصرية">Özel<br>Tasarımlar</h2>
-      <p class="slide-title-en">Exclusive Pieces</p>
-      <p class="slide-desc" data-ar="مجموعات إنتاج محدود حصرية لـ Miss Neşem فقط. تواصلي عبر واتساب للحصول على معلومات كل قطعة.">Sadece Miss Neşem'e özel, sınırlı üretim koleksiyonlar. Her parça için WhatsApp'tan bilgi alın.</p>
-      <a href="#tesettur" class="slide-cta" data-ar="استكشف"><span class="cta-label">Keşfet</span> <i class="ti ti-arrow-right"></i></a>
-    </div>
-  </div>
-
-  <!-- controls -->
-  <div class="hero-dots">
-    <div class="hero-dot active" data-idx="0"></div>
-    <div class="hero-dot" data-idx="1"></div>
-    <div class="hero-dot" data-idx="2"></div>
-  </div>
-  <div class="hero-arrows">
-    <button class="hero-arrow" id="hero-prev"><i class="ti ti-chevron-left"></i></button>
-    <button class="hero-arrow" id="hero-next"><i class="ti ti-chevron-right"></i></button>
-  </div>
 </section>
 
 <!-- ===== CATALOG SECTIONS (JS render) ===== -->
@@ -1999,35 +1780,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
       goToCategory(href === '#catalog' ? null : href.slice(1));
     });
   });
-
-  // ===== HERO SLIDER =====
-  const slides = document.querySelectorAll('.slide');
-  const dots = document.querySelectorAll('.hero-dot');
-  let current = 0;
-  let autoInterval;
-
-  function goTo(idx) {
-    slides[current].classList.remove('active');
-    dots[current].classList.remove('active');
-    current = (idx + slides.length) % slides.length;
-    slides[current].classList.add('active');
-    dots[current].classList.add('active');
-  }
-
-  function startAuto() {
-    autoInterval = setInterval(() => goTo(current + 1), 5000);
-  }
-  function resetAuto() {
-    clearInterval(autoInterval);
-    startAuto();
-  }
-
-  document.getElementById('hero-prev').addEventListener('click', () => { goTo(current - 1); resetAuto(); });
-  document.getElementById('hero-next').addEventListener('click', () => { goTo(current + 1); resetAuto(); });
-  dots.forEach(dot => {
-    dot.addEventListener('click', () => { goTo(+dot.dataset.idx); resetAuto(); });
-  });
-  startAuto();
 
   // ===== FAVORITES =====
   let favorites = JSON.parse(localStorage.getItem('mn_favorites') || '[]');
@@ -2575,10 +2327,15 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // "Yeni Sezon" bölümü: panel API/JSON'da ürüne eklenme tarihi yok — bu yüzden olası
   // bir tarih alanı varsa son 30 gün filtrelenir, yoksa kod numarası en yüksek (en yeni
   // girilmiş) 12 ürün gösterilir.
+  // Yeni sezon (AW26) ürünleri panelde 8640-8999 kod aralığında girilir; yazlık 9xxx
+  // serisi (9000+) bu aralığın dışında kalarak otomatik hariç tutulur. "8545-1" gibi
+  // ek almış kodlarda parseInt ilk sayısal kısmı okur.
   function pickYeniSezonProducts(products) {
+    const codeNum = p => parseInt(p.code, 10) || 0;
     const withPhoto = products.filter(hasPhoto);
+    const inSeasonRange = withPhoto.filter(p => { const n = codeNum(p); return n >= 8640 && n <= 8999; });
     const dateOf = p => p.eklemeTarihi || p.dateAdded || p.createdAt || p.tarih || null;
-    const withDate = withPhoto.filter(p => dateOf(p));
+    const withDate = inSeasonRange.filter(p => dateOf(p));
     if (withDate.length) {
       const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
       const recent = withDate
@@ -2588,9 +2345,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
         .map(x => x.p);
       if (recent.length) return recent.slice(0, 12);
     }
-    return withPhoto
+    return inSeasonRange
       .slice()
-      .sort((a, b) => (parseInt(b.code, 10) || 0) - (parseInt(a.code, 10) || 0))
+      .sort((a, b) => codeNum(b) - codeNum(a))
       .slice(0, 12);
   }
 
@@ -3141,17 +2898,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // Hero (slide başlığı/açıklaması/CTA) ve footer üst bilgi metinleri: sadece AR için
   // elle yazılmış çeviri var (data-ar); TR/EN için mevcut varsayılan metin korunur.
   function applyStaticAr() {
-    document.querySelectorAll('.slide-title[data-ar]').forEach(el => {
-      if (!el.dataset.orig) el.dataset.orig = el.innerHTML;
-      el.innerHTML = currentLang === 'ar' ? el.getAttribute('data-ar') : el.dataset.orig;
-    });
-    document.querySelectorAll('.slide-cta[data-ar]').forEach(el => {
-      const label = el.querySelector('.cta-label');
-      if (!label) return;
-      if (!label.dataset.orig) label.dataset.orig = label.textContent;
-      label.textContent = currentLang === 'ar' ? el.getAttribute('data-ar') : label.dataset.orig;
-    });
-    document.querySelectorAll('.slide-desc[data-ar], .footer-col-title[data-ar], .footer-location[data-ar], .footer-copy[data-ar]').forEach(el => {
+    document.querySelectorAll('.footer-col-title[data-ar], .footer-location[data-ar], .footer-copy[data-ar]').forEach(el => {
       if (!el.dataset.orig) el.dataset.orig = el.textContent;
       el.textContent = currentLang === 'ar' ? el.getAttribute('data-ar') : el.dataset.orig;
     });
