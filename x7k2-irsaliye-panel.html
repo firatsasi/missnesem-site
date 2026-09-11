@@ -95,13 +95,16 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
    satırda yan yana sığar, kesilmez (bkz. pdfIndir/pngIndir → hazirla/geriAl). ── */
 body.export-compact .wrap{max-width:760px !important}
 body.export-compact #tblKalemler{min-width:660px !important}
-body.export-compact .ri-urun-cell{flex-wrap:nowrap !important}
-body.export-compact .ri-kod-wrap{width:60px !important}
-body.export-compact .ri-renk-wrap{width:100px !important}
-body.export-compact input.ri-urun{flex:0 0 120px !important;width:120px !important;min-width:0 !important}
-body.export-compact #tblKalemler col:nth-child(1){width:90px !important}
-body.export-compact #tblKalemler col:nth-child(3){width:125px !important}
-body.export-compact #tblKalemler col:nth-child(4){width:125px !important}
+body.export-compact .ri-urun-cell{flex-wrap:nowrap !important;align-items:flex-start !important}
+body.export-compact .ri-kod-wrap{width:56px !important}
+/* 2026-09-11: Renk kutusu 100px'te 4 renk 4 satıra kırılıyor, satır devasa oluyordu.
+   Ürün kutusu daraltıldı (çoğu üründe tek kelime), renk kutusu esneyip kalan alanı alıyor. */
+body.export-compact input.ri-urun{flex:0 0 96px !important;width:96px !important;min-width:0 !important}
+body.export-compact .ri-renk-wrap{flex:1 1 auto !important;width:auto !important;min-width:150px !important}
+body.export-compact .ri-renk-export-text{font-size:11px !important;line-height:1.35 !important;padding:5px 7px !important}
+body.export-compact #tblKalemler col:nth-child(1){width:70px !important}
+body.export-compact #tblKalemler col:nth-child(3){width:110px !important}
+body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
 
 @media(max-width:480px){.fields{grid-template-columns:1fr}.bn{font-size:20px;letter-spacing:3px}}
 
@@ -2058,7 +2061,9 @@ function hazirla(){
     if(chipsEl)chipsEl.style.display='none';
     if(renkInp)renkInp.style.display='none';
     if(exportEl){
-      exportEl.textContent=tr._renkKalemleri.map(function(k){return k.renk+' ('+k.seri+')';}).join(' / ');
+      // 2026-09-11: Her "RENK (n)" çifti içindeki boşluk NBSP — html2canvas kelime ortasından
+      // kırınca "İ" glifi kayıp "(1)" ile üst üste biniyordu. Artık sadece " / " noktalarında kırılır.
+      exportEl.textContent=tr._renkKalemleri.map(function(k){return k.renk+'\u00A0('+k.seri+')';}).join(' / ');
       exportEl.style.display='block';
     }
   });
@@ -2110,7 +2115,11 @@ function pdfIndir(){
   var prevBoxDisplay=kargoBox.style.display;
   kargoToggle.style.display='none';
   kargoBox.style.display='none';
-  var opt={margin:[8,8,8,8],filename:dosyaAdi,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#f0e4d3'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
+  // 2026-09-11: Sabit A4'te uzun irsaliyelerde toplam/footer ikinci sayfaya düşüyordu (Kasa
+  // Raporu'ndaki yaklaşım): içerik yüksekliği ölçülüp sayfa ona göre uzatılır — tek sayfa,
+  // bölünme yok. Kısa irsaliyede A4'ten küçük olmasın diye alt sınır 297mm.
+  var hMM=Math.max(297,Math.ceil(el.scrollHeight*0.2646)+20);
+  var opt={margin:[8,8,8,8],filename:dosyaAdi,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#f0e4d3'},jsPDF:{unit:'mm',format:[210,hMM],orientation:'portrait'}};
   html2pdf().set(opt).from(el).save().then(function(){
     kargoToggle.style.display=prevToggleDisplay;
     kargoBox.style.display=prevBoxDisplay;
