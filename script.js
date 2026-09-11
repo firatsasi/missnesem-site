@@ -45,6 +45,17 @@ const i18n = {
   }
 };
 
+// Meta Pixel: WhatsApp butonlarından herhangi birine (numara linkleri + kanal linki)
+// tıklanınca Contact event'i gönderilir. mnPixelTrack (index.html <head>'inde tanımlı)
+// pixel yüklenemese/engellense bile sessizce no-op olur.
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('a[href*="wa.me"], a[href*="whatsapp.com"]').forEach(a => {
+    a.addEventListener('click', () => {
+      if (typeof mnPixelTrack === 'function') mnPixelTrack('Contact');
+    });
+  });
+});
+
 function setLang(code) {
   const t = i18n[code];
   if (!t) return;
