@@ -22,14 +22,15 @@
 /* ===== RESET & BASE ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #faf7f3;
+  --bg: #f7f1e8;
   --card: #ffffff;
   --text: #1a1018;
-  --text2: #3d2035;
-  --accent: #c4a08a;
-  --soft-pink: #edd4cc;
+  --text2: #6b5a48;
+  --accent: #b5895a;
+  --soft-pink: #efe0d0;
   --deep-pink: #e4c2b8;
-  --footer-bg: #7a5a6b;
+  --footer-bg: #2c2419;
+  --wine: #6e1f2c;
   --transition: 0.35s cubic-bezier(0.4,0,0.2,1);
 }
 html { scroll-behavior: smooth; }
@@ -191,6 +192,48 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   100% { transform: translateY(var(--pty)) translateX(var(--ptx)) scale(0.6); opacity: 0; }
 }
 
+/* ===== INTRO VİDEO (ilk girişte / 24 saatte bir) ===== */
+#intro-video {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+#intro-video.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+#intro-video-el {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+.intro-skip {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgba(255,255,255,0.9);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 0.6rem 1rem;
+  border: 1px solid rgba(255,255,255,0.4);
+  transition: var(--transition);
+}
+.intro-skip:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.7); }
+@media (max-width: 480px) {
+  .intro-skip { font-size: 0.65rem; padding: 0.5rem 0.8rem; right: 1rem; bottom: 1rem; }
+}
+
 /* ===== NAV ===== */
 #nav {
   position: sticky;
@@ -266,6 +309,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .nav-links a:hover::after { width: 100%; }
 .nav-links a.nav-indirim { color: #c44d58; font-weight: 600; }
 .nav-links a.nav-indirim::after { background: linear-gradient(90deg, #c44d58, #e88090); }
+.nav-links a.nav-yenisezon { color: var(--wine); font-weight: 700; }
+.nav-links a.nav-yenisezon::after { background: linear-gradient(90deg, var(--wine), var(--accent)); }
 .nav-actions {
   display: flex;
   align-items: center;
@@ -370,6 +415,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-weight: 700;
 }
 .mobile-menu a.nav-indirim { color: #c44d58; font-weight: 600; }
+.mobile-menu a.nav-yenisezon { color: var(--wine); font-weight: 700; }
 .mobile-menu-close {
   position: absolute;
   top: 1.5rem; right: 1.5rem;
@@ -515,6 +561,113 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .hero-dot.active { background: var(--accent); width: 40px; }
 
+/* ===== SEASON HERO (video lookbook) ===== */
+#season-hero {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+}
+.season-hero-panels {
+  position: absolute;
+  inset: -8% 0;
+  display: flex;
+  gap: 4px;
+  will-change: transform;
+}
+.season-hero-panel {
+  position: relative;
+  flex: 1 1 0;
+  height: 100%;
+  overflow: hidden;
+  background: #14100e;
+}
+.season-hero-panel-mobile { display: none; }
+.season-hero-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.season-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 40%, transparent 60%);
+  pointer-events: none;
+  z-index: 1;
+}
+.season-hero-text {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
+  padding: 0 1.5rem;
+  pointer-events: none;
+}
+.season-hero-text > * { pointer-events: auto; }
+.season-hero-tag {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  margin-bottom: 1.1rem;
+  opacity: 0.92;
+}
+.season-hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: 4.5rem;
+  line-height: 1.05;
+  margin-bottom: 2.25rem;
+  text-shadow: 0 2px 24px rgba(0,0,0,0.45);
+}
+.season-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.7);
+  padding: 0.9rem 1.75rem;
+  transition: var(--transition);
+}
+.season-hero-cta:hover { background: #fff; color: #1a1018; }
+.season-hero-scroll-hint {
+  position: absolute;
+  bottom: 1.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  color: #fff;
+  font-size: 1.4rem;
+  opacity: 0.85;
+  animation: seasonHeroBounce 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes seasonHeroBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(10px); }
+}
+@media (max-width: 899px) {
+  .season-hero-panel-left, .season-hero-panel-center, .season-hero-panel-right { display: none; }
+  .season-hero-panel-mobile { display: block; flex: 1 1 100%; }
+  .season-hero-panels { gap: 0; }
+  #season-hero { height: 100vh; height: 100svh; }
+  .season-hero-title { font-size: 2.8rem; }
+  .season-hero-tag { letter-spacing: 0.35em; font-size: 0.65rem; }
+  .season-hero-cta { font-size: 0.65rem; padding: 0.8rem 1.4rem; }
+}
+
 /* ===== SECTION BASE ===== */
 .section-wrap {
   max-width: 1400px;
@@ -601,6 +754,18 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .card-fav .ti { font-size: 1rem; }
 .card-fav:hover { color: var(--accent); transform: scale(1.2); }
 .card-fav.active { color: var(--accent); }
+.new-badge {
+  position: absolute;
+  top: 0.6rem; left: 0.6rem;
+  z-index: 5;
+  background: var(--wine);
+  color: #fff;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+}
 
 .product-card-info {
   padding: 1rem 0 0;
@@ -732,6 +897,58 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
 .cat-section.revealed { opacity: 1; transform: translateY(0); }
+
+/* ===== KATEGORİ VİDEO BAŞLIK BANDI ===== */
+.section-header-video {
+  position: relative;
+  width: 100%;
+  height: 42vh;
+  min-height: 280px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1018;
+}
+.cat-bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cat-bg-video-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(26,16,24,0.68) 0%, rgba(26,16,24,0.3) 55%, rgba(26,16,24,0.15) 100%);
+}
+.cat-bg-video-text {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: #fff;
+  padding: 0 1.5rem;
+}
+.section-header-video .section-tag { display: none; }
+.section-video-badge {
+  display: inline-block;
+  background: var(--wine);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.9rem;
+  margin-bottom: 1rem;
+}
+.section-header-video .section-title {
+  font-size: clamp(2rem, 4.5vw, 3.5rem);
+  color: #fff;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+}
+@media (max-width: 768px) {
+  .section-header-video { height: 32vh; min-height: 220px; }
+}
 
 /* ===== MODAL ===== */
 #modal-overlay {
@@ -1310,6 +1527,12 @@ html, body { overflow-x: hidden; max-width: 100%; }
 </head>
 <body>
 
+<!-- ===== INTRO VİDEO ===== -->
+<div id="intro-video">
+  <video id="intro-video-el" muted playsinline poster="/catalog/video/intro_poster.jpg"></video>
+  <a href="#" id="intro-skip" class="intro-skip"><span>Atla</span> <i class="ti ti-arrow-right"></i></a>
+</div>
+
 <!-- ===== SPLASH ===== -->
 <div id="splash">
   <div class="splash-bg-glow"></div>
@@ -1326,6 +1549,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     <a href="#hero" class="nav-logo">Miss Neşem</a>
     <nav>
       <ul class="nav-links" id="nav-links">
+        <li><a href="#yeni-sezon" class="nav-yenisezon">Yeni Sezon</a></li>
         <li><a href="#catalog" id="nav-all-products">Tüm Ürünler</a></li>
         <li><a href="#trenckot">Trençkotlar</a></li>
         <li><a href="#takimlar">Takımlar</a></li>
@@ -1362,6 +1586,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
 <!-- mobile menu -->
 <div class="mobile-menu" id="mobile-menu">
   <button class="mobile-menu-close" id="mobile-close"><i class="ti ti-x"></i></button>
+  <a href="#yeni-sezon" class="mobile-link nav-yenisezon">Yeni Sezon</a>
   <a href="#catalog" class="mobile-link">Tüm Ürünler</a>
   <a href="#trenckot" class="mobile-link">Trençkotlar</a>
   <a href="#takimlar" class="mobile-link">Takımlar</a>
@@ -1383,6 +1608,35 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <input type="text" id="search-input" placeholder="Ürün kodu veya isim ara..." autocomplete="off" />
   <button id="search-close" style="color:var(--text2);font-size:1rem;"><i class="ti ti-x"></i></button>
 </div>
+
+<!-- ===== SEASON HERO (video lookbook) ===== -->
+<section id="season-hero">
+  <div class="season-hero-panels" id="season-hero-panels">
+    <div class="season-hero-panel season-hero-panel-left">
+      <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
+             poster="/catalog/video/hero_left_poster.jpg" data-src="/catalog/video/hero_left.mp4"></video>
+    </div>
+    <div class="season-hero-panel season-hero-panel-center">
+      <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
+             poster="/catalog/video/hero_center_poster.jpg" data-src="/catalog/video/hero_center.mp4"></video>
+    </div>
+    <div class="season-hero-panel season-hero-panel-right">
+      <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
+             poster="/catalog/video/hero_right_poster.jpg" data-src="/catalog/video/hero_right.mp4"></video>
+    </div>
+    <div class="season-hero-panel season-hero-panel-mobile">
+      <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
+             poster="/catalog/video/hero_mobile_poster.jpg" data-src="/catalog/video/hero_mobile.mp4"></video>
+    </div>
+  </div>
+  <div class="season-hero-overlay"></div>
+  <div class="season-hero-text" id="season-hero-text">
+    <span class="season-hero-tag">SONBAHAR · KIŞ 2026</span>
+    <h1 class="season-hero-title">Yeni Sezon</h1>
+    <a href="#catalog" class="season-hero-cta"><span class="cta-label">KOLEKSİYONU KEŞFET</span> <i class="ti ti-arrow-down"></i></a>
+  </div>
+  <div class="season-hero-scroll-hint"><i class="ti ti-chevron-down"></i></div>
+</section>
 
 <!-- ===== HERO SLIDER ===== -->
 <section id="hero">
@@ -1557,6 +1811,75 @@ html, body { overflow-x: hidden; max-width: 100%; }
   }
   splash.addEventListener('click', hideSplash);
   setTimeout(hideSplash, 5500); // animasyon ~4.5s, biraz bekle
+
+  // ===== INTRO VİDEO (ilk girişte / 24 saatte bir) =====
+  // localStorage'a son gösterim zamanı yazılır; 24 saat geçmeden tekrar gösterilmez.
+  // Video yüklenemez/autoplay engellenirse ya da 5.2sn dolarsa otomatik kapanır — site asla kilitlenmez.
+  (function initIntroVideo() {
+    const introEl = document.getElementById('intro-video');
+    if (!introEl) return;
+    const INTRO_KEY = 'mn_intro_seen';
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    let lastSeen = 0;
+    try { lastSeen = parseInt(localStorage.getItem(INTRO_KEY) || '0', 10) || 0; } catch (e) {}
+    if (Date.now() - lastSeen < DAY_MS) { introEl.remove(); return; }
+
+    const videoEl = document.getElementById('intro-video-el');
+    const skipEl = document.getElementById('intro-skip');
+    let closed = false;
+    function closeIntro() {
+      if (closed) return;
+      closed = true;
+      try { localStorage.setItem(INTRO_KEY, String(Date.now())); } catch (e) {}
+      introEl.classList.add('hidden');
+      hideSplash(); // intro kapanınca doğrudan kataloğa geçilsin, eski splash araya girmesin
+      setTimeout(() => introEl.remove(), 700);
+    }
+    skipEl.addEventListener('click', e => { e.preventDefault(); closeIntro(); });
+    introEl.addEventListener('click', closeIntro);
+    videoEl.addEventListener('ended', closeIntro);
+    videoEl.addEventListener('error', () => setTimeout(closeIntro, 1000));
+    videoEl.src = '/catalog/video/intro.mp4';
+    videoEl.load();
+    const playPromise = videoEl.play();
+    if (playPromise && playPromise.catch) playPromise.catch(() => setTimeout(closeIntro, 1000));
+    setTimeout(closeIntro, 5200);
+  })();
+
+  // ===== SEASON HERO (video lookbook) =====
+  (function initSeasonHero() {
+    const heroEl = document.getElementById('season-hero');
+    if (!heroEl) return;
+    const isDesktop = window.matchMedia('(min-width: 900px)').matches;
+    const selector = isDesktop
+      ? '.season-hero-panel-left .season-hero-video, .season-hero-panel-center .season-hero-video, .season-hero-panel-right .season-hero-video'
+      : '.season-hero-panel-mobile .season-hero-video';
+    document.querySelectorAll(selector).forEach(v => {
+      if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); v.load(); }
+      const p = v.play();
+      if (p && p.catch) p.catch(() => {});
+    });
+
+    // Scroll parallax: video panelleri %20 yavaş kayar, metin fade-out olur.
+    const panelsEl = document.getElementById('season-hero-panels');
+    const textEl = document.getElementById('season-hero-text');
+    let ticking = false;
+    function update() {
+      const rect = heroEl.getBoundingClientRect();
+      const heroH = heroEl.offsetHeight || window.innerHeight;
+      const scrolled = Math.min(Math.max(-rect.top, 0), heroH);
+      const progress = heroH ? scrolled / heroH : 0;
+      if (panelsEl) panelsEl.style.transform = 'translateY(' + (scrolled * 0.2).toFixed(1) + 'px)';
+      if (textEl) {
+        textEl.style.opacity = String(Math.max(0, 1 - progress * 1.6));
+        textEl.style.transform = 'translateY(' + (scrolled * 0.15).toFixed(1) + 'px)';
+      }
+      ticking = false;
+    }
+    window.addEventListener('scroll', () => {
+      if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+  })();
 
   // Harf harf animasyon
   (function splitLogoLetters() {
@@ -2158,59 +2481,83 @@ html, body { overflow-x: hidden; max-width: 100%; }
   const EAGER_IMAGE_COUNT = 6;
   let cardImgCounter = 0;
 
-  function buildCategorySection(cat, products) {
-    const catProducts = products.filter(p => p.category === cat.id && hasPhoto(p));
-    if (catProducts.length === 0) return `
-      <section class="cat-section" id="${cat.id}">
-        <div class="section-wrap">
-          <div class="section-header reveal">
-            <span class="section-tag">${cat.nameEn}</span>
-            <h2 class="section-title">${cat.name}</h2>
-            <div class="section-divider"></div>
-          </div>
-          <div style="text-align:center;padding:3rem 2rem;color:var(--text2);opacity:0.5;">
-            <i class="ti ti-clock" style="font-size:2rem;display:block;margin-bottom:0.8rem;"></i>
-            <span class="section-soon-label" style="font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;">Yakında • Coming Soon</span>
-          </div>
+  // Tek bir ürün kartının HTML'i — buildCategorySection tarafından her kategori/Yeni
+  // Sezon bölümü için kullanılır. isNewSection true ise sol üstte bordo "NEW" rozeti eklenir.
+  function buildProductCard(p, cat, isNewSection) {
+    const favActive = isFav(p.code);
+    const colorsWithPhoto = (p.colors || []).filter(c => c.kapakFoto && !c.kapakFoto.includes('undefined'));
+    const colorDots = colorsWithPhoto.length > 1
+      ? colorsWithPhoto.map(c => `<div class="color-dot" style="${swatchStyle(c)}" title="${c.name}"></div>`).join('')
+      : '';
+    const coverPhoto = p.colors && p.colors[0] && p.colors[0].kapakFoto;
+    const isEager = cardImgCounter < EAGER_IMAGE_COUNT;
+    cardImgCounter++;
+    const imgSrcAttrs = isEager
+      ? `src="${coverPhoto}" loading="eager" fetchpriority="high"`
+      : `data-src="${coverPhoto}" loading="lazy"`;
+    const visualInner = coverPhoto
+      ? `<img class="product-card-img" ${imgSrcAttrs} alt="${p.name}">`
+      : `<div class="product-img-placeholder">
+            <i class="ti ti-hanger"></i>
+            <span class="product-code-overlay">${p.code}</span>
+          </div>`;
+    return `
+      <div class="product-card cat-${p.category} reveal"
+           data-code="${p.code}" data-name="${p.name} ${p.nameEn}" data-cat="${cat.name}"
+           role="button" tabindex="0" aria-label="${p.name} - ${p.code}">
+        <div class="product-card-visual">
+          ${isNewSection ? `<span class="new-badge">${STRINGS[currentLang].newBadge}</span>` : ''}
+          ${visualInner}
+          <button class="card-fav ${favActive ? 'active' : ''}" data-code="${p.code}" title="Favorilere ekle" aria-label="Favori">
+            <i class="ti ${favActive ? 'ti-heart-filled' : 'ti-heart'}"></i>
+          </button>
         </div>
-      </section>`;
+        <div class="product-card-info">
+          <span class="card-code">Kod: ${p.code}</span>
+          <div class="card-name">${p.name}</div>
+          <div class="card-name-en">${p.nameEn}</div>
+          ${colorDots ? `<div class="card-colors">${colorDots}</div>` : ''}
+        </div>
+      </div>`;
+  }
 
-    const cards = catProducts.map(p => {
-      const favActive = isFav(p.code);
-      const colorsWithPhoto = (p.colors || []).filter(c => c.kapakFoto && !c.kapakFoto.includes('undefined'));
-      const colorDots = colorsWithPhoto.length > 1
-        ? colorsWithPhoto.map(c => `<div class="color-dot" style="${swatchStyle(c)}" title="${c.name}"></div>`).join('')
-        : '';
-      const coverPhoto = p.colors && p.colors[0] && p.colors[0].kapakFoto;
-      const isEager = cardImgCounter < EAGER_IMAGE_COUNT;
-      cardImgCounter++;
-      const imgSrcAttrs = isEager
-        ? `src="${coverPhoto}" loading="eager" fetchpriority="high"`
-        : `data-src="${coverPhoto}" loading="lazy"`;
-      const visualInner = coverPhoto
-        ? `<img class="product-card-img" ${imgSrcAttrs} alt="${p.name}">`
-        : `<div class="product-img-placeholder">
-              <i class="ti ti-hanger"></i>
-              <span class="product-code-overlay">${p.code}</span>
-            </div>`;
+  // Kategori id'sine göre kategori başlığına video bandı (bkz. CATEGORY_HEADER_VIDEO).
+  // opts.productsOverride verilirse (Yeni Sezon bölümü) normal kategori/ürün eşlemesi
+  // atlanır, verilen ürün listesi olduğu gibi kullanılır.
+  function buildCategorySection(cat, products, opts) {
+    opts = opts || {};
+    const catProducts = opts.productsOverride
+      ? opts.productsOverride.filter(hasPhoto)
+      : products.filter(p => p.category === cat.id && hasPhoto(p));
+    const videoBase = CATEGORY_HEADER_VIDEO[cat.id];
+    const isNewSection = !!opts.productsOverride;
+
+    const bodyInner = catProducts.length === 0
+      ? `<div style="text-align:center;padding:3rem 2rem;color:var(--text2);opacity:0.5;">
+           <i class="ti ti-clock" style="font-size:2rem;display:block;margin-bottom:0.8rem;"></i>
+           <span class="section-soon-label" style="font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;">Yakında • Coming Soon</span>
+         </div>`
+      : `<div class="product-grid">${catProducts.map(p => buildProductCard(p, cat, isNewSection)).join('')}</div>`;
+
+    if (videoBase) {
+      // Video bandı .section-wrap'in DIŞINDA: 100% viewport genişliği için (bkz. #season-hero
+      // ile aynı prensip) — .section-wrap 1400px'te sınırlı olduğundan içeride kalırsa tam
+      // genişlik olamaz.
       return `
-        <div class="product-card cat-${p.category} reveal"
-             data-code="${p.code}" data-name="${p.name} ${p.nameEn}" data-cat="${cat.name}"
-             role="button" tabindex="0" aria-label="${p.name} - ${p.code}">
-          <div class="product-card-visual">
-            ${visualInner}
-            <button class="card-fav ${favActive ? 'active' : ''}" data-code="${p.code}" title="Favorilere ekle" aria-label="Favori">
-              <i class="ti ${favActive ? 'ti-heart-filled' : 'ti-heart'}"></i>
-            </button>
+        <section class="cat-section" id="${cat.id}">
+          <div class="section-header-video reveal">
+            <video class="cat-bg-video" muted playsinline loop preload="none"
+                   poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4"></video>
+            <div class="cat-bg-video-overlay"></div>
+            <div class="cat-bg-video-text">
+              ${isNewSection ? `<span class="section-video-badge">NEW SEASON</span>` : ''}
+              <span class="section-tag">${cat.nameEn}</span>
+              <h2 class="section-title">${cat.name}</h2>
+            </div>
           </div>
-          <div class="product-card-info">
-            <span class="card-code">Kod: ${p.code}</span>
-            <div class="card-name">${p.name}</div>
-            <div class="card-name-en">${p.nameEn}</div>
-            ${colorDots ? `<div class="card-colors">${colorDots}</div>` : ''}
-          </div>
-        </div>`;
-    }).join('');
+          <div class="section-wrap">${bodyInner}</div>
+        </section>`;
+    }
 
     return `
       <section class="cat-section" id="${cat.id}">
@@ -2220,9 +2567,31 @@ html, body { overflow-x: hidden; max-width: 100%; }
             <h2 class="section-title">${cat.name}</h2>
             <div class="section-divider"></div>
           </div>
-          <div class="product-grid">${cards}</div>
+          ${bodyInner}
         </div>
       </section>`;
+  }
+
+  // "Yeni Sezon" bölümü: panel API/JSON'da ürüne eklenme tarihi yok — bu yüzden olası
+  // bir tarih alanı varsa son 30 gün filtrelenir, yoksa kod numarası en yüksek (en yeni
+  // girilmiş) 12 ürün gösterilir.
+  function pickYeniSezonProducts(products) {
+    const withPhoto = products.filter(hasPhoto);
+    const dateOf = p => p.eklemeTarihi || p.dateAdded || p.createdAt || p.tarih || null;
+    const withDate = withPhoto.filter(p => dateOf(p));
+    if (withDate.length) {
+      const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const recent = withDate
+        .map(p => ({ p, t: new Date(dateOf(p)).getTime() }))
+        .filter(x => !isNaN(x.t) && x.t >= cutoff)
+        .sort((a, b) => b.t - a.t)
+        .map(x => x.p);
+      if (recent.length) return recent.slice(0, 12);
+    }
+    return withPhoto
+      .slice()
+      .sort((a, b) => (parseInt(b.code, 10) || 0) - (parseInt(a.code, 10) || 0))
+      .slice(0, 12);
   }
 
   function renderCatalog(data) {
@@ -2236,13 +2605,29 @@ html, body { overflow-x: hidden; max-width: 100%; }
     allProducts = data.products;
     cardImgCounter = 0;
     const catalog = document.getElementById('catalog');
+
+    // "Yeni Sezon" her zaman en üstte, gerçek kategori döngüsünün dışında ayrıca inşa
+    // edilir (data.categories 'yeni-sezon' içermeyebilir/içerse de normal ürün-kategori
+    // eşlemesine göre boş çıkardı) — eager-image sayacı için ilk sırada hesaplanır.
+    let yeniSezonHtml = '';
+    const yeniSezonCat = CATEGORIES.find(c => c.id === 'yeni-sezon');
+    if (yeniSezonCat) {
+      const yeniUrunler = pickYeniSezonProducts(data.products);
+      if (yeniUrunler.length) {
+        yeniSezonHtml = buildCategorySection(yeniSezonCat, data.products, { productsOverride: yeniUrunler });
+      }
+    }
+
+    const realCategories = data.categories.filter(c => c.id !== 'yeni-sezon');
     const hasProducts = cat => data.products.some(p => p.category === cat.id && hasPhoto(p));
-    const html = [...data.categories.filter(hasProducts), ...data.categories.filter(c => !hasProducts(c))]
+    const restHtml = [...realCategories.filter(hasProducts), ...realCategories.filter(c => !hasProducts(c))]
       .map(cat => buildCategorySection(cat, data.products))
       .join('');
-    catalog.innerHTML = html;
+
+    catalog.innerHTML = yeniSezonHtml + restHtml;
     console.log('[MissNesem] DOM güncellendi. Catalog children:', catalog.children.length);
     initLazyImages();
+    initCategoryVideos();
 
     // card click
     catalog.addEventListener('click', e => {
@@ -2272,6 +2657,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // ===== API ENTEGRASYONU =====
   // Sıra kataloğun varsayılan (Tüm Ürünler) görünümündeki bölüm sırasını belirler.
   const CATEGORIES = [
+    { id: 'yeni-sezon', name: 'Yeni Sezon', nameEn: 'New Season', nameAr: 'موسم جديد' },
     { id: 'trenckot', name: 'Trençkotlar', nameEn: 'Trench Coats', nameAr: 'ترنشكوت' },
     { id: 'takimlar', name: 'Takımlar', nameEn: 'Suits & Sets', nameAr: 'أطقم' },
     { id: 'ceket', name: 'Ceketler', nameEn: 'Jackets & Vests', nameAr: 'جاكيتات' },
@@ -2289,6 +2675,15 @@ html, body { overflow-x: hidden; max-width: 100%; }
     'Elbiseler': 'elbiseler', 'Bluzlar': 'bluzlar', 'Korseler': 'korseler',
     'Pantolonlar': 'pantolon', 'Etekler': 'etek', 'Yelekler': 'yelek',
     'Tesettür': 'tesettur', 'Diğer': 'diger',
+  };
+  // Kategori başlığına video bandı eklenecek kategoriler (bkz. buildCategorySection) —
+  // dosya adları /catalog/video/<değer>.mp4 + /catalog/video/<değer>_poster.jpg.
+  const CATEGORY_HEADER_VIDEO = {
+    'yeni-sezon': 'cat_yeni',
+    'trenckot': 'cat_trenckot',
+    'ceket': 'cat_ceket',
+    'takimlar': 'cat_takim',
+    'diger': 'cat_diger',
   };
 
   // Galeri elemanı ya eski API/fallback'te düz URL string'i ya da yeni API'de
@@ -2448,6 +2843,39 @@ html, body { overflow-x: hidden; max-width: 100%; }
     images.forEach(img => imgObserver.observe(img));
   }
 
+  // ===== KATEGORİ VİDEO ARKA PLANLARI (görünürlükte oynat/durdur) =====
+  // prefers-reduced-motion veya Save-Data aktifse video hiç yüklenmez, sadece poster kalır.
+  function initCategoryVideos() {
+    const videos = document.querySelectorAll('.cat-bg-video');
+    if (videos.length === 0) return;
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const saveData = navigator.connection && navigator.connection.saveData;
+    if (prefersReducedMotion || saveData) return;
+
+    if (!('IntersectionObserver' in window)) {
+      videos.forEach(v => {
+        if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); v.load(); }
+        const p = v.play();
+        if (p && p.catch) p.catch(() => {});
+      });
+      return;
+    }
+
+    const catVideoObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        const v = entry.target;
+        if (entry.isIntersecting) {
+          if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); v.load(); }
+          const p = v.play();
+          if (p && p.catch) p.catch(() => {});
+        } else if (v.src) {
+          v.pause();
+        }
+      });
+    }, { threshold: 0.15 });
+    videos.forEach(v => catVideoObserver.observe(v));
+  }
+
   // ===== INTERSECTION OBSERVER (reveal) =====
   function initReveal() {
     const els = document.querySelectorAll('.reveal, .cat-section');
@@ -2499,6 +2927,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
       splashEnter: 'Tıklayın veya bekleyin',
       favEmpty: 'Henüz favori eklemediniz.',
       favHint: 'Beğendiğiniz ürünleri kaydedin, WhatsApp ile gönderin ❤️',
+      seasonHeroTag: 'SONBAHAR · KIŞ 2026',
+      seasonHeroTitle: 'Yeni Sezon',
+      seasonHeroCta: 'KOLEKSİYONU KEŞFET',
+      newBadge: 'YENİ',
     },
     en: {
       whatsapp: 'More Info & Order via WhatsApp',
@@ -2515,6 +2947,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
       splashEnter: 'Click or wait',
       favEmpty: "You haven't added any favorites yet.",
       favHint: 'Save the products you like, send them via WhatsApp ❤️',
+      seasonHeroTag: 'AUTUMN · WINTER 2026',
+      seasonHeroTitle: 'New Season',
+      seasonHeroCta: 'EXPLORE THE COLLECTION',
+      newBadge: 'NEW',
     },
     ar: {
       whatsapp: 'لمزيد من المعلومات والطلب عبر واتساب',
@@ -2531,6 +2967,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
       splashEnter: 'انقر أو انتظر',
       favEmpty: 'لم تقم بإضافة أي مفضلة بعد.',
       favHint: 'احفظي المنتجات التي أعجبتك وأرسليها عبر واتساب ❤️',
+      seasonHeroTag: 'خريف · شتاء 2026',
+      seasonHeroTitle: 'موسم جديد',
+      seasonHeroCta: 'اكتشفي المجموعة',
+      newBadge: 'جديد',
     },
   };
 
@@ -2661,7 +3101,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   }
 
   function refreshTranslatedUI() {
-    document.querySelectorAll('.section-header').forEach(renderSectionHeaderText);
+    document.querySelectorAll('.section-header, .section-header-video').forEach(renderSectionHeaderText);
     document.querySelectorAll('.product-card').forEach(renderCardTexts);
     renderFavPanel();
     if (overlay.classList.contains('open')) refreshModalName();
@@ -2670,6 +3110,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // Navbar / mobil menü / footer kategori linkleri ve tekil etiketler (orijinal TR
   // metin elemanın data-tr'sinde saklanır, ilk applyLang çağrısında yakalanır).
   const NAV_LABELS = {
+    'Yeni Sezon': { en: 'New Season', ar: 'موسم جديد' },
     'Tüm Ürünler': { en: 'All Products', ar: 'جميع المنتجات' },
     'Elbiseler': { en: 'Dresses', ar: 'فساتين' },
     'Takımlar': { en: 'Suits & Sets', ar: 'أطقم' },
@@ -2742,6 +3183,15 @@ html, body { overflow-x: hidden; max-width: 100%; }
     if (splashSub) splashSub.textContent = t.splashSub;
     const splashEnter = document.querySelector('.splash-enter');
     if (splashEnter) splashEnter.textContent = t.splashEnter;
+
+    // season hero (video lookbook) metinleri
+    const shTag = document.querySelector('.season-hero-tag');
+    if (shTag) shTag.textContent = t.seasonHeroTag;
+    const shTitle = document.querySelector('.season-hero-title');
+    if (shTitle) shTitle.textContent = t.seasonHeroTitle;
+    const shCtaLabel = document.querySelector('.season-hero-cta .cta-label');
+    if (shCtaLabel) shCtaLabel.textContent = t.seasonHeroCta;
+    document.querySelectorAll('.new-badge').forEach(b => { b.textContent = t.newBadge; });
 
     // fav panel
     const favTitle = document.querySelector('.fav-panel-title');
