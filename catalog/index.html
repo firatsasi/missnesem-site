@@ -1006,7 +1006,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   width: 56px; height: 74px;
   flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
+  overflow: hidden; border-radius: 4px; background: #f4f0ea;
 }
+.fav-item-visual img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .fav-item-visual .ti { font-size: 1.5rem; color: var(--text2); opacity: 0.3; }
 .fav-item-info { flex: 1; }
 .fav-item-code {
@@ -1770,9 +1772,15 @@ footer {
     body.innerHTML = favorites.map(code => {
       const p = allProducts.find(x => x.code === code);
       if (!p) return '';
+      // Kapak fotoğrafı: ilk fotoğraflı rengin thumb'ı (yoksa medium); foto hiç yoksa askı ikonu
+      const fc = (p.colors || []).find(c => c.kapakFoto && !c.kapakFoto.includes('undefined'));
+      const favImg = fc ? (fc.kapakFotoThumb || fc.kapakFoto) : null;
+      const visual = favImg
+        ? `<img src="${favImg}" alt="${p.code}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'ti ti-hanger'}))">`
+        : `<i class="ti ti-hanger"></i>`;
       return `<div class="fav-item">
         <div class="fav-item-visual cat-${p.category}">
-          <i class="ti ti-hanger"></i>
+          ${visual}
         </div>
         <div class="fav-item-info">
           <div class="fav-item-code">${p.code}</div>
