@@ -55,3 +55,7 @@ urun_foto = Image.open("urun.jpg").convert("RGBA")
 **Ekran:** 4 katlı bina dış cephesi · ViPlex Express · 880×1560 px  
 **QR Linki:** wa.me/905308504221 — Miss Neşem koleksiyon talebi  
 **Adres:** Mehmet Nesih Özmen Mh. Fatih Cd. Gülsever Sk. No:7/A D:15 Merter/İstanbul
+
+## Lisans
+
+Tescilli yazılım — tüm hakları saklıdır. Detay: [LICENSE](../LICENSE)
