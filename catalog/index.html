@@ -824,6 +824,23 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   object-fit: cover;
   object-position: center 25%;
 }
+/* ≥900px: dikey (9:16) video artık ince bir şerit gibi aşırı büyütülmesin diye bant 4 eşit
+   dikey panele bölünür, her panelde aynı videonun ayrı <video>'su (farklı zaman noktasından
+   başlar, bkz. initCategoryVideos/data-seek-fraction). <900px'te (mobil) tek video, panel
+   grid'i hiç DOM'a yüklenmez/oynatılmaz — bkz. initCategoryVideos'taki isDesktop ayrımı. */
+.cat-bg-video-panels { display: none; }
+@media (min-width: 900px) {
+  .section-header-video { max-height: 620px; }
+  .cat-bg-video-panels {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    position: absolute;
+    inset: 0;
+  }
+  .cat-bg-video-panel { position: relative; overflow: hidden; height: 100%; }
+  .cat-bg-video-mobile { display: none; }
+}
 .cat-bg-video-overlay {
   position: absolute;
   inset: 0;
@@ -2355,10 +2372,22 @@ html, body { overflow-x: hidden; max-width: 100%; }
       // Video bandı .section-wrap'in DIŞINDA: 100% viewport genişliği için (bkz. #season-hero
       // ile aynı prensip) — .section-wrap 1400px'te sınırlı olduğundan içeride kalırsa tam
       // genişlik olamaz.
+      // Masaüstü: 4 dikey panel (aynı video, her biri farklı zaman noktasından başlar) —
+      // dikey video tek şerit halinde aşırı büyütülüp bulanıklaşmasın diye. Mobil: tek video
+      // (değişmedi). İkisi de DOM'da durur, initCategoryVideos sadece viewport'a uyanı yükler.
+      const focus = VIDEO_FOCUS[videoBase] || 'center 45%';
+      const panelsHtml = [0, 0.25, 0.5, 0.75].map(frac => `
+            <div class="cat-bg-video-panel">
+              <video class="cat-bg-video" muted playsinline loop preload="none"
+                     poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4?v=2"
+                     data-focus="${focus}" data-seek-fraction="${frac}"></video>
+            </div>`).join('');
       return `
         <section class="cat-section" id="${cat.id}">
           <div class="section-header-video reveal">
-            <video class="cat-bg-video" muted playsinline loop preload="none"
+            <div class="cat-bg-video-panels">${panelsHtml}
+            </div>
+            <video class="cat-bg-video cat-bg-video-mobile" muted playsinline loop preload="none"
                    poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4?v=2"></video>
             <div class="cat-bg-video-overlay"></div>
             <div class="cat-bg-video-text">
@@ -2501,6 +2530,15 @@ html, body { overflow-x: hidden; max-width: 100%; }
     'ceket': 'cat_ceket',
     'takimlar': 'cat_takim',
     'diger': 'cat_diger',
+  };
+  // Masaüstü 4 panelli kategori bandında her panelin object-position odağı — video
+  // bazında farklılaştırılabilsin diye tek objede tutulur (bkz. buildCategorySection).
+  const VIDEO_FOCUS = {
+    cat_yeni: 'center 45%',
+    cat_trenckot: 'center 45%',
+    cat_ceket: 'center 45%',
+    cat_takim: 'center 45%',
+    cat_diger: 'center 45%',
   };
 
   // Galeri elemanı ya eski API/fallback'te düz URL string'i ya da yeni API'de
@@ -2661,36 +2699,61 @@ html, body { overflow-x: hidden; max-width: 100%; }
   }
 
   // ===== KATEGORİ VİDEO ARKA PLANLARI (görünürlükte oynat/durdur) =====
-  // prefers-reduced-motion veya Save-Data aktifse video hiç yüklenmez, sadece poster kalır.
+  // prefers-reduced-motion veya Save-Data aktifse hiçbir video hiç yüklenmez, tüm
+  // panellerde sadece poster kalır. Masaüstü (≥900px) 4 panel / mobil tek video — hangisi
+  // aktifse SADECE o yüklenir (ikisi birden yüklenmez); viewport kontrolü sayfa açılışında
+  // bir kez yapılır (bkz. #season-hero'daki aynı desen), resize'da tekrar değerlendirilmez.
+  // Gözlem hedefi tek tek videolar değil, .section-header-video bandının kendisi — bant
+  // görünür olunca o banttaki tüm aktif videolar (4'ü veya 1'i) birlikte oynar/durur.
   function initCategoryVideos() {
-    const videos = document.querySelectorAll('.cat-bg-video');
-    if (videos.length === 0) return;
+    const bands = document.querySelectorAll('.section-header-video');
+    if (bands.length === 0) return;
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const saveData = navigator.connection && navigator.connection.saveData;
     if (prefersReducedMotion || saveData) return;
 
-    if (!('IntersectionObserver' in window)) {
-      videos.forEach(v => {
-        if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); v.load(); }
+    const isDesktop = window.matchMedia('(min-width: 900px)').matches;
+    function activeVideos(band) {
+      return isDesktop
+        ? band.querySelectorAll('.cat-bg-video-panels .cat-bg-video')
+        : [band.querySelector('.cat-bg-video-mobile')].filter(Boolean);
+    }
+    function loadVideo(v) {
+      if (!v || v.dataset.loaded) return;
+      v.dataset.loaded = '1';
+      if (v.dataset.focus) v.style.objectPosition = v.dataset.focus;
+      if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); }
+      v.load();
+      const frac = parseFloat(v.dataset.seekFraction);
+      if (frac > 0) {
+        v.addEventListener('loadedmetadata', () => {
+          if (v.duration) { try { v.currentTime = v.duration * frac; } catch (e) {} }
+        }, { once: true });
+      }
+    }
+    function playAll(vids) {
+      vids.forEach(v => {
+        loadVideo(v);
         const p = v.play();
         if (p && p.catch) p.catch(() => {});
       });
+    }
+    function pauseAll(vids) {
+      vids.forEach(v => { if (v.src) v.pause(); });
+    }
+
+    if (!('IntersectionObserver' in window)) {
+      bands.forEach(band => playAll(activeVideos(band)));
       return;
     }
 
     const catVideoObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
-        const v = entry.target;
-        if (entry.isIntersecting) {
-          if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); v.load(); }
-          const p = v.play();
-          if (p && p.catch) p.catch(() => {});
-        } else if (v.src) {
-          v.pause();
-        }
+        const vids = activeVideos(entry.target);
+        if (entry.isIntersecting) playAll(vids); else pauseAll(vids);
       });
     }, { threshold: 0.15 });
-    videos.forEach(v => catVideoObserver.observe(v));
+    bands.forEach(band => catVideoObserver.observe(band));
   }
 
   // ===== INTERSECTION OBSERVER (reveal) =====
