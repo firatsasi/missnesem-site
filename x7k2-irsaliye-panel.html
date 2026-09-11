@@ -6,9 +6,10 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Miss Neşem · İrsaliye</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<!-- Kasa Raporu bunu kullanıyor: html2canvas screenshot yerine doğrudan text/table tabanlı PDF
-     (bkz. kasaRaporuIndir) — cdnjs'te 2.5.2 yok, en yakın sürüm 2.5.1. -->
+<!-- Tüm PDF üretimi (İrsaliye/Rapor/Kasa Raporu) html2canvas screenshot yerine doğrudan
+     text/table tabanlı jsPDF çizimiyle yapılıyor (bkz. _irsaliyePdfCiz/_raporPdfCiz/
+     _kasaRaporuPdfYaz) — cdnjs'te 2.5.2 yok, en yakın sürüm 2.5.1. PNG çıktısı hâlâ
+     html2canvas kullanıyor (yukarıdaki script). -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -1795,15 +1796,50 @@ function irsaliyeHtmlOlustur(k){
     '<div style="text-align:center;color:#999;font-size:11px;margin-top:6px;line-height:1.8">🌐 missnesem.com &nbsp;|&nbsp; ✈ Telegram: @missnesemwholesale &nbsp;|&nbsp; 📷 Instagram: @missnesemtoptan &nbsp;|&nbsp; ✉ info@missnesem.com</div>';
   return el;
 }
+// Kayıtlı bir irsaliyenin urunler[]'i (kaydet()'te her renk ayrı kalem olarak flat kaydedilir,
+// bkz. satirKalemleri) tekrar tek satıra gruplanır — irsaliyeDuzenle()'deki gruplama ile aynı
+// mantık (kod+urun+fiyat+iade+seri!=null) — böylece geçmişten indirilen PDF de canlı formdaki
+// pdfIndir() ile aynı görünümde (renkler "SİYAH (2) / KAHVE (1)" tek satırda) üretilir.
+function _urunlerSatiraGrupla(urunler){
+  var gruplar=[],map={};
+  (urunler||[]).forEach(function(u){
+    if(u.seri!=null&&u.kod){
+      var key=u.kod+'|'+u.urun+'|'+u.fiyat+'|'+(u.iade?1:0);
+      var g=map[key];
+      if(!g){g={kod:u.kod,urun:u.urun,fiyat:u.fiyat,iade:!!u.iade,adet:0,renkler:[]};map[key]=g;gruplar.push(g);}
+      g.adet+=u.adet;
+      g.renkler.push((u.renk||'')+' ('+u.seri+')');
+    }else{
+      gruplar.push({kod:u.kod||'',urun:u.urun||u.ad||'',fiyat:u.fiyat,iade:!!u.iade,adet:u.adet,renkler:u.renk?[u.renk]:[]});
+    }
+  });
+  return gruplar.map(function(g){
+    return {adet:g.adet,kod:g.kod,urun:g.urun,renk:g.renkler.join(' / '),fiyat:g.fiyat,toplam:g.adet*g.fiyat,iade:g.iade};
+  });
+}
 function popPdf(id){
   var v=veriCek();
   var k=v.find(function(x){return x.id===id;});
   if(!k)return;
-  var el=irsaliyeHtmlOlustur(k);
-  document.body.appendChild(el);
+  var d=k.tarih.split('-');
+  var genelGoster=k.genel;
+  if(k.odeme==='AcikHesap')genelGoster=(typeof k.yeniBakiye==='number')?k.yeniBakiye:((k.eskiBakiye||0)+k.genel);
+  var veri={
+    musteri:k.musteri,tarihStr:d[2]+'.'+d[1]+'.'+d[0],para:k.para||'TL',
+    satirlar:_urunlerSatiraGrupla(k.urunler),
+    ara:k.ara||0,oran:k.kdvOran||0,kdv:k.kdv||0,iadeTutar:k.iadeToplam||0,
+    kargoUcret:k.kargoUcret||0,genel:k.genel||0,
+    acikHesap:k.odeme==='AcikHesap',eski:k.eskiBakiye||0,genelGoster:genelGoster
+  };
   var dosyaAdi='MissNesem_'+k.musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.pdf';
-  var opt={margin:[8,8,8,8],filename:dosyaAdi,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#f0e4d3'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
-  html2pdf().set(opt).from(el).save().then(function(){el.remove();});
+  _notoFontYukle().then(function(){
+    var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+    _notoFontEkle(doc);
+    _irsaliyePdfCiz(doc,veri);
+    doc.save(dosyaAdi);
+  }).catch(function(err){
+    alert('PDF oluşturulamadı: '+err.message);
+  });
 }
 function popPng(id){
   var v=veriCek();
@@ -2124,30 +2160,60 @@ function _pdfUrunKontrol(){
   if(!hasUrun){alert('En az 1 ürün girin');return null;}
   return musteri;
 }
+// Canlı formdan (DOM'dan) İrsaliye PDF'i için normalize veri üretir — ekrandaki her <tr> tek
+// bir satıra karşılık gelir (çoklu renk çipleri varsa "SİYAH (2) / KAHVE (1)" düz metin olarak
+// birleştirilir, bkz. tr._renkKalemleri). Kargo firması/müşteri kodu burada hiç okunmuyor —
+// PDF'e bilerek yazılmıyor (mevcut davranış).
+function _irsaliyeGosterimVerisi(){
+  var musteri=document.getElementById('musteri').value.trim();
+  var tarihVal=document.getElementById('tarih').value;
+  var tarihStr=tarihVal?(function(){var p=tarihVal.split('-');return p[2]+'.'+p[1]+'.'+p[0];})():'';
+  var para=document.getElementById('para').value;
+  var satirlar=[];
+  document.querySelectorAll('#tb tr').forEach(function(tr){
+    var adet=gercekAdet(tr);
+    var bilgi=satirKalemBilgisi(tr);
+    var renkText=(tr._renkKalemleri&&tr._renkKalemleri.length)
+      ?tr._renkKalemleri.map(function(k){return k.renk+' ('+k.seri+')';}).join(' / ')
+      :bilgi.renk;
+    if(adet<=0||!(bilgi.kod||bilgi.urun||renkText))return;
+    var chk=tr.querySelector('.iade-chk');
+    var isIade=!!(chk&&chk.checked);
+    var fiyatInp=tr.querySelector('.fiyat-wrap input');
+    var fiyat=parseFloat((fiyatInp.value||'').replace(',','.'))||0;
+    satirlar.push({adet:adet,kod:bilgi.kod,urun:bilgi.urun,renk:renkText,fiyat:fiyat,toplam:adet*fiyat,iade:isIade});
+  });
+  var ara=0,iadeTutar=0;
+  satirlar.forEach(function(s){if(s.iade)iadeTutar+=s.toplam;else ara+=s.toplam;});
+  var oran=parseInt(document.getElementById('kdvOran').value)||0;
+  var kdv=Math.round(ara*oran/100*100)/100;
+  var kargoUcret=parseFloat((document.getElementById('kargoUcret').value||'').replace(/\./g,'').replace(',','.'))||0;
+  var genel=ara+kdv-iadeTutar+kargoUcret;
+  var acikHesap=document.getElementById('odeme').value==='AcikHesap';
+  var eski=0;
+  if(acikHesap){
+    var ebVal=(document.getElementById('eskiBakiye').value||'').replace(/\./g,'').replace(',','.');
+    eski=parseFloat(ebVal)||0;
+  }
+  return{
+    musteri:musteri,tarihStr:tarihStr,para:para,satirlar:satirlar,
+    ara:ara,oran:oran,kdv:kdv,iadeTutar:iadeTutar,kargoUcret:kargoUcret,genel:genel,
+    acikHesap:acikHesap,eski:eski,genelGoster:acikHesap?(eski+genel):genel
+  };
+}
 function pdfIndir(){
   var musteri=_pdfUrunKontrol();
   if(!musteri)return;
   kaydet(true,true);
-  var s=hazirla();
+  var veri=_irsaliyeGosterimVerisi();
   var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.pdf';
-  var el=document.getElementById('irsaliye');
-  // Müşteriye giden belgede kargo firması/müşteri kodu görünmesin
-  var kargoToggle=document.getElementById('kargoToggle');
-  var kargoBox=document.getElementById('kargoBox');
-  var prevToggleDisplay=kargoToggle.style.display;
-  var prevBoxDisplay=kargoBox.style.display;
-  kargoToggle.style.display='none';
-  kargoBox.style.display='none';
-  // 2026-09-11: Sabit A4'te uzun irsaliyelerde toplam/footer ikinci sayfaya düşüyordu (Kasa
-  // Raporu'ndaki yaklaşım): içerik yüksekliği ölçülüp sayfa ona göre uzatılır — tek sayfa,
-  // bölünme yok. Kısa irsaliyede A4'ten küçük olmasın diye alt sınır 297mm.
-  var _r=el.getBoundingClientRect();
-  var hMM=Math.max(297,Math.ceil(_r.height/(_r.width/(210-16)))+32);
-  var opt={margin:[8,8,8,8],filename:dosyaAdi,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,backgroundColor:'#f0e4d3'},jsPDF:{unit:'mm',format:[210,hMM],orientation:'portrait'}};
-  html2pdf().set(opt).from(el).save().then(function(){
-    kargoToggle.style.display=prevToggleDisplay;
-    kargoBox.style.display=prevBoxDisplay;
-    geriAl(s);
+  _notoFontYukle().then(function(){
+    var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+    _notoFontEkle(doc);
+    _irsaliyePdfCiz(doc,veri);
+    doc.save(dosyaAdi);
+  }).catch(function(err){
+    alert('PDF oluşturulamadı: '+err.message);
   });
 }
 function pngIndir(){
@@ -2295,31 +2361,18 @@ function whatsappSiparis(){
   });
 }
 function raporPdf(){
-  var card=document.querySelector('.rapor-card');
-  // UI elemanlarını gizle (tarih seçici, butonlar, sil/göster butonları)
-  var hide=card.querySelectorAll('.date-pick,.btns,.si,td button');
-  hide.forEach(function(el){el.style.display='none';});
-  // 2026-09-11: export düzeni (2 sütun grid, tam genişlik toplamlar, oranlı tablo sütunları)
-  card.classList.add('rapor-export');
-  // İçerik yüksekliğini ölç → PDF sayfasını tam oturt. Sabit 0.2646 mm/px yerine gerçek
-  // eşleme: kart genişliği → 194mm (210 - 2×8 margin). Dar kartta sabit oran yükseklik
-  // eksik hesaplıyor, tablo 2. sayfaya düşüyordu.
-  var contentWmm=210-16;
-  var rect=card.getBoundingClientRect();
-  var pxPerMm=rect.width/contentWmm;
-  // border+radius dahil gerçek yükseklik; +32mm pay (8+8 margin + güvenlik) — alt köşe
-  // 2. sayfaya taşmasın.
-  var hMM=Math.ceil(rect.height/pxPerMm)+32;
-  var opt={
-    margin:[8,8,8,8],
-    filename:'MissNesem_Rapor_'+new Date().toISOString().split('T')[0]+'.pdf',
-    image:{type:'jpeg',quality:0.95},
-    html2canvas:{scale:2,backgroundColor:'#f0e4d3'},
-    jsPDF:{unit:'mm',format:[210,hMM],orientation:'portrait'}
-  };
-  html2pdf().set(opt).from(card).save().then(function(){
-    card.classList.remove('rapor-export');
-    hide.forEach(function(el){el.style.display='';});
+  if(!_sonRaporVerisi){
+    alert('Rapor verisi henüz yüklenmedi, lütfen birkaç saniye sonra tekrar deneyin.');
+    return;
+  }
+  var res=_sonRaporVerisi;
+  _notoFontYukle().then(function(){
+    var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+    _notoFontEkle(doc);
+    _raporPdfCiz(doc,res);
+    doc.save('MissNesem_Rapor_'+new Date().toISOString().split('T')[0]+'.pdf');
+  }).catch(function(err){
+    alert('Rapor PDF oluşturulamadı: '+err.message);
   });
 }
 function raporPng(){
@@ -2370,6 +2423,15 @@ function _notoFontYukle(){
     _notoRegB64=bufToBase64(bufs[0]);
     _notoBoldB64=bufToBase64(bufs[1]);
   });
+}
+// _notoFontYukle() ile indirilmiş TTF'leri verilen jsPDF doc'una gömüp 'NotoSans' ailesini
+// (normal+bold) kullanılabilir hale getirir — İrsaliye/Rapor/Kasa Raporu PDF'lerinin hepsi
+// bunu çağırır, font gömme kodu tek yerde.
+function _notoFontEkle(doc){
+  doc.addFileToVFS('NotoSans-Regular.ttf',_notoRegB64);
+  doc.addFont('NotoSans-Regular.ttf','NotoSans','normal');
+  doc.addFileToVFS('NotoSans-Bold.ttf',_notoBoldB64);
+  doc.addFont('NotoSans-Bold.ttf','NotoSans','bold');
 }
 // Kasa (fiziksel para giriş-çıkış) raporu — Kredi Kartı/POS kasaya girmediğinden Resmi+Gayri
 // Resmi bölüm toplamları ile Genel Toplam (tüm ödeme yöntemleri) her zaman örtüşmeyebilir;
@@ -2469,10 +2531,7 @@ function kasaRaporuIndir(btn){
   if(btn){btn.disabled=true;btn.textContent='Hazırlanıyor...';}
   _notoFontYukle().then(function(){
     var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
-    doc.addFileToVFS('NotoSans-Regular.ttf',_notoRegB64);
-    doc.addFont('NotoSans-Regular.ttf','NotoSans','normal');
-    doc.addFileToVFS('NotoSans-Bold.ttf',_notoBoldB64);
-    doc.addFont('NotoSans-Bold.ttf','NotoSans','bold');
+    _notoFontEkle(doc);
     _kasaRaporuPdfYaz(doc,_sonRaporVerisi);
     doc.save('MissNesem_KasaRaporu_'+new Date().toISOString().split('T')[0]+'.pdf');
   }).catch(function(err){
@@ -2480,6 +2539,294 @@ function kasaRaporuIndir(btn){
   }).finally(function(){
     if(btn){btn.disabled=false;btn.textContent=eskiMetin;}
   });
+}
+
+/* ====== İRSALİYE / GÜNLÜK RAPOR PDF ÇİZİM YARDIMCILARI (jsPDF native) ======
+   A4, 10mm kenar boşluğu, içerik genişliği 190mm — Kasa Raporu ile aynı font (NotoSans,
+   bkz. _notoFontYukle/_notoFontEkle) ve aynı marka renkleri kullanılır. */
+var _PDF_W=210,_PDF_H=297,_PDF_M=10,_PDF_R=200; // sayfa genişlik/yükseklik, kenar boşluğu, sağ sınır (=_PDF_W-_PDF_M)
+var _PDF_ALT=_PDF_H-_PDF_M-16; // içerik bu Y'den sonrasına taşmasın (altta footer için yer bırakılır)
+var _C_KOYU=[44,36,25],_C_VURGU=[166,77,62],_C_GOLD=[184,152,94],_C_LINE=[200,168,122],
+    _C_BG=[240,228,211],_C_ZEBRA=[250,246,240],_C_IADE_BG=[255,224,224],_C_IADE=[192,57,43],_C_BEYAZ=[255,255,255];
+
+function _pdfArkaplan(doc){doc.setFillColor.apply(doc,_C_BG);doc.rect(0,0,_PDF_W,_PDF_H,'F');}
+function _pdfYeniSayfa(doc){doc.addPage();_pdfArkaplan(doc);return _PDF_M+6;}
+
+// Sayfa altına marka notu + "sayfa no / toplam" yazar — sayfa sayısı önceden bilinmediği için
+// tüm sayfalar çizildikten SONRA, doc.setPage() ile geriye dönülerek tek seferde yazılır.
+function _pdfFooterYaz(doc,sosyalSatir){
+  var toplam=doc.internal.getNumberOfPages();
+  for(var i=1;i<=toplam;i++){
+    doc.setPage(i);
+    doc.setFont('NotoSans','normal');doc.setFontSize(8);doc.setTextColor.apply(doc,_C_VURGU);
+    doc.text('MISS NEŞEM · MERTER · İSTANBUL',_PDF_W/2,_PDF_H-14,{align:'center'});
+    if(sosyalSatir){
+      doc.setFontSize(6.5);
+      doc.text(sosyalSatir,_PDF_W/2,_PDF_H-10,{align:'center'});
+    }
+    doc.setFontSize(8);doc.setTextColor.apply(doc,_C_KOYU);
+    doc.text(i+'/'+toplam,_PDF_R,_PDF_H-6,{align:'right'});
+  }
+}
+
+function _pdfAlanKutusu(doc,x,y,w,h,etiket,deger){
+  doc.setDrawColor.apply(doc,_C_LINE);doc.setLineWidth(0.25);
+  doc.setFillColor.apply(doc,_C_BEYAZ);
+  doc.roundedRect(x,y,w,h,1.5,1.5,'FD');
+  doc.setFont('NotoSans','bold');doc.setFontSize(7);doc.setTextColor.apply(doc,_C_VURGU);
+  doc.text(etiket,x+3,y+5.5);
+  doc.setFont('NotoSans','normal');doc.setFontSize(11);doc.setTextColor.apply(doc,_C_KOYU);
+  doc.text(deger||'',x+3,y+12);
+}
+
+/* ---- İRSALİYE ---- */
+var _IRS_COLW={adet:14,kod:16,urun:42,renk:62,fiyat:26,toplam:30};
+var _IRS_COLX={adet:_PDF_M,kod:_PDF_M+14,urun:_PDF_M+30,renk:_PDF_M+72,fiyat:_PDF_M+134,toplam:_PDF_M+160};
+function _irsaliyeTabloBasligi(doc,y){
+  var h=8;
+  doc.setFillColor.apply(doc,_C_KOYU);
+  doc.rect(_PDF_M,y,_PDF_R-_PDF_M,h,'F');
+  doc.setFont('NotoSans','bold');doc.setFontSize(8);doc.setTextColor.apply(doc,_C_BG);
+  doc.text('ADET',_IRS_COLX.adet+_IRS_COLW.adet/2,y+5.3,{align:'center'});
+  doc.text('KOD',_IRS_COLX.kod+1.5,y+5.3);
+  doc.text('ÜRÜN',_IRS_COLX.urun+1.5,y+5.3);
+  doc.text('RENK',_IRS_COLX.renk+1.5,y+5.3);
+  doc.text('BİRİM FİYAT',_IRS_COLX.fiyat+_IRS_COLW.fiyat-1.5,y+5.3,{align:'right'});
+  doc.text('TOPLAM',_IRS_COLX.toplam+_IRS_COLW.toplam-1.5,y+5.3,{align:'right'});
+  return y+h;
+}
+// veri: bkz. _irsaliyeGosterimVerisi() (canlı form) / popPdf() (kayıtlı irsaliye)
+function _irsaliyePdfCiz(doc,veri){
+  _pdfArkaplan(doc);
+  var y=_PDF_M+8;
+  doc.setFont('NotoSans','bold');doc.setFontSize(20);doc.setTextColor.apply(doc,_C_KOYU);
+  doc.text('MISS NEŞEM',_PDF_W/2,y,{align:'center'});
+  y+=6;
+  doc.setFont('NotoSans','normal');doc.setFontSize(9);doc.setTextColor.apply(doc,_C_VURGU);
+  doc.text('MERTER · İSTANBUL',_PDF_W/2,y,{align:'center'});
+  y+=5;
+  doc.setDrawColor.apply(doc,_C_GOLD);doc.setLineWidth(0.3);
+  doc.line(_PDF_W/2-16,y,_PDF_W/2+16,y);
+  y+=6;
+  doc.setFont('NotoSans','bold');doc.setFontSize(12);doc.setTextColor.apply(doc,_C_KOYU);
+  doc.text('İRSALİYE',_PDF_W/2,y,{align:'center'});
+  y+=10;
+
+  var kutuW=(_PDF_R-_PDF_M-4)/2,kutuH=16;
+  _pdfAlanKutusu(doc,_PDF_M,y,kutuW,kutuH,'MÜŞTERİ',veri.musteri);
+  _pdfAlanKutusu(doc,_PDF_M+kutuW+4,y,kutuW,kutuH,'TARİH',veri.tarihStr);
+  y+=kutuH+8;
+
+  y=_irsaliyeTabloBasligi(doc,y);
+
+  var lineH=4.1,padY=1.8,padX=1.5;
+  doc.setFontSize(9);
+  veri.satirlar.forEach(function(s,idx){
+    var kodLines=doc.splitTextToSize(s.kod||'',_IRS_COLW.kod-2*padX);
+    var urunTxt=(s.iade?'İADE: ':'')+(s.urun||'');
+    var urunLines=doc.splitTextToSize(urunTxt,_IRS_COLW.urun-2*padX);
+    var renkLines=doc.splitTextToSize(s.renk||'',_IRS_COLW.renk-2*padX);
+    var maxLines=Math.max(kodLines.length,urunLines.length,renkLines.length,1);
+    var rowH=Math.max(8,maxLines*lineH+2*padY);
+    if(y+rowH>_PDF_ALT){
+      y=_pdfYeniSayfa(doc);
+      y=_irsaliyeTabloBasligi(doc,y);
+    }
+    doc.setFillColor.apply(doc,s.iade?_C_IADE_BG:(idx%2===0?_C_BEYAZ:_C_ZEBRA));
+    doc.rect(_PDF_M,y,_PDF_R-_PDF_M,rowH,'F');
+    var textY=y+padY+3.2;
+    var midY=y+rowH/2+1.1;
+    doc.setFont('NotoSans','normal');doc.setTextColor.apply(doc,_C_KOYU);
+    doc.text(String(s.adet),_IRS_COLX.adet+_IRS_COLW.adet/2,midY,{align:'center'});
+    doc.text(kodLines,_IRS_COLX.kod+padX,textY);
+    doc.setFont('NotoSans',s.iade?'bold':'normal');
+    doc.setTextColor.apply(doc,s.iade?_C_IADE:_C_KOYU);
+    doc.text(urunLines,_IRS_COLX.urun+padX,textY);
+    doc.setFont('NotoSans','normal');doc.setTextColor.apply(doc,_C_KOYU);
+    doc.text(renkLines,_IRS_COLX.renk+padX,textY);
+    doc.text(fmtPara(s.fiyat,veri.para),_IRS_COLX.fiyat+_IRS_COLW.fiyat-padX,midY,{align:'right'});
+    doc.setFont('NotoSans','bold');
+    doc.setTextColor.apply(doc,s.iade?_C_IADE:_C_KOYU);
+    doc.text(fmtPara(s.iade?-s.toplam:s.toplam,veri.para),_IRS_COLX.toplam+_IRS_COLW.toplam-padX,midY,{align:'right'});
+    doc.setDrawColor.apply(doc,_C_LINE);doc.setLineWidth(0.15);
+    doc.line(_PDF_M,y+rowH,_PDF_R,y+rowH);
+    y+=rowH;
+  });
+  y+=4;
+
+  var showAra=veri.oran>0||veri.iadeTutar>0||veri.kargoUcret>0;
+  var showKdv=veri.oran>0,showIade=veri.iadeTutar>0,showKargo=veri.kargoUcret>0;
+  var satirSayisi=(showAra?1:0)+(showKdv?1:0)+(showIade?1:0)+(showKargo?1:0);
+  var blokH=satirSayisi*7+14+(veri.acikHesap?24:0)+6;
+  if(y+blokH>_PDF_ALT)y=_pdfYeniSayfa(doc);
+
+  function totalSatir(etiket,deger,renk){
+    doc.setFont('NotoSans',renk?'bold':'normal');doc.setFontSize(10);
+    doc.setTextColor.apply(doc,renk||_C_KOYU);
+    doc.text(etiket,_PDF_M+158,y,{align:'right'});
+    doc.text(deger,_PDF_R,y,{align:'right'});
+    y+=7;
+  }
+  if(showAra)totalSatir('ARA TOPLAM',fmtPara(veri.ara,veri.para));
+  if(showKdv)totalSatir('KDV (%'+veri.oran+')',fmtPara(veri.kdv,veri.para));
+  if(showIade)totalSatir('İADE',fmtPara(-veri.iadeTutar,veri.para),_C_IADE);
+  if(showKargo)totalSatir('KARGO ÜCRETİ',fmtPara(veri.kargoUcret,veri.para));
+
+  var kutuY=y,kutuH2=14;
+  doc.setFillColor.apply(doc,_C_KOYU);
+  doc.roundedRect(_PDF_M+120,kutuY,_PDF_R-(_PDF_M+120),kutuH2,2,2,'F');
+  doc.setFont('NotoSans','normal');doc.setFontSize(8);doc.setTextColor.apply(doc,_C_GOLD);
+  doc.text('GENEL TOPLAM',_PDF_M+126,kutuY+6);
+  doc.setFont('NotoSans','bold');doc.setFontSize(15);doc.setTextColor.apply(doc,_C_BG);
+  doc.text(fmtPara(veri.genelGoster,veri.para),_PDF_R-4,kutuY+10.5,{align:'right'});
+  y=kutuY+kutuH2+6;
+
+  if(veri.acikHesap){
+    var by=y,bh=20;
+    doc.setDrawColor.apply(doc,_C_VURGU);doc.setLineWidth(0.4);
+    doc.roundedRect(_PDF_M,by,_PDF_R-_PDF_M,bh,2,2,'S');
+    var colW3=(_PDF_R-_PDF_M)/3;
+    [['ESKİ BAKİYE',fmtPara(veri.eski,veri.para)],
+     ['BU İŞLEM',fmtPara(veri.genel,veri.para)],
+     ['TOPLAM AÇIK BAKİYE',fmtPara(veri.genelGoster,veri.para)]
+    ].forEach(function(c,i){
+      var cx=_PDF_M+colW3*i;
+      doc.setFont('NotoSans','bold');doc.setFontSize(7);doc.setTextColor.apply(doc,_C_VURGU);
+      doc.text(c[0],cx+4,by+7);
+      doc.setFont('NotoSans','normal');doc.setFontSize(11);doc.setTextColor.apply(doc,_C_KOYU);
+      doc.text(c[1],cx+4,by+15);
+    });
+    y=by+bh+6;
+  }
+
+  _pdfFooterYaz(doc,'missnesem.com  |  Telegram: @missnesemwholesale  |  Instagram: @missnesemtoptan  |  info@missnesem.com');
+}
+
+/* ---- GÜNLÜK RAPOR ---- */
+// items: [{label,value,full,dark}] — full/dark: GENEL TOPLAM ve NET TUTAR tam genişlik+koyu kart.
+function _raporKartlariCiz(doc,y,items){
+  var kutuW=(_PDF_R-_PDF_M-4)/2,kutuH=15,bosluk=4,kol=0;
+  function kart(x,w,it){
+    if(it.dark){
+      doc.setFillColor.apply(doc,_C_KOYU);
+      doc.roundedRect(x,y,w,kutuH,1.5,1.5,'F');
+      doc.setFont('NotoSans','normal');doc.setFontSize(7);doc.setTextColor.apply(doc,_C_GOLD);
+      doc.text(it.label,x+4,y+6);
+      doc.setFont('NotoSans','bold');doc.setFontSize(13);doc.setTextColor.apply(doc,_C_BG);
+      doc.text(it.value,x+4,y+12);
+    }else{
+      doc.setDrawColor.apply(doc,_C_LINE);doc.setLineWidth(0.2);
+      doc.setFillColor.apply(doc,_C_BEYAZ);
+      doc.roundedRect(x,y,w,kutuH,1.5,1.5,'FD');
+      doc.setFont('NotoSans','bold');doc.setFontSize(7);doc.setTextColor.apply(doc,_C_VURGU);
+      doc.text(it.label,x+4,y+6);
+      doc.setFont('NotoSans','normal');doc.setFontSize(11);doc.setTextColor.apply(doc,_C_KOYU);
+      doc.text(it.value,x+4,y+12);
+    }
+  }
+  items.forEach(function(it){
+    if(it.full){
+      if(kol!==0){y+=kutuH+bosluk;kol=0;}
+      kart(_PDF_M,_PDF_R-_PDF_M,it);
+      y+=kutuH+bosluk;kol=0;
+    }else{
+      var x=_PDF_M+kol*(kutuW+bosluk);
+      kart(x,kutuW,it);
+      if(kol===0)kol=1;else{kol=0;y+=kutuH+bosluk;}
+    }
+  });
+  if(kol!==0)y+=kutuH+bosluk;
+  return y;
+}
+var _RAP_COLW={saat:16,musteri:58,adet:16,tutar:32,odeme:30,tur:38};
+var _RAP_COLX={saat:_PDF_M,musteri:_PDF_M+16,adet:_PDF_M+74,tutar:_PDF_M+90,odeme:_PDF_M+122,tur:_PDF_M+152};
+function _raporTabloBasligi(doc,y){
+  var h=8;
+  doc.setFillColor.apply(doc,_C_KOYU);
+  doc.rect(_PDF_M,y,_PDF_R-_PDF_M,h,'F');
+  doc.setFont('NotoSans','bold');doc.setFontSize(8);doc.setTextColor.apply(doc,_C_BG);
+  doc.text('SAAT',_RAP_COLX.saat+1.5,y+5.3);
+  doc.text('MÜŞTERİ',_RAP_COLX.musteri+1.5,y+5.3);
+  doc.text('ADET',_RAP_COLX.adet+1.5,y+5.3);
+  doc.text('TUTAR',_RAP_COLX.tutar+_RAP_COLW.tutar-1.5,y+5.3,{align:'right'});
+  doc.text('ÖDEME',_RAP_COLX.odeme+1.5,y+5.3);
+  doc.text('TÜR / TARİH',_RAP_COLX.tur+1.5,y+5.3);
+  return y+h;
+}
+function _raporPdfCiz(doc,res){
+  _pdfArkaplan(doc);
+  var y=_PDF_M+8;
+  doc.setFont('NotoSans','bold');doc.setFontSize(20);doc.setTextColor.apply(doc,_C_KOYU);
+  doc.text('MISS NEŞEM',_PDF_W/2,y,{align:'center'});
+  y+=7;
+  doc.setFont('NotoSans','bold');doc.setFontSize(10);doc.setTextColor.apply(doc,_C_VURGU);
+  doc.text('GÜNLÜK RAPOR',_PDF_W/2,y,{align:'center'});
+  y+=5.5;
+  doc.setFont('NotoSans','normal');doc.setFontSize(9);doc.setTextColor.apply(doc,_C_KOYU);
+  doc.text(_raporTarihEtiketi(),_PDF_W/2,y,{align:'center'});
+  y+=9;
+
+  var kasaTL=(res.kasaRaporu&&res.kasaRaporu.TRY)||{};
+  var items=[
+    {label:'İRSALİYE ADEDİ',value:String(res.irsaliyeAdedi||0)},
+    {label:'TOPLAM ADET',value:(res.toplamParca||0).toLocaleString('tr-TR')},
+    {label:'RESMİ TOPLAM',value:fmtPara(res.resmiToplam||0,'TL')},
+    {label:'GAYRİ RESMİ TOPLAM',value:fmtPara(res.gayriResmiToplam||0,'TL')},
+    {label:'GENEL TOPLAM',value:fmtPara(res.genelToplam||0,'TL'),full:true,dark:true}
+  ];
+  var dolarVar=(res.dolarAdet||0)>0,euroVar=(res.euroAdet||0)>0;
+  if(dolarVar)items.push({label:'DOLAR CİRO',value:fmtPara(res.dolarToplam||0,'USD')+' ('+res.dolarAdet+' adet)'});
+  if(euroVar)items.push({label:'EURO CİRO',value:fmtPara(res.euroToplam||0,'EUR')+' ('+res.euroAdet+' adet)'});
+  items.push(
+    {label:'TOPLAM SATIŞ',value:fmtPara(res.toplamSatis||0,'TL')},
+    {label:'TOPLAM İADE',value:fmtPara(res.toplamIade||0,'TL')},
+    {label:'NET TUTAR',value:fmtPara(res.netTutar||0,'TL'),full:true,dark:true},
+    {label:'NAKİT',value:fmtPara(res.nakit||0,'TL')},
+    {label:'RESMİ HAVALE',value:fmtPara((kasaTL.resmi&&kasaTL.resmi.havale&&kasaTL.resmi.havale.tutar)||0,'TL')},
+    {label:'GAYRİ RESMİ HAVALE',value:fmtPara((kasaTL.gayriResmi&&kasaTL.gayriResmi.havale&&kasaTL.gayriResmi.havale.tutar)||0,'TL')},
+    {label:'KREDİ KARTI',value:fmtPara(res.krediKarti||0,'TL')},
+    {label:'MAIL ORDER',value:fmtPara(res.mailOrder||0,'TL')},
+    {label:'AÇIK HESAP',value:fmtPara(res.acikHesap||0,'TL')}
+  );
+  y=_raporKartlariCiz(doc,y,items);
+  y+=4;
+
+  y=_raporTabloBasligi(doc,y);
+  var lineH=4.1,padY=1.8,padX=1.5;
+  doc.setFontSize(9);
+  var liste=(res.irsaliyeler||[]).slice().sort(function(a,b){return(a.saat||'').localeCompare(b.saat||'');});
+  liste.forEach(function(k,idx){
+    var para=k.para||'TL';
+    var tp=k.tarih?k.tarih.split('-'):['','',''];
+    var tarihKisa=tp[2]+'.'+tp[1];
+    var musteriLines=doc.splitTextToSize(k.musteri||'',_RAP_COLW.musteri-2*padX);
+    var rowH=Math.max(8,Math.max(musteriLines.length,2)*lineH+2*padY);
+    if(y+rowH>_PDF_ALT){
+      y=_pdfYeniSayfa(doc);
+      y=_raporTabloBasligi(doc,y);
+    }
+    doc.setFillColor.apply(doc,idx%2===0?_C_BEYAZ:_C_ZEBRA);
+    doc.rect(_PDF_M,y,_PDF_R-_PDF_M,rowH,'F');
+    var textY=y+padY+3.2,midY=y+rowH/2+1.1;
+    doc.setFont('NotoSans','normal');doc.setTextColor.apply(doc,_C_KOYU);
+    doc.text(k.saat||'',_RAP_COLX.saat+padX,midY);
+    doc.text(musteriLines,_RAP_COLX.musteri+padX,textY);
+    doc.text(String(k.parca||0),_RAP_COLX.adet+padX,midY);
+    doc.setFont('NotoSans','bold');
+    doc.text(fmtPara(k.tutar||0,para),_RAP_COLX.tutar+_RAP_COLW.tutar-padX,midY,{align:'right'});
+    doc.setFont('NotoSans','normal');
+    doc.text(k.odeme||'',_RAP_COLX.odeme+padX,midY);
+    doc.setFont('NotoSans','bold');doc.setTextColor.apply(doc,k.tur==='Resmi'?_C_KOYU:_C_VURGU);
+    doc.text(k.tur?k.tur.toUpperCase():'',_RAP_COLX.tur+padX,textY);
+    doc.setFont('NotoSans','normal');doc.setFontSize(7.5);doc.setTextColor.apply(doc,_C_VURGU);
+    doc.text(tarihKisa,_RAP_COLX.tur+padX,textY+lineH);
+    doc.setFontSize(9);
+    doc.setDrawColor.apply(doc,_C_LINE);doc.setLineWidth(0.15);
+    doc.line(_PDF_M,y+rowH,_PDF_R,y+rowH);
+    y+=rowH;
+  });
+
+  _pdfFooterYaz(doc,null);
 }
 
 /* ====== CARİ TAKİP ====== */
