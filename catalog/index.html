@@ -1521,19 +1521,19 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <div class="season-hero-panels" id="season-hero-panels">
     <div class="season-hero-panel season-hero-panel-left">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_left_poster.jpg" data-src="/catalog/video/hero_left.mp4?v=2"></video>
+             poster="/catalog/video/hero_left_poster.jpg" data-src="/catalog/video/hero_left.mp4?v=3"></video>
     </div>
     <div class="season-hero-panel season-hero-panel-center">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_center_poster.jpg" data-src="/catalog/video/hero_center.mp4?v=2"></video>
+             poster="/catalog/video/hero_center_poster.jpg" data-src="/catalog/video/hero_center.mp4?v=3"></video>
     </div>
     <div class="season-hero-panel season-hero-panel-right">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_right_poster.jpg" data-src="/catalog/video/hero_right.mp4?v=2"></video>
+             poster="/catalog/video/hero_right_poster.jpg" data-src="/catalog/video/hero_right.mp4?v=3"></video>
     </div>
     <div class="season-hero-panel season-hero-panel-mobile">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_mobile_poster.jpg" data-src="/catalog/video/hero_mobile.mp4?v=2"></video>
+             poster="/catalog/video/hero_mobile_poster.jpg" data-src="/catalog/video/hero_mobile.mp4?v=3"></video>
     </div>
   </div>
   <div class="season-hero-overlay"></div>
@@ -1689,7 +1689,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     videoEl.addEventListener('playing', () => { started = true; });
     videoEl.addEventListener('ended', closeIntro);
     videoEl.poster = '/catalog/video/' + posterFile; // yüklenirken poster görünsün, siyah ekran olmasın
-    videoEl.src = '/catalog/video/' + videoFile + '?v=3';
+    videoEl.src = '/catalog/video/' + videoFile + '?v=4';
     videoEl.load();
     videoEl.play().catch(() => {}); // engellenirse aşağıdaki 8sn bekçi zamanlayıcı kapatır
     setTimeout(() => { if (!started) closeIntro(); }, 8000); // video hiç başlamadıysa yedek
@@ -1697,7 +1697,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     // Bulanık arka plan kopyası sadece masaüstünde CSS'te görünür — mobilde boşuna
     // indirilmesin diye src'si de sadece burada, geniş ekranda set ediliyor.
     if (isDesktop) {
-      bgVideoEl.src = '/catalog/video/' + videoFile + '?v=3';
+      bgVideoEl.src = '/catalog/video/' + videoFile + '?v=4';
       bgVideoEl.load();
       const bgPlayPromise = bgVideoEl.play();
       if (bgPlayPromise && bgPlayPromise.catch) bgPlayPromise.catch(() => {});
@@ -2372,23 +2372,28 @@ html, body { overflow-x: hidden; max-width: 100%; }
       // Video bandı .section-wrap'in DIŞINDA: 100% viewport genişliği için (bkz. #season-hero
       // ile aynı prensip) — .section-wrap 1400px'te sınırlı olduğundan içeride kalırsa tam
       // genişlik olamaz.
-      // Masaüstü: 4 dikey panel (aynı video, her biri farklı zaman noktasından başlar) —
-      // dikey video tek şerit halinde aşırı büyütülüp bulanıklaşmasın diye. Mobil: tek video
-      // (değişmedi). İkisi de DOM'da durur, initCategoryVideos sadece viewport'a uyanı yükler.
-      const focus = VIDEO_FOCUS[videoBase] || 'center 45%';
-      const panelsHtml = [0, 0.25, 0.5, 0.75].map(frac => `
+      // Masaüstü: 4 dikey panel, HER BİRİ FARKLI bir video dosyası (bkz. BAND_PANELS) — aynı
+      // videoyu farklı zamanda tekrar oynatmak yerine gerçek çeşitlilik. Mobil: tek video,
+      // bandın kendi kategori videosu (değişmedi). İkisi de DOM'da durur, initCategoryVideos
+      // sadece viewport'a uyanı yükler.
+      const bandKey = videoBase.replace(/^cat_/, '');
+      const panelVideos = BAND_PANELS[bandKey] || [videoBase, videoBase, videoBase, videoBase];
+      const panelsHtml = panelVideos.map(pv => {
+        const pFocus = VIDEO_FOCUS[pv] || 'center 45%';
+        return `
             <div class="cat-bg-video-panel">
               <video class="cat-bg-video" muted playsinline loop preload="none"
-                     poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4?v=2"
-                     data-focus="${focus}" data-seek-fraction="${frac}"></video>
-            </div>`).join('');
+                     poster="/catalog/video/${pv}_poster.jpg" data-src="/catalog/video/${pv}.mp4?v=3"
+                     data-focus="${pFocus}"></video>
+            </div>`;
+      }).join('');
       return `
         <section class="cat-section" id="${cat.id}">
           <div class="section-header-video reveal">
             <div class="cat-bg-video-panels">${panelsHtml}
             </div>
             <video class="cat-bg-video cat-bg-video-mobile" muted playsinline loop preload="none"
-                   poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4?v=2"></video>
+                   poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4?v=3"></video>
             <div class="cat-bg-video-overlay"></div>
             <div class="cat-bg-video-text">
               ${isNewSection ? `<span class="section-video-badge">NEW SEASON</span>` : ''}
@@ -2533,12 +2538,29 @@ html, body { overflow-x: hidden; max-width: 100%; }
   };
   // Masaüstü 4 panelli kategori bandında her panelin object-position odağı — video
   // bazında farklılaştırılabilsin diye tek objede tutulur (bkz. buildCategorySection).
+  // hero_* dosyaları da panel havuzunda kullanılabildiği için (bkz. BAND_PANELS) burada var.
   const VIDEO_FOCUS = {
     cat_yeni: 'center 45%',
     cat_trenckot: 'center 45%',
     cat_ceket: 'center 45%',
     cat_takim: 'center 45%',
     cat_diger: 'center 45%',
+    hero_left: 'center 45%',
+    hero_center: 'center 45%',
+    hero_right: 'center 45%',
+    hero_mobile: 'center 45%',
+  };
+  // Masaüstü kategori bandındaki 4 panel artık AYNI videoyu farklı zamanda değil, HER BİRİ
+  // FARKLI bir dosya oynatıyor — havuz catalog/video/ altındaki tüm temiz videolar (5 kategori
+  // + 4 hero). Anahtar CATEGORY_HEADER_VIDEO'daki dosya adından 'cat_' öneki atılarak türetilir
+  // (ör. cat_trenckot → 'trenckot'). Bir bantta aynı video iki kez yok, alt alta gelen bantlar
+  // aynı sırayı paylaşmıyor — elle değiştirilebilir.
+  const BAND_PANELS = {
+    yeni:     ['cat_yeni', 'hero_left', 'cat_trenckot', 'hero_right'],
+    trenckot: ['cat_trenckot', 'hero_center', 'cat_ceket', 'cat_diger'],
+    ceket:    ['cat_ceket', 'hero_mobile', 'cat_takim', 'hero_left'],
+    takim:    ['cat_takim', 'hero_right', 'cat_yeni', 'hero_center'],
+    diger:    ['cat_diger', 'cat_ceket', 'hero_mobile', 'cat_trenckot'],
   };
 
   // Galeri elemanı ya eski API/fallback'te düz URL string'i ya da yeni API'de
@@ -2724,12 +2746,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
       if (v.dataset.focus) v.style.objectPosition = v.dataset.focus;
       if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); }
       v.load();
-      const frac = parseFloat(v.dataset.seekFraction);
-      if (frac > 0) {
-        v.addEventListener('loadedmetadata', () => {
-          if (v.duration) { try { v.currentTime = v.duration * frac; } catch (e) {} }
-        }, { once: true });
-      }
     }
     function playAll(vids) {
       vids.forEach(v => {
