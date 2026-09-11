@@ -696,6 +696,31 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   padding: 3px 8px;
 }
 
+/* ===== SOLD OUT (tükendi) ===== */
+.product-card-img.sold-out-img,
+.product-img-placeholder.sold-out-img {
+  opacity: 0.45;
+  filter: grayscale(35%);
+}
+.sold-out-badge {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  background: rgba(20,14,18,0.72);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.modal-photo.sold-out-img { opacity: 0.45; filter: grayscale(35%); }
+.modal-main-photo .sold-out-badge { font-size: 0.65rem; padding: 0.6rem 1.2rem; }
+.fav-item-visual.sold-out img { opacity: 0.45; filter: grayscale(35%); }
+
 .product-card-info {
   padding: 1rem 0 0;
 }
@@ -1536,6 +1561,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
 <div id="search-bar">
   <i class="ti ti-search" style="color:var(--text2);font-size:1rem;"></i>
   <input type="text" id="search-input" placeholder="Ürün kodu veya isim ara..." autocomplete="off" />
+  <label id="hide-soldout-label" style="display:flex;align-items:center;gap:0.4rem;font-size:0.65rem;color:var(--text2);white-space:nowrap;cursor:pointer;">
+    <input type="checkbox" id="hide-soldout-toggle" />
+    <span id="hide-soldout-text">Tükenenleri gizle</span>
+  </label>
   <button id="search-close" style="color:var(--text2);font-size:1rem;"><i class="ti ti-x"></i></button>
 </div>
 
@@ -1625,6 +1654,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     <div class="modal-visual" id="modal-visual">
       <button class="modal-close" id="modal-close"><i class="ti ti-x"></i></button>
       <div class="modal-main-photo" id="modal-main-photo">
+        <span class="sold-out-badge" id="modal-sold-out-badge" style="display:none;"></span>
         <img class="modal-photo" id="modal-photo" alt="" />
         <div class="modal-img-placeholder" id="modal-img">
           <i class="ti ti-camera"></i>
@@ -1846,15 +1876,21 @@ html, body { overflow-x: hidden; max-width: 100%; }
     }
   });
 
+  const hideSoldoutToggle = document.getElementById('hide-soldout-toggle');
+  hideSoldoutToggle.addEventListener('change', () => filterProducts(searchInput.value));
+
   function filterProducts(q) {
     const query = q.toLowerCase().trim();
+    const hideSoldOut = hideSoldoutToggle.checked;
     document.querySelectorAll('.cat-section').forEach(section => {
       let anyVisible = false;
       section.querySelectorAll('.product-card').forEach(card => {
         const name = (card.dataset.name || '').toLowerCase();
         const code = (card.dataset.code || '').toLowerCase();
         const cat = (card.dataset.cat || '').toLowerCase();
-        const match = !query || name.includes(query) || code.includes(query) || cat.includes(query);
+        const isSoldOut = card.dataset.soldout === 'true';
+        const match = (!query || name.includes(query) || code.includes(query) || cat.includes(query))
+          && !(hideSoldOut && isSoldOut);
         card.style.display = match ? '' : 'none';
         if (match) anyVisible = true;
       });
@@ -1993,7 +2029,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         ? `<img src="${favImg}" alt="${p.code}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'ti ti-hanger'}))">`
         : `<i class="ti ti-hanger"></i>`;
       return `<div class="fav-item">
-        <div class="fav-item-visual cat-${p.category}">
+        <div class="fav-item-visual cat-${p.category}${p.isSoldOut ? ' sold-out' : ''}">
           ${visual}
         </div>
         <div class="fav-item-info">
@@ -2295,9 +2331,15 @@ html, body { overflow-x: hidden; max-width: 100%; }
           </div>`).join('')}
       </div>` : ''; })()}
       <div class="modal-sizes-mini">${product.sizes}</div>
-      <a href="https://wa.me/905344644221?text=${encodeURIComponent('Merhaba, ' + product.code + ' – ' + displayName + ' ürünü hakkında bilgi almak istiyorum.')}" target="_blank" class="btn-whatsapp">
-        <i class="ti ti-brand-whatsapp"></i> ${STRINGS[currentLang].whatsapp}
+      <a href="https://wa.me/905344644221?text=${encodeURIComponent((product.isSoldOut ? 'Merhaba, ' + product.code + ' – ' + displayName + ' ürünü tükenmiş görünüyor, benzerini önerir misiniz?' : 'Merhaba, ' + product.code + ' – ' + displayName + ' ürünü hakkında bilgi almak istiyorum.'))}" target="_blank" class="btn-whatsapp" data-sold-out="${!!product.isSoldOut}">
+        <i class="ti ti-brand-whatsapp"></i> ${product.isSoldOut ? STRINGS[currentLang].askSimilar : STRINGS[currentLang].whatsapp}
       </a>`;
+
+    const modalSoldOutBadge = document.getElementById('modal-sold-out-badge');
+    modalSoldOutBadge.style.display = product.isSoldOut ? '' : 'none';
+    modalSoldOutBadge.textContent = STRINGS[currentLang].soldOut;
+    modalPhoto.classList.toggle('sold-out-img', !!product.isSoldOut);
+    modalImg.classList.toggle('sold-out-img', !!product.isSoldOut);
 
     document.getElementById('modal-fav-btn').addEventListener('click', () => {
       toggleFav(product.code);
@@ -2384,18 +2426,20 @@ html, body { overflow-x: hidden; max-width: 100%; }
     const imgSrcAttrs = isEager
       ? `src="${coverPhoto}" loading="eager" fetchpriority="high"`
       : `data-src="${coverPhoto}" loading="lazy"`;
+    const soldOutClass = p.isSoldOut ? ' sold-out-img' : '';
     const visualInner = coverPhoto
-      ? `<img class="product-card-img" ${imgSrcAttrs} alt="${p.name}">`
-      : `<div class="product-img-placeholder">
+      ? `<img class="product-card-img${soldOutClass}" ${imgSrcAttrs} alt="${p.name}">`
+      : `<div class="product-img-placeholder${soldOutClass}">
             <i class="ti ti-hanger"></i>
             <span class="product-code-overlay">${p.code}</span>
           </div>`;
     return `
       <div class="product-card cat-${p.category} reveal"
-           data-code="${p.code}" data-name="${p.name} ${p.nameEn}" data-cat="${cat.name}"
+           data-code="${p.code}" data-name="${p.name} ${p.nameEn}" data-cat="${cat.name}" data-soldout="${!!p.isSoldOut}"
            role="button" tabindex="0" aria-label="${p.name} - ${p.code}">
         <div class="product-card-visual">
           ${isNewSection ? `<span class="new-badge">${STRINGS[currentLang].newBadge}</span>` : ''}
+          ${p.isSoldOut ? `<span class="sold-out-badge">${STRINGS[currentLang].soldOut}</span>` : ''}
           ${visualInner}
           <button class="card-fav ${favActive ? 'active' : ''}" data-code="${p.code}" title="Favorilere ekle" aria-label="Favori">
             <i class="ti ${favActive ? 'ti-heart-filled' : 'ti-heart'}"></i>
@@ -2415,9 +2459,11 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // atlanır, verilen ürün listesi olduğu gibi kullanılır.
   function buildCategorySection(cat, products, opts) {
     opts = opts || {};
-    const catProducts = opts.productsOverride
+    const catProducts = (opts.productsOverride
       ? opts.productsOverride.filter(hasPhoto)
-      : products.filter(p => p.category === cat.id && hasPhoto(p));
+      : products.filter(p => p.category === cat.id && hasPhoto(p)))
+      .slice()
+      .sort((a, b) => (a.isSoldOut ? 1 : 0) - (b.isSoldOut ? 1 : 0));
     const videoBase = CATEGORY_HEADER_VIDEO[cat.id];
     const isNewSection = !!opts.productsOverride;
 
@@ -2486,7 +2532,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // ek almış kodlarda parseInt ilk sayısal kısmı okur.
   function pickYeniSezonProducts(products) {
     const codeNum = p => parseInt(p.code, 10) || 0;
-    const withPhoto = products.filter(hasPhoto);
+    const withPhoto = products.filter(hasPhoto).filter(p => !p.isSoldOut);
     const inSeasonRange = withPhoto.filter(p => { const n = codeNum(p); return n >= 8640 && n <= 8999; });
     const dateOf = p => p.eklemeTarihi || p.dateAdded || p.createdAt || p.tarih || null;
     const withDate = inSeasonRange.filter(p => dateOf(p));
@@ -2701,6 +2747,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       })),
       sizes: p.bedenler || '',
       stokta: p.stokta !== false,
+      isSoldOut: !!p.isSoldOut,
     };
   }
 
@@ -2712,6 +2759,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     // products.json fallback yapısı — renk objelerine kapakFoto/galeriFotolar varsayılanı ekle
     raw.products = (raw.products || []).map(p => ({
       ...p,
+      isSoldOut: !!p.isSoldOut,
       colors: (p.colors || []).map(c => ({
         name: c.name,
         hex: c.hex,
@@ -2888,6 +2936,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
       seasonHeroTitle: 'Yeni Sezon',
       seasonHeroCta: 'KOLEKSİYONU KEŞFET',
       newBadge: 'YENİ',
+      soldOut: 'TÜKENDİ',
+      askSimilar: 'Benzerini Sor',
+      hideSoldOut: 'Tükenenleri gizle',
     },
     en: {
       whatsapp: 'More Info & Order via WhatsApp',
@@ -2909,6 +2960,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
       seasonHeroTitle: 'New Season',
       seasonHeroCta: 'EXPLORE THE COLLECTION',
       newBadge: 'NEW',
+      soldOut: 'SOLD OUT',
+      askSimilar: 'Ask for similar',
+      hideSoldOut: 'Hide sold out',
     },
     ar: {
       whatsapp: 'لمزيد من المعلومات والطلب عبر واتساب',
@@ -2930,6 +2984,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
       seasonHeroTitle: 'موسم جديد',
       seasonHeroCta: 'اكتشفي المجموعة',
       newBadge: 'جديد',
+      soldOut: 'نفد',
+      askSimilar: 'اسأل عن مشابه',
+      hideSoldOut: 'إخفاء المنتجات النافدة',
     },
   };
 
@@ -3121,11 +3178,14 @@ html, body { overflow-x: hidden; max-width: 100%; }
       el.textContent = t.soon;
     });
 
-    // WhatsApp buttons
+    // WhatsApp buttons — tükenen ürün modalında "Benzerini Sor" metni kullanılır
     document.querySelectorAll('.btn-whatsapp').forEach(btn => {
       const icon = '<i class="ti ti-brand-whatsapp"></i> ';
-      btn.innerHTML = icon + t.whatsapp;
+      btn.innerHTML = icon + (btn.dataset.soldOut === 'true' ? t.askSimilar : t.whatsapp);
     });
+
+    // sold-out rozetleri (kart + modal)
+    document.querySelectorAll('.sold-out-badge').forEach(b => { b.textContent = t.soldOut; });
 
     // splash ekranı ("Yakında" ile aynı anda görünmese de sabit metinlerdir)
     const splashSub = document.querySelector('.splash-sub');
@@ -3153,6 +3213,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
     // search placeholder
     const searchInput = document.getElementById('search-input');
     if (searchInput) searchInput.placeholder = t.searchPlaceholder;
+
+    // "tükenenleri gizle" etiketi
+    const hideSoldoutText = document.getElementById('hide-soldout-text');
+    if (hideSoldoutText) hideSoldoutText.textContent = t.hideSoldOut;
 
     // fav WA button
     const favWaBtn = document.getElementById('fav-wa-btn');
