@@ -192,6 +192,16 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   100% { transform: translateY(var(--pty)) translateX(var(--ptx)) scale(0.6); opacity: 0; }
 }
 
+/* Kısa splash (#splash.quick): intro video zaten gösterildiyse (24 saat içinde tekrar
+   giriş) eski splash'in ~5.5sn'lik uzun animasyonu yerine sadece logo + sezon yazısı
+   1.2sn boyunca hemen görünüp kapanır — alt yazı ve "tıklayın" istemi atlanır. */
+#splash.quick .splash-letter { animation-delay: 0s !important; animation-duration: 0.25s !important; }
+#splash.quick .splash-underline { animation-delay: 0.3s !important; animation-duration: 0.25s !important; }
+#splash.quick .splash-season { animation-delay: 0.45s !important; animation-duration: 0.25s !important; }
+#splash.quick .splash-sub,
+#splash.quick .splash-enter,
+#splash.quick .splash-particle { display: none !important; }
+
 /* ===== INTRO VİDEO (ilk girişte / 24 saatte bir) ===== */
 #intro-video {
   position: fixed;
@@ -1383,7 +1393,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <div class="splash-logo" id="splash-logo-text">Miss Neşem</div>
   <div class="splash-underline"></div>
   <div class="splash-sub">Toptan Kadın Giyim</div>
-  <div class="splash-season">Summer · 2026</div>
+  <div class="splash-season">Sonbahar · Kış 2026</div>
   <div class="splash-enter">Tıklayın veya bekleyin</div>
 </div>
 
@@ -1458,19 +1468,19 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <div class="season-hero-panels" id="season-hero-panels">
     <div class="season-hero-panel season-hero-panel-left">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_left_poster.jpg" data-src="/catalog/video/hero_left.mp4"></video>
+             poster="/catalog/video/hero_left_poster.jpg" data-src="/catalog/video/hero_left.mp4?v=2"></video>
     </div>
     <div class="season-hero-panel season-hero-panel-center">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_center_poster.jpg" data-src="/catalog/video/hero_center.mp4"></video>
+             poster="/catalog/video/hero_center_poster.jpg" data-src="/catalog/video/hero_center.mp4?v=2"></video>
     </div>
     <div class="season-hero-panel season-hero-panel-right">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_right_poster.jpg" data-src="/catalog/video/hero_right.mp4"></video>
+             poster="/catalog/video/hero_right_poster.jpg" data-src="/catalog/video/hero_right.mp4?v=2"></video>
     </div>
     <div class="season-hero-panel season-hero-panel-mobile">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_mobile_poster.jpg" data-src="/catalog/video/hero_mobile.mp4"></video>
+             poster="/catalog/video/hero_mobile_poster.jpg" data-src="/catalog/video/hero_mobile.mp4?v=2"></video>
     </div>
   </div>
   <div class="season-hero-overlay"></div>
@@ -1591,19 +1601,29 @@ html, body { overflow-x: hidden; max-width: 100%; }
     splash.classList.add('hidden');
   }
   splash.addEventListener('click', hideSplash);
-  setTimeout(hideSplash, 5500); // animasyon ~4.5s, biraz bekle
 
   // ===== INTRO VİDEO (ilk girişte / 24 saatte bir) =====
-  // localStorage'a son gösterim zamanı yazılır; 24 saat geçmeden tekrar gösterilmez.
-  // Video yüklenemez/autoplay engellenirse ya da 5.2sn dolarsa otomatik kapanır — site asla kilitlenmez.
+  // localStorage'a son gösterim zamanı yazılır; 24 saat geçmeden tekrar gösterilmez —
+  // bu durumda intro.mp4 hiç oynamaz, eski splash sadece 1.2sn kısa gösterilir (bkz.
+  // #splash.quick). ?intro=1 ile gelinirse (demo linki) 24 saat kuralı yok sayılır,
+  // intro her zaman oynar. Video yüklenemez/autoplay engellenirse ya da 5.2sn dolarsa
+  // otomatik kapanır — site asla kilitlenmez.
   (function initIntroVideo() {
     const introEl = document.getElementById('intro-video');
-    if (!introEl) return;
     const INTRO_KEY = 'mn_intro_seen';
     const DAY_MS = 24 * 60 * 60 * 1000;
     let lastSeen = 0;
     try { lastSeen = parseInt(localStorage.getItem(INTRO_KEY) || '0', 10) || 0; } catch (e) {}
-    if (Date.now() - lastSeen < DAY_MS) { introEl.remove(); return; }
+    let forceIntro = false;
+    try { forceIntro = new URLSearchParams(location.search).get('intro') === '1'; } catch (e) {}
+    const shouldShowIntro = !!introEl && (forceIntro || Date.now() - lastSeen >= DAY_MS);
+
+    if (!shouldShowIntro) {
+      if (introEl) introEl.remove();
+      splash.classList.add('quick');
+      setTimeout(hideSplash, 1200);
+      return;
+    }
 
     const videoEl = document.getElementById('intro-video-el');
     const skipEl = document.getElementById('intro-skip');
@@ -1620,7 +1640,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     introEl.addEventListener('click', closeIntro);
     videoEl.addEventListener('ended', closeIntro);
     videoEl.addEventListener('error', () => setTimeout(closeIntro, 1000));
-    videoEl.src = '/catalog/video/intro.mp4';
+    videoEl.src = '/catalog/video/intro.mp4?v=2';
     videoEl.load();
     const playPromise = videoEl.play();
     if (playPromise && playPromise.catch) playPromise.catch(() => setTimeout(closeIntro, 1000));
@@ -2299,7 +2319,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         <section class="cat-section" id="${cat.id}">
           <div class="section-header-video reveal">
             <video class="cat-bg-video" muted playsinline loop preload="none"
-                   poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4"></video>
+                   poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4?v=2"></video>
             <div class="cat-bg-video-overlay"></div>
             <div class="cat-bg-video-text">
               ${isNewSection ? `<span class="section-video-badge">NEW SEASON</span>` : ''}
@@ -2681,6 +2701,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       sizes: 'Bedenler',
       code: 'Kod',
       splashSub: 'Toptan Kadın Giyim',
+      splashSeason: 'Sonbahar · Kış 2026',
       splashEnter: 'Tıklayın veya bekleyin',
       favEmpty: 'Henüz favori eklemediniz.',
       favHint: 'Beğendiğiniz ürünleri kaydedin, WhatsApp ile gönderin ❤️',
@@ -2701,6 +2722,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       sizes: 'Sizes',
       code: 'Code',
       splashSub: "Wholesale Women's Fashion",
+      splashSeason: 'Autumn · Winter 2026',
       splashEnter: 'Click or wait',
       favEmpty: "You haven't added any favorites yet.",
       favHint: 'Save the products you like, send them via WhatsApp ❤️',
@@ -2721,6 +2743,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       sizes: 'المقاسات',
       code: 'الكود',
       splashSub: 'أزياء نسائية بالجملة',
+      splashSeason: 'خريف · شتاء 2026',
       splashEnter: 'انقر أو انتظر',
       favEmpty: 'لم تقم بإضافة أي مفضلة بعد.',
       favHint: 'احفظي المنتجات التي أعجبتك وأرسليها عبر واتساب ❤️',
@@ -2928,6 +2951,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
     // splash ekranı ("Yakında" ile aynı anda görünmese de sabit metinlerdir)
     const splashSub = document.querySelector('.splash-sub');
     if (splashSub) splashSub.textContent = t.splashSub;
+    const splashSeason = document.querySelector('.splash-season');
+    if (splashSeason) splashSeason.textContent = t.splashSeason;
     const splashEnter = document.querySelector('.splash-enter');
     if (splashEnter) splashEnter.textContent = t.splashEnter;
 
