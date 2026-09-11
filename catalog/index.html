@@ -349,12 +349,12 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(250,247,243,0.98);
+  background: #faf7f3; /* 2026-09-11: tam opak — arkadaki başlıklar sızıyordu */
   z-index: 999;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2.5rem;
+  gap: 1.6rem; /* 13 madde tek ekrana sığsın */
   overflow-y: auto;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -1222,7 +1222,22 @@ footer {
 @media (max-width: 480px) {
   .product-grid { grid-template-columns: 1fr; }
   .nav-logo { font-size: 1rem; }
+  /* 2026-09-11 mobil fix: sağ üst butonlar (dil+arama+favori+hamburger) 390px ekranda
+     432px'e taşıyor, hamburger ekran dışında kalıyordu. Padding/gap daraltıldı, dil
+     butonlarında sadece bayrak, ikon butonlar küçültüldü. */
+  .nav-inner { padding: 0 0.85rem; column-gap: 0.5rem; height: 60px; }
+  #nav.scrolled .nav-inner { height: 52px; }
+  .nav-actions { gap: 0.3rem; min-width: 0; flex-shrink: 0; }
+  .nav-btn { width: 30px; height: 30px; }
+  .nav-btn .ti { font-size: 1rem; }
+  .lang-switch { gap: 0; }
+  .lang-switch .lang-btn { padding: 4px 3px; }
+  .lang-switch .lang-btn .flag { width: 18px; height: 13px; }
+  .lang-switch .lang-btn { font-size: 0; gap: 0; } /* metin gizli, sadece bayrak */
+  .nav-hamburger { width: 30px; height: 30px; }
 }
+/* Yatay taşma güvenlik kilidi — hiçbir eleman sayfayı yana kaydırmasın */
+html, body { overflow-x: hidden; max-width: 100%; }
 
 /* ===== MOBILE ENHANCEMENTS ===== */
 @media (max-width: 768px) {
@@ -1260,7 +1275,7 @@ footer {
   .modal-sizes-mini { font-size: 0.75rem; letter-spacing: 0.1em; }
   .fav-item-code { font-size: 0.75rem; letter-spacing: 0.2em; }
   .fav-empty { font-size: 0.75rem; }
-  .btn-whatsapp { font-size: 0.75rem; letter-spacing: 0.2em; }
+  .btn-whatsapp { font-size: 0.7rem; letter-spacing: 0.12em; padding: 0.9rem 1rem; text-align: center; } /* mobil: tek satıra sığsın */
   .btn-fav-wa { font-size: 0.75rem; letter-spacing: 0.2em; }
   .footer-col-title { font-size: 0.75rem; letter-spacing: 0.3em; }
   .footer-links a { font-size: 0.75rem; }
@@ -1708,10 +1723,13 @@ footer {
     const toast = document.createElement('div');
     toast.textContent = STRINGS[currentLang].favHint;
     Object.assign(toast.style, {
-      position:'fixed',bottom:'2rem',left:'50%',transform:'translateX(-50%)',
-      background:'rgba(26,16,24,0.85)',color:'#fff',padding:'0.75rem 1.5rem',
-      borderRadius:'8px',fontSize:'0.7rem',letterSpacing:'0.1em',zIndex:'9999',
-      opacity:'0',transition:'opacity 0.4s ease',whiteSpace:'nowrap',maxWidth:'90vw'
+      position:'fixed',bottom:'6rem',left:'50%',transform:'translateX(-50%)',
+      background:'rgba(26,16,24,0.85)',color:'#fff',padding:'0.75rem 1.25rem',
+      borderRadius:'8px',fontSize:'0.7rem',letterSpacing:'0.08em',zIndex:'9999',
+      opacity:'0',transition:'opacity 0.4s ease',whiteSpace:'normal',textAlign:'center',
+      maxWidth:'88vw',lineHeight:'1.45',pointerEvents:'none'
+      // 2026-09-11 mobil: nowrap+bottom:2rem ile metin kesiliyor ve favori panelin
+      // "WhatsApp ile gönder" butonuna biniyordu — sar, yukarı al, tıklamayı geçir.
     });
     document.body.appendChild(toast);
     requestAnimationFrame(() => toast.style.opacity = '1');
