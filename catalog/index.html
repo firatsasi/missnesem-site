@@ -1419,7 +1419,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
 <!-- ===== INTRO VİDEO ===== -->
 <div id="intro-video">
   <video id="intro-video-bg" muted playsinline aria-hidden="true" tabindex="-1"></video>
-  <video id="intro-video-el" muted playsinline poster="/catalog/video/intro_poster.jpg"></video>
+  <video id="intro-video-el" muted playsinline preload="auto" poster="/catalog/video/intro_poster.jpg"></video>
   <a href="#" id="intro-skip" class="intro-skip"><span>Atla</span> <i class="ti ti-arrow-right"></i></a>
 </div>
 
@@ -1638,24 +1638,15 @@ html, body { overflow-x: hidden; max-width: 100%; }
   }
   splash.addEventListener('click', hideSplash);
 
-  // ===== INTRO VİDEO (ilk girişte / 24 saatte bir) =====
-  // localStorage'a son gösterim zamanı yazılır; 24 saat geçmeden tekrar gösterilmez —
-  // bu durumda intro.mp4 hiç oynamaz, eski splash sadece 1.2sn kısa gösterilir (bkz.
-  // #splash.quick). ?intro=1 ile gelinirse (demo linki) 24 saat kuralı yok sayılır,
-  // intro her zaman oynar. Video yüklenemez/autoplay engellenirse ya da 5.2sn dolarsa
-  // otomatik kapanır — site asla kilitlenmez.
+  // ===== INTRO VİDEO (her sayfa açılışında oynar) =====
+  // 24 saat kuralı kaldırıldı — intro her girişte oynar, "Atla →" linki kalır.
+  // ≤900px'de daha hafif intro_mobile.mp4 kullanılır (bkz. isDesktop). Video 8sn
+  // içinde hiç 'playing' vermezse (yükleme/otomatik oynatma hatası) otomatik kapanır
+  // — ama başladıysa kesilmez, 'ended' bekler; 7.3sn'lik ikinci zamanlayıcı videonun
+  // gerçek süresiyle eşleşen son güvenlik ağıdır. Site hiçbir durumda kilitlenmez.
   (function initIntroVideo() {
     const introEl = document.getElementById('intro-video');
-    const INTRO_KEY = 'mn_intro_seen';
-    const DAY_MS = 24 * 60 * 60 * 1000;
-    let lastSeen = 0;
-    try { lastSeen = parseInt(localStorage.getItem(INTRO_KEY) || '0', 10) || 0; } catch (e) {}
-    let forceIntro = false;
-    try { forceIntro = new URLSearchParams(location.search).get('intro') === '1'; } catch (e) {}
-    const shouldShowIntro = !!introEl && (forceIntro || Date.now() - lastSeen >= DAY_MS);
-
-    if (!shouldShowIntro) {
-      if (introEl) introEl.remove();
+    if (!introEl) {
       splash.classList.add('quick');
       setTimeout(hideSplash, 1200);
       return;
@@ -1664,28 +1655,32 @@ html, body { overflow-x: hidden; max-width: 100%; }
     const videoEl = document.getElementById('intro-video-el');
     const bgVideoEl = document.getElementById('intro-video-bg');
     const skipEl = document.getElementById('intro-skip');
+    const isDesktop = window.matchMedia('(min-width: 900px)').matches;
+    const videoFile = isDesktop ? 'intro.mp4' : 'intro_mobile.mp4';
+    const posterFile = isDesktop ? 'intro_poster.jpg' : 'intro_mobile_poster.jpg';
     let closed = false;
+    let started = false;
     function closeIntro() {
       if (closed) return;
       closed = true;
-      try { localStorage.setItem(INTRO_KEY, String(Date.now())); } catch (e) {}
       introEl.classList.add('hidden');
       hideSplash(); // intro kapanınca doğrudan kataloğa geçilsin, eski splash araya girmesin
       setTimeout(() => introEl.remove(), 700);
     }
     skipEl.addEventListener('click', e => { e.preventDefault(); closeIntro(); });
     introEl.addEventListener('click', closeIntro);
+    videoEl.addEventListener('playing', () => { started = true; });
     videoEl.addEventListener('ended', closeIntro);
-    videoEl.addEventListener('error', () => setTimeout(closeIntro, 1000));
-    videoEl.src = '/catalog/video/intro.mp4?v=2';
+    videoEl.poster = '/catalog/video/' + posterFile; // yüklenirken poster görünsün, siyah ekran olmasın
+    videoEl.src = '/catalog/video/' + videoFile + '?v=3';
     videoEl.load();
-    const playPromise = videoEl.play();
-    if (playPromise && playPromise.catch) playPromise.catch(() => setTimeout(closeIntro, 1000));
-    setTimeout(closeIntro, 5200);
+    videoEl.play().catch(() => {}); // engellenirse aşağıdaki 8sn bekçi zamanlayıcı kapatır
+    setTimeout(() => { if (!started) closeIntro(); }, 8000); // video hiç başlamadıysa yedek
+    setTimeout(closeIntro, 7300); // videonun gerçek süresiyle eşleşen son güvenlik ağı
     // Bulanık arka plan kopyası sadece masaüstünde CSS'te görünür — mobilde boşuna
     // indirilmesin diye src'si de sadece burada, geniş ekranda set ediliyor.
-    if (window.matchMedia('(min-width: 900px)').matches) {
-      bgVideoEl.src = '/catalog/video/intro.mp4?v=2';
+    if (isDesktop) {
+      bgVideoEl.src = '/catalog/video/' + videoFile + '?v=3';
       bgVideoEl.load();
       const bgPlayPromise = bgVideoEl.play();
       if (bgPlayPromise && bgPlayPromise.catch) bgPlayPromise.catch(() => {});
