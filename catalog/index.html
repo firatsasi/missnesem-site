@@ -225,7 +225,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 #splash.quick .splash-enter,
 #splash.quick .splash-particle { display: none !important; }
 
-/* ===== INTRO VİDEO (ilk girişte / 24 saatte bir) ===== */
+/* ===== INTRO VİDEO — SADECE MOBİL (<900px), intro_mobile.mp4 =====
+   ≥900px'te artık bu overlay hiç kullanılmıyor (JS'te .remove() edilir) — masaüstü
+   intro'su #season-hero'nun kendi video panellerinin üstüne biner (bkz. .intro-active
+   kuralları, "MASAÜSTÜ INTRO" bölümü). */
 #intro-video {
   position: fixed;
   inset: 0;
@@ -238,7 +241,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   transition: opacity 0.6s ease, visibility 0.6s ease;
 }
 #intro-video.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-#intro-video-bg { display: none; }
 #intro-video-el {
   position: relative;
   z-index: 1;
@@ -247,30 +249,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   object-fit: cover;
   display: block;
   background: #000;
-}
-/* ≥900px: dikey (9:16) video artık 16:9'a gerilip bulanıklaşmasın — sharp panel ortada
-   contain ile gösterilir, arkasında aynı videonun blur'lanmış tam ekran kopyası (Instagram
-   masaüstü stili) durur. Mobilde video zaten dikey olduğundan cover olarak kalır. */
-@media (min-width: 900px) {
-  #intro-video { background: #0d0a08; }
-  #intro-video-bg {
-    display: block;
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: blur(40px);
-    transform: scale(1.25);
-    opacity: 0.6;
-    z-index: 0;
-  }
-  #intro-video-el {
-    width: 56vh;
-    height: 100vh;
-    max-height: 100vh;
-    object-fit: contain;
-  }
 }
 .intro-skip {
   position: absolute;
@@ -595,6 +573,79 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   .season-hero-title { font-size: 2.8rem; }
   .season-hero-tag { letter-spacing: 0.35em; font-size: 0.65rem; }
   .season-hero-cta { font-size: 0.65rem; padding: 0.8rem 1.4rem; }
+}
+
+/* ===== MASAÜSTÜ INTRO (≥900px) — ayrı video dosyası YOK, #season-hero'nun kendi 3
+   panel videosu (hero_left/center/right) yeniden kullanılır. initSeasonHero() bu
+   videoları zaten sayfa açılışında yüklüyor/oynatıyor — intro sadece üstüne koyu
+   katman + AUTUMN/WINTER/2026 metin döngüsü + "Atla" bindiren geçici bir CSS
+   durumu (.intro-active). Video hiçbir zaman iki kez indirilmez. */
+.intro-dark-layer, .intro-text-cycle, #intro-skip-desktop { display: none; }
+@media (min-width: 900px) {
+  #season-hero.intro-active {
+    position: fixed;
+    inset: 0;
+    height: 100vh;
+    z-index: 10001;
+  }
+  #season-hero.intro-active .season-hero-text,
+  #season-hero.intro-active .season-hero-scroll-hint,
+  #season-hero.intro-active .season-hero-overlay {
+    display: none;
+  }
+  #season-hero.intro-active .season-hero-video {
+    filter: grayscale(70%) brightness(0.75);
+    object-position: center 45%;
+  }
+  #season-hero.intro-active .intro-dark-layer {
+    display: block;
+    position: absolute; inset: 0; z-index: 2;
+    background: rgba(10,8,6,0.35);
+    opacity: 1;
+    transition: opacity 0.6s ease;
+  }
+  #season-hero.intro-active .intro-text-cycle {
+    display: block;
+    position: absolute; inset: 0; z-index: 3;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.6s ease;
+  }
+  #season-hero.intro-active.intro-closing .intro-dark-layer,
+  #season-hero.intro-active.intro-closing .intro-text-cycle,
+  #season-hero.intro-active.intro-closing #intro-skip-desktop {
+    opacity: 0;
+  }
+  .intro-word {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 5.5rem;
+    letter-spacing: 0.06em;
+    color: #fff;
+    text-shadow: 0 2px 24px rgba(0,0,0,0.45);
+    opacity: 0;
+  }
+  #season-hero.intro-active .intro-word-1 { animation: introWordFlash 2.43s ease forwards; animation-delay: 0s; }
+  #season-hero.intro-active .intro-word-2 { animation: introWordFlash 2.43s ease forwards; animation-delay: 2.43s; }
+  #season-hero.intro-active .intro-word-3 { animation: introWordFlash 2.43s ease forwards; animation-delay: 4.86s; }
+  @keyframes introWordFlash {
+    0%   { opacity: 0; color: #fff; text-shadow: 0 0 50px #fff, 0 0 100px #fff; }
+    12%  { opacity: 1; color: #fff; text-shadow: 0 0 50px #fff, 0 0 100px #fff; }
+    30%  { opacity: 1; color: #fff; text-shadow: 0 2px 24px rgba(0,0,0,0.45); }
+    88%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  #season-hero.intro-active #intro-skip-desktop {
+    display: flex;
+    z-index: 4;
+    opacity: 1;
+    transition: opacity 0.6s ease;
+  }
 }
 
 /* ===== SECTION BASE ===== */
@@ -1481,10 +1532,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
 </head>
 <body>
 
-<!-- ===== INTRO VİDEO ===== -->
+<!-- ===== INTRO VİDEO (sadece mobil <900px, bkz. initIntroVideo) ===== -->
 <div id="intro-video">
-  <video id="intro-video-bg" muted playsinline aria-hidden="true" tabindex="-1"></video>
-  <video id="intro-video-el" muted playsinline preload="auto" poster="/catalog/video/intro_poster.jpg"></video>
+  <video id="intro-video-el" muted playsinline preload="auto" poster="/catalog/video/intro_mobile_poster.jpg"></video>
   <a href="#" id="intro-skip" class="intro-skip"><span>Atla</span> <i class="ti ti-arrow-right"></i></a>
 </div>
 
@@ -1573,7 +1623,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <div class="season-hero-panels" id="season-hero-panels">
     <div class="season-hero-panel season-hero-panel-left">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_left_poster.jpg" data-src="/catalog/video/hero_left.mp4?v=3"></video>
+             poster="/catalog/video/hero_left_poster.jpg" data-src="/catalog/video/hero_left.mp4?v=4"></video>
     </div>
     <div class="season-hero-panel season-hero-panel-center">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
@@ -1585,10 +1635,17 @@ html, body { overflow-x: hidden; max-width: 100%; }
     </div>
     <div class="season-hero-panel season-hero-panel-mobile">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_mobile_poster.jpg" data-src="/catalog/video/hero_mobile.mp4?v=3"></video>
+             poster="/catalog/video/hero_mobile_poster.jpg" data-src="/catalog/video/hero_mobile.mp4?v=4"></video>
     </div>
   </div>
   <div class="season-hero-overlay"></div>
+  <div class="intro-dark-layer"></div>
+  <div class="intro-text-cycle" id="intro-text-cycle">
+    <span class="intro-word intro-word-1">AUTUMN</span>
+    <span class="intro-word intro-word-2">WINTER</span>
+    <span class="intro-word intro-word-3">2026</span>
+  </div>
+  <a href="#" id="intro-skip-desktop" class="intro-skip"><span>Atla</span> <i class="ti ti-arrow-right"></i></a>
   <div class="season-hero-text" id="season-hero-text">
     <span class="season-hero-tag">SONBAHAR · KIŞ 2026</span>
     <h1 class="season-hero-title">Yeni Sezon</h1>
@@ -1709,13 +1766,23 @@ html, body { overflow-x: hidden; max-width: 100%; }
   splash.addEventListener('click', hideSplash);
 
   // ===== INTRO VİDEO (her sayfa açılışında oynar) =====
-  // 24 saat kuralı kaldırıldı — intro her girişte oynar, "Atla →" linki kalır.
-  // ≤900px'de daha hafif intro_mobile.mp4 kullanılır (bkz. isDesktop). Video 8sn
-  // içinde hiç 'playing' vermezse (yükleme/otomatik oynatma hatası) otomatik kapanır
-  // — ama başladıysa kesilmez, 'ended' bekler; 7.3sn'lik ikinci zamanlayıcı videonun
-  // gerçek süresiyle eşleşen son güvenlik ağıdır. Site hiçbir durumda kilitlenmez.
+  // 24 saat kuralı yok — intro her girişte oynar, "Atla →" linki her zaman kalır.
+  // ≤900px (MOBİL): kendi ayrı intro_mobile.mp4 dosyasıyla, aşağıdaki eski akış
+  // AYNEN korunur — hiçbir değişiklik yok.
+  // ≥900px (MASAÜSTÜ): ayrı bir video dosyası YOK — #season-hero'nun zaten yüklediği
+  // hero_left/center/right videoları (bkz. initSeasonHero) üzerine koyu katman + metin
+  // döngüsü eklenir (bkz. initDesktopHeroIntro). Video tek bir kez, sadece hero için
+  // indirilir; intro bunun üstüne CSS ile biner.
   (function initIntroVideo() {
+    const isDesktop = window.matchMedia('(min-width: 900px)').matches;
     const introEl = document.getElementById('intro-video');
+
+    if (isDesktop) {
+      if (introEl) introEl.remove(); // mobil-özel overlay masaüstünde hiç kullanılmaz
+      initDesktopHeroIntro();
+      return;
+    }
+
     if (!introEl) {
       splash.classList.add('quick');
       setTimeout(hideSplash, 1200);
@@ -1723,11 +1790,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     }
 
     const videoEl = document.getElementById('intro-video-el');
-    const bgVideoEl = document.getElementById('intro-video-bg');
     const skipEl = document.getElementById('intro-skip');
-    const isDesktop = window.matchMedia('(min-width: 900px)').matches;
-    const videoFile = isDesktop ? 'intro.mp4' : 'intro_mobile.mp4';
-    const posterFile = isDesktop ? 'intro_poster.jpg' : 'intro_mobile_poster.jpg';
     let closed = false;
     let started = false;
     function closeIntro() {
@@ -1741,21 +1804,50 @@ html, body { overflow-x: hidden; max-width: 100%; }
     introEl.addEventListener('click', closeIntro);
     videoEl.addEventListener('playing', () => { started = true; });
     videoEl.addEventListener('ended', closeIntro);
-    videoEl.poster = '/catalog/video/' + posterFile; // yüklenirken poster görünsün, siyah ekran olmasın
-    videoEl.src = '/catalog/video/' + videoFile + '?v=4';
+    videoEl.poster = '/catalog/video/intro_mobile_poster.jpg'; // yüklenirken poster görünsün, siyah ekran olmasın
+    videoEl.src = '/catalog/video/intro_mobile.mp4?v=4';
     videoEl.load();
     videoEl.play().catch(() => {}); // engellenirse aşağıdaki 8sn bekçi zamanlayıcı kapatır
     setTimeout(() => { if (!started) closeIntro(); }, 8000); // video hiç başlamadıysa yedek
     setTimeout(closeIntro, 7300); // videonun gerçek süresiyle eşleşen son güvenlik ağı
-    // Bulanık arka plan kopyası sadece masaüstünde CSS'te görünür — mobilde boşuna
-    // indirilmesin diye src'si de sadece burada, geniş ekranda set ediliyor.
-    if (isDesktop) {
-      bgVideoEl.src = '/catalog/video/' + videoFile + '?v=4';
-      bgVideoEl.load();
-      const bgPlayPromise = bgVideoEl.play();
-      if (bgPlayPromise && bgPlayPromise.catch) bgPlayPromise.catch(() => {});
-    }
   })();
+
+  // ===== MASAÜSTÜ INTRO (season-hero video panellerinin üstüne biner) =====
+  // Video zaten initSeasonHero() tarafından yükleniyor/oynatılıyor — burada sadece
+  // #season-hero'ya .intro-active ekleyip koyu katman + AUTUMN/WINTER/2026 metin
+  // döngüsünü gösteriyoruz. "başladı" tespiti orta paneldeki videonun 'playing'
+  // event'ine bakar (mobil akışla aynı 8sn/7.3sn güvenlik ağı deseni).
+  function initDesktopHeroIntro() {
+    const heroEl = document.getElementById('season-hero');
+    if (!heroEl) {
+      splash.classList.add('quick');
+      setTimeout(hideSplash, 1200);
+      return;
+    }
+    const skipEl = document.getElementById('intro-skip-desktop');
+    const centerVideo = heroEl.querySelector('.season-hero-panel-center .season-hero-video');
+    let closed = false;
+    let started = false;
+
+    heroEl.classList.add('intro-active');
+    document.body.style.overflow = 'hidden';
+
+    function closeIntro() {
+      if (closed) return;
+      closed = true;
+      heroEl.classList.add('intro-closing');
+      document.body.style.overflow = '';
+      hideSplash();
+      setTimeout(() => { heroEl.classList.remove('intro-active', 'intro-closing'); }, 600);
+    }
+    skipEl.addEventListener('click', e => { e.preventDefault(); closeIntro(); });
+    heroEl.addEventListener('click', e => {
+      if (heroEl.classList.contains('intro-active')) closeIntro();
+    });
+    if (centerVideo) centerVideo.addEventListener('playing', () => { started = true; }, { once: true });
+    setTimeout(() => { if (!started) closeIntro(); }, 8000); // video hiç başlamadıysa yedek
+    setTimeout(closeIntro, 7300); // metin döngüsüyle eşleşen toplam süre
+  }
 
   // ===== SEASON HERO (video lookbook) =====
   (function initSeasonHero() {
@@ -2489,7 +2581,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         return `
             <div class="cat-bg-video-panel">
               <video class="cat-bg-video" muted playsinline loop preload="none"
-                     poster="/catalog/video/${pv}_poster.jpg" data-src="/catalog/video/${pv}.mp4?v=3"
+                     poster="/catalog/video/${pv}_poster.jpg" data-src="/catalog/video/${pv}.mp4?v=4"
                      data-focus="${pFocus}"></video>
             </div>`;
       }).join('');
@@ -2499,7 +2591,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
             <div class="cat-bg-video-panels">${panelsHtml}
             </div>
             <video class="cat-bg-video cat-bg-video-mobile" muted playsinline loop preload="none"
-                   poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4?v=3"></video>
+                   poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4?v=4"></video>
             <div class="cat-bg-video-overlay"></div>
             <div class="cat-bg-video-text">
               ${isNewSection ? `<span class="section-video-badge">NEW SEASON</span>` : ''}
