@@ -2061,9 +2061,17 @@ function hazirla(){
     if(chipsEl)chipsEl.style.display='none';
     if(renkInp)renkInp.style.display='none';
     if(exportEl){
-      // 2026-09-11: Her "RENK (n)" çifti içindeki boşluk NBSP — html2canvas kelime ortasından
-      // kırınca "İ" glifi kayıp "(1)" ile üst üste biniyordu. Artık sadece " / " noktalarında kırılır.
-      exportEl.textContent=tr._renkKalemleri.map(function(k){return k.renk+'\u00A0('+k.seri+')';}).join(' / ');
+      // 2026-09-11: html2canvas Türkçe "İ" karakterinde kelimenin İÇİNDEN kırıyor ("SİYA"+"H"),
+      // NBSP yetmedi. Her "RENK (n)" çifti inline-block span → kelime içinden kırılamaz, sadece
+      // çiftler arasında satır geçer. Ayraç " / " ayrı span'da.
+      exportEl.textContent='';
+      tr._renkKalemleri.forEach(function(k,i){
+        if(i>0){var sep=document.createElement('span');sep.textContent=' / ';exportEl.appendChild(sep);}
+        var sp=document.createElement('span');
+        sp.style.cssText='display:inline-block;white-space:nowrap';
+        sp.textContent=k.renk+' ('+k.seri+')';
+        exportEl.appendChild(sp);
+      });
       exportEl.style.display='block';
     }
   });
