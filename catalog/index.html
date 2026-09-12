@@ -26,16 +26,22 @@
 <!-- End Meta Pixel Code -->
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Miss Neşem Catalog | Wholesale Women's Clothing - Merter Istanbul</title>
-<meta name="description" content="Miss Neşem wholesale women's clothing catalog. Browse our latest collection of dresses, blouses, suits and more. Based in Merter, Istanbul." />
+<title>Miss Neşem · Yeni Sezon 2026 | Toptan Kadın Giyim</title>
+<meta name="description" content="Toptan kadın giyimde yeni sezon koleksiyonu. Trençkot, ceket, takım ve daha fazlası. Merter, İstanbul." />
 <meta name="keywords" content="miss nesem, wholesale, women's clothing, toptan, kadın giyim, merter, istanbul, catalog" />
 <meta name="robots" content="index, follow" />
-<link rel="canonical" href="https://missnesem.com/catalog" />
-<meta property="og:title" content="Miss Neşem Catalog | Wholesale Women's Clothing" />
-<meta property="og:description" content="Browse our latest wholesale women's clothing collection. Merter, Istanbul." />
-<meta property="og:image" content="https://missnesem.com/assets/missnesem_logo_white.png" />
-<meta property="og:url" content="https://missnesem.com/catalog" />
+<link rel="canonical" href="https://missnesem.com/catalog/" />
+<meta property="og:title" content="Miss Neşem · Yeni Sezon Sonbahar-Kış 2026" />
+<meta property="og:description" content="Toptan kadın giyimde yeni sezon koleksiyonu. Trençkot, ceket, takım ve daha fazlası. Merter, İstanbul." />
+<meta property="og:image" content="https://missnesem.com/catalog/img/og-new-season.jpg?v=1" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content="https://missnesem.com/catalog/" />
 <meta property="og:type" content="website" />
+<meta property="og:locale" content="tr_TR" />
+<meta property="og:site_name" content="Miss Neşem" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://missnesem.com/catalog/img/og-new-season.jpg?v=1" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
@@ -963,11 +969,49 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   text-transform: uppercase;
   padding: 0.35rem 0.9rem;
   margin-bottom: 1rem;
+  animation: sectionBadgeBreathe 2.5s ease-in-out infinite;
+}
+@keyframes sectionBadgeBreathe {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
 }
 .section-header-video .section-title {
   font-size: clamp(2rem, 4.5vw, 3.5rem);
   color: #fff;
   text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+}
+.yeni-sezon-title.reveal {
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.yeni-sezon-marquee {
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  width: 100%;
+  max-width: 480px;
+  margin: 0.9rem auto 0;
+  white-space: nowrap;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+}
+.yeni-sezon-marquee-track {
+  display: inline-flex;
+  animation: yeniSezonMarquee 40s linear infinite;
+}
+.yeni-sezon-marquee-track span {
+  display: inline-block;
+  color: rgba(255,255,255,0.55);
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+@keyframes yeniSezonMarquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .section-video-badge { animation: none; }
+  .yeni-sezon-marquee-track { animation: none; }
 }
 @media (max-width: 768px) {
   .section-header-video { height: 38vh; min-height: 220px; }
@@ -1649,7 +1693,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <div class="season-hero-text" id="season-hero-text">
     <span class="season-hero-tag">SONBAHAR · KIŞ 2026</span>
     <h1 class="season-hero-title">Yeni Sezon</h1>
-    <a href="#catalog" class="season-hero-cta"><span class="cta-label">KOLEKSİYONU KEŞFET</span> <i class="ti ti-arrow-down"></i></a>
+    <a href="#yeni-sezon" class="season-hero-cta"><span class="cta-label">KOLEKSİYONU KEŞFET</span> <i class="ti ti-arrow-down"></i></a>
   </div>
   <div class="season-hero-scroll-hint"><i class="ti ti-chevron-down"></i></div>
 </section>
@@ -1754,6 +1798,16 @@ html, body { overflow-x: hidden; max-width: 100%; }
 <script>
 (function () {
   'use strict';
+
+  // ?intro=1 bazı reklam/QR linklerinde kullanılıyor ama sayfa davranışını etkilemiyor —
+  // adres çubuğunu temiz tutmak için sessizce (sayfa yeniden yüklenmeden) kaldırılır.
+  (function stripIntroParam() {
+    var url = new URL(window.location.href);
+    if (url.searchParams.has('intro')) {
+      url.searchParams.delete('intro');
+      history.replaceState(null, '', url.pathname + url.search + url.hash);
+    }
+  })();
 
   // ===== SPLASH =====
   const splash = document.getElementById('splash');
@@ -2002,15 +2056,26 @@ html, body { overflow-x: hidden; max-width: 100%; }
     });
   }
 
+  // #nav sticky olduğundan native/scrollIntoView hedefe tam üstten hizalanınca başlığın
+  // üst kısmı navbar'ın altında kalıyordu — navbar yüksekliği kadar pay bırakarak kaydırır.
+  function scrollToWithNavOffset(target) {
+    if (!target) return;
+    const nav = document.getElementById('nav');
+    const navHeight = nav ? nav.offsetHeight : 0;
+    const y = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+  }
+
   function goToCategory(catId) {
-    filterByCategory(catId);
+    // Bölüm DOM'da yoksa (ör. "Yeni Sezon" ürünü henüz işaretlenmemişse) tüm kataloğa düş.
+    const effectiveCatId = (catId && document.getElementById(catId)) ? catId : null;
+    filterByCategory(effectiveCatId);
     requestAnimationFrame(() => {
-      const target = document.getElementById(catId || 'catalog');
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      scrollToWithNavOffset(document.getElementById(effectiveCatId || 'catalog'));
     });
   }
 
-  document.querySelectorAll('#nav-links a, .mobile-link, .footer-links a').forEach(a => {
+  document.querySelectorAll('#nav-links a, .mobile-link, .footer-links a, .season-hero-cta').forEach(a => {
     const href = a.getAttribute('href') || '';
     if (!href.startsWith('#')) return;
     a.addEventListener('click', e => {
@@ -2530,7 +2595,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
            data-code="${p.code}" data-name="${p.name} ${p.nameEn}" data-cat="${cat.name}" data-soldout="${!!p.isSoldOut}"
            role="button" tabindex="0" aria-label="${p.name} - ${p.code}">
         <div class="product-card-visual">
-          ${isNewSection ? `<span class="new-badge">${STRINGS[currentLang].newBadge}</span>` : ''}
+          ${(isNewSection || p.isNew) ? `<span class="new-badge">${STRINGS[currentLang].newBadge}</span>` : ''}
           ${p.isSoldOut ? `<span class="sold-out-badge">${STRINGS[currentLang].soldOut}</span>` : ''}
           ${visualInner}
           <button class="card-fav ${favActive ? 'active' : ''}" data-code="${p.code}" title="Favorilere ekle" aria-label="Favori">
@@ -2596,7 +2661,13 @@ html, body { overflow-x: hidden; max-width: 100%; }
             <div class="cat-bg-video-text">
               ${isNewSection ? `<span class="section-video-badge">NEW SEASON</span>` : ''}
               <span class="section-tag">${cat.nameEn}</span>
-              <h2 class="section-title">${cat.name}</h2>
+              <h2 class="section-title${isNewSection ? ' reveal yeni-sezon-title' : ''}">${cat.name}</h2>
+              ${isNewSection ? `<div class="yeni-sezon-marquee" aria-hidden="true">
+                <div class="yeni-sezon-marquee-track">
+                  <span>NEW SEASON &middot; SONBAHAR KIŞ 2026 &middot; NEW SEASON &middot; AUTUMN WINTER 2026 &middot; </span>
+                  <span>NEW SEASON &middot; SONBAHAR KIŞ 2026 &middot; NEW SEASON &middot; AUTUMN WINTER 2026 &middot; </span>
+                </div>
+              </div>` : ''}
             </div>
           </div>
           <div class="section-wrap">${bodyInner}</div>
@@ -2616,31 +2687,16 @@ html, body { overflow-x: hidden; max-width: 100%; }
       </section>`;
   }
 
-  // "Yeni Sezon" bölümü: panel API/JSON'da ürüne eklenme tarihi yok — bu yüzden olası
-  // bir tarih alanı varsa son 30 gün filtrelenir, yoksa kod numarası en yüksek (en yeni
-  // girilmiş) 12 ürün gösterilir.
-  // Yeni sezon (AW26) ürünleri panelde 8640-8999 kod aralığında girilir; yazlık 9xxx
-  // serisi (9000+) bu aralığın dışında kalarak otomatik hariç tutulur. "8545-1" gibi
-  // ek almış kodlarda parseInt ilk sayısal kısmı okur.
+  // "Yeni Sezon" bölümü: panelde "Yeni Sezon" işaretlenmiş (isNew=true) ürünlerden oluşur.
+  // Sıralama panelin Kategori Sırası > Yeni Sezon sekmesinde belirlenen newOrder alanına göre
+  // (küçükten büyüğe), sırası olmayanlar en sona kod bazlı düşer. Sayı sınırı yok. Fotoğrafsız
+  // ve tükendi ürünler hariç tutulur — ürünün kendi kategorisindeki görünümü etkilenmez.
   function pickYeniSezonProducts(products) {
     const codeNum = p => parseInt(p.code, 10) || 0;
-    const withPhoto = products.filter(hasPhoto).filter(p => !p.isSoldOut);
-    const inSeasonRange = withPhoto.filter(p => { const n = codeNum(p); return n >= 8640 && n <= 8999; });
-    const dateOf = p => p.eklemeTarihi || p.dateAdded || p.createdAt || p.tarih || null;
-    const withDate = inSeasonRange.filter(p => dateOf(p));
-    if (withDate.length) {
-      const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-      const recent = withDate
-        .map(p => ({ p, t: new Date(dateOf(p)).getTime() }))
-        .filter(x => !isNaN(x.t) && x.t >= cutoff)
-        .sort((a, b) => b.t - a.t)
-        .map(x => x.p);
-      if (recent.length) return recent.slice(0, 12);
-    }
-    return inSeasonRange
-      .slice()
-      .sort((a, b) => codeNum(b) - codeNum(a))
-      .slice(0, 12);
+    const eligible = products.filter(hasPhoto).filter(p => p.isNew && !p.isSoldOut);
+    const ranked = eligible.filter(p => p.newOrder != null).sort((a, b) => a.newOrder - b.newOrder);
+    const unranked = eligible.filter(p => p.newOrder == null).sort((a, b) => codeNum(b) - codeNum(a));
+    return ranked.concat(unranked);
   }
 
   function renderCatalog(data) {
@@ -2840,6 +2896,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
       sizes: p.bedenler || '',
       stokta: p.stokta !== false,
       isSoldOut: !!p.isSoldOut,
+      isNew: !!p.isNew,
+      newOrder: (typeof p.newOrder === 'number') ? p.newOrder : null,
     };
   }
 
@@ -2852,6 +2910,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
     raw.products = (raw.products || []).map(p => ({
       ...p,
       isSoldOut: !!p.isSoldOut,
+      isNew: !!p.isNew,
+      newOrder: (typeof p.newOrder === 'number') ? p.newOrder : null,
       colors: (p.colors || []).map(c => ({
         name: c.name,
         hex: c.hex,
