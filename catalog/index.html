@@ -2369,10 +2369,21 @@ html, body { overflow-x: hidden; max-width: 100%; }
     });
   }
 
+  // Ürünün fotoğrafı olan ilk rengi döner — hiçbir rengin fotoğrafı yoksa null (o zaman
+  // placeholder gösterilir, aksi halde her zaman gerçek bir fotoğraf bulunur).
+  function firstColorWithPhoto(colors) {
+    return (colors || []).find(c => c.kapakFoto && !c.kapakFoto.includes('undefined')) || null;
+  }
+
   function switchColor(idx) {
     if (!currentProduct || !currentProduct.colors[idx]) return;
     currentColorIndex = idx;
-    const c = currentProduct.colors[idx];
+    let c = currentProduct.colors[idx];
+    // Savunma amaçlı: fotoğrafsız bir renge düşülürse (normalde artık olmamalı, bkz.
+    // openModal'daki data-idx düzeltmesi) placeholder yerine ürünün ilk fotoğrafı gösterilir.
+    if (!c.kapakFoto || c.kapakFoto.includes('undefined')) {
+      c = firstColorWithPhoto(currentProduct.colors) || c;
+    }
     setModalPhoto(c.kapakFoto, false);
     renderThumbStrip(c);
     adjustModalPhotoHeight();
@@ -2483,7 +2494,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       ${(() => { const mc = (product.colors||[]).filter(c => c.kapakFoto && !c.kapakFoto.includes('undefined')); return mc.length > 1 ? `
       <div class="modal-colors">
         ${mc.map(c => `
-          <div class="modal-color-item">
+          <div class="modal-color-item" data-idx="${product.colors.indexOf(c)}">
             <div class="modal-color-dot" style="${swatchStyle(c)}"></div>
             <span class="modal-color-name">${c.name}</span>
           </div>`).join('')}
@@ -2503,11 +2514,16 @@ html, body { overflow-x: hidden; max-width: 100%; }
       toggleFav(product.code);
     });
 
-    modalBody.querySelectorAll('.modal-color-item').forEach((el, idx) => {
-      el.addEventListener('click', () => switchColor(idx));
+    // data-idx her zaman product.colors (TAM liste) içindeki gerçek konumu taşır — buradaki
+    // renk kutuları sadece fotoğrafı OLAN renkleri gösterdiği (mc, filtrelenmiş) için forEach'in
+    // kendi sıra numarasını kullanmak yanlış rengi seçtiriyordu (bkz. commit notu, kod 8390 bug'ı).
+    modalBody.querySelectorAll('.modal-color-item').forEach(el => {
+      el.addEventListener('click', () => switchColor(Number(el.dataset.idx)));
     });
 
-    const initialColor = product.colors[0];
+    const initialColorIdx = product.colors.findIndex(c => c === firstColorWithPhoto(product.colors));
+    currentColorIndex = initialColorIdx >= 0 ? initialColorIdx : 0;
+    const initialColor = firstColorWithPhoto(product.colors) || product.colors[0];
     setModalPhoto(initialColor && initialColor.kapakFoto, true);
     renderThumbStrip(initialColor);
     adjustModalPhotoHeight();
