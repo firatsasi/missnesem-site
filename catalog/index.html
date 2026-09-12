@@ -816,6 +816,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
   flex-shrink: 0;
 }
+/* Panelde renk haritasında karşılığı olmayan (bilinmeyen) bir renk adı gelirse — artık
+   nadiren olur, bkz. CatalogApi ResolveHex — gri blob yerine ince kenarlıklı boş daire. */
+.color-dot-unknown, .modal-color-dot-unknown {
+  background: transparent !important;
+  border: 1.5px dashed rgba(0,0,0,0.35) !important;
+  box-shadow: none !important;
+}
 
 /* gradient for each category */
 .cat-elbiseler .product-img-placeholder { background: linear-gradient(145deg, #fce4ec 0%, #f8bbd0 100%); }
@@ -2495,7 +2502,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       <div class="modal-colors">
         ${mc.map(c => `
           <div class="modal-color-item" data-idx="${product.colors.indexOf(c)}">
-            <div class="modal-color-dot" style="${swatchStyle(c)}"></div>
+            <div class="modal-color-dot${isUnknownColor(c) ? ' modal-color-dot-unknown' : ''}" style="${swatchStyle(c)}" title="${c.name}"></div>
             <span class="modal-color-name">${c.name}</span>
           </div>`).join('')}
       </div>` : ''; })()}
@@ -2592,7 +2599,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     const favActive = isFav(p.code);
     const colorsWithPhoto = (p.colors || []).filter(c => c.kapakFoto && !c.kapakFoto.includes('undefined'));
     const colorDots = colorsWithPhoto.length > 1
-      ? colorsWithPhoto.map(c => `<div class="color-dot" style="${swatchStyle(c)}" title="${c.name}"></div>`).join('')
+      ? colorsWithPhoto.map(c => `<div class="color-dot${isUnknownColor(c) ? ' color-dot-unknown' : ''}" style="${swatchStyle(c)}" title="${c.name}"></div>`).join('')
       : '';
     const coverPhoto = p.colors && p.colors[0] && p.colors[0].kapakFoto;
     const isEager = cardImgCounter < EAGER_IMAGE_COUNT;
@@ -2870,11 +2877,15 @@ html, body { overflow-x: hidden; max-width: 100%; }
     };
   }
 
-  // Desenli renkler için swatch görseli varsa onu kullan, yoksa düz hex rengine düş.
+  // Desenli renkler için swatch görseli varsa onu kullan, yoksa düz hex/gradyan rengine düş.
+  // hex hiç yoksa (panel renk haritasında karşılığı olmayan bir isim) boş bırakılır —
+  // çağıran taraf bunun yerine .color-dot-unknown sınıfını (boş kenarlıklı daire) uygular.
   function swatchStyle(c) {
-    return c.swatchImageUrl
-      ? `background-image:url('${c.swatchImageUrl}');background-size:cover;background-position:center;`
-      : `background:${c.hex};`;
+    if (c.swatchImageUrl) return `background-image:url('${c.swatchImageUrl}');background-size:cover;background-position:center;`;
+    return c.hex ? `background:${c.hex};` : '';
+  }
+  function isUnknownColor(c) {
+    return !c.swatchImageUrl && !c.hex;
   }
 
   // Panel API'de korse/büstiyer ürünleri "Bluzlar" kategorisinde gelir; katalogda
