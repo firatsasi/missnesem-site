@@ -1616,7 +1616,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
         <li><a href="#tesettur">Tesettür</a></li>
         <li><a href="#pantolon">Pantolonlar</a></li>
         <li><a href="#yelek">Yelekler</a></li>
-        <li><a href="#diger">Diğer</a></li>
         <li><a href="#catalog" class="nav-indirim">İndirimler</a></li>
       </ul>
     </nav>
@@ -1653,7 +1652,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <a href="#tesettur" class="mobile-link">Tesettür</a>
   <a href="#pantolon" class="mobile-link">Pantolonlar</a>
   <a href="#yelek" class="mobile-link">Yelekler</a>
-  <a href="#diger" class="mobile-link">Diğer</a>
   <a href="#catalog" class="mobile-link nav-indirim">İndirimler</a>
 </div>
 
@@ -1743,7 +1741,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
           <li><a href="#tesettur">Tesettür</a></li>
           <li><a href="#pantolon">Pantolonlar</a></li>
           <li><a href="#yelek">Yelekler</a></li>
-          <li><a href="#diger">Diğer</a></li>
           <li><a href="https://missnesem.com">Ana Sayfa</a></li>
         </ul>
       </div>
@@ -2747,9 +2744,12 @@ html, body { overflow-x: hidden; max-width: 100%; }
       }
     }
 
+    // Fotoğraflı ürünü 0 olan kategori (bant, başlık, "Yakında" dahil) HİÇ render edilmez —
+    // bölüm tamamen atlanır. Kategori ileride ürün kazanırsa bir sonraki render'da otomatik
+    // geri gelir, elle bir liste güncellemesi gerekmez (2026-09-13, ör. "Diğer").
     const realCategories = data.categories.filter(c => c.id !== 'yeni-sezon');
     const hasProducts = cat => data.products.some(p => p.category === cat.id && hasPhoto(p));
-    const restHtml = [...realCategories.filter(hasProducts), ...realCategories.filter(c => !hasProducts(c))]
+    const restHtml = realCategories.filter(hasProducts)
       .map(cat => buildCategorySection(cat, data.products))
       .join('');
 
