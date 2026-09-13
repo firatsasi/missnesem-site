@@ -2663,14 +2663,14 @@ html, body { overflow-x: hidden; max-width: 100%; }
       // videoyu farklı zamanda tekrar oynatmak yerine gerçek çeşitlilik. Mobil: tek video,
       // bandın kendi kategori videosu (değişmedi). İkisi de DOM'da durur, initCategoryVideos
       // sadece viewport'a uyanı yükler.
-      const bandKey = videoBase.replace(/^cat_/, '');
+      const bandKey = videoBase.replace(/^band_/, '').replace(/_1$/, '');
       const panelVideos = BAND_PANELS[bandKey] || [videoBase, videoBase, videoBase, videoBase];
       const panelsHtml = panelVideos.map(pv => {
         const pFocus = VIDEO_FOCUS[pv] || 'center 45%';
         return `
             <div class="cat-bg-video-panel">
               <video class="cat-bg-video" muted playsinline loop preload="none"
-                     poster="/catalog/video/${pv}_poster.jpg" data-src="/catalog/video/${pv}.mp4?v=4"
+                     poster="/catalog/video/${pv}_poster.jpg" data-src="/catalog/video/${pv}.mp4?v=1"
                      data-focus="${pFocus}"></video>
             </div>`;
       }).join('');
@@ -2680,7 +2680,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
             <div class="cat-bg-video-panels">${panelsHtml}
             </div>
             <video class="cat-bg-video cat-bg-video-mobile" muted playsinline loop preload="none"
-                   poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4?v=4"></video>
+                   poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4?v=1"></video>
             <div class="cat-bg-video-overlay"></div>
             <div class="cat-bg-video-text">
               ${isNewSection ? `<span class="section-video-badge">NEW SEASON</span>` : ''}
@@ -2808,11 +2808,11 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // Kategori başlığına video bandı eklenecek kategoriler (bkz. buildCategorySection) —
   // dosya adları /catalog/video/<değer>.mp4 + /catalog/video/<değer>_poster.jpg.
   const CATEGORY_HEADER_VIDEO = {
-    'yeni-sezon': 'cat_yeni',
-    'trenckot': 'cat_trenckot',
-    'ceket': 'cat_ceket',
-    'takimlar': 'cat_takim',
-    'diger': 'cat_diger',
+    'yeni-sezon': 'band_yeni_1',
+    'trenckot': 'band_trenckot_1',
+    'ceket': 'band_ceket_1',
+    'takimlar': 'band_takim_1',
+    'diger': 'band_diger_1',
   };
   // Masaüstü 4 panelli kategori bandında her panelin object-position odağı — video
   // bazında farklılaştırılabilsin diye tek objede tutulur (bkz. buildCategorySection).
@@ -2834,11 +2834,11 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // (ör. cat_trenckot → 'trenckot'). Bir bantta aynı video iki kez yok, alt alta gelen bantlar
   // aynı sırayı paylaşmıyor — elle değiştirilebilir.
   const BAND_PANELS = {
-    yeni:     ['cat_yeni', 'hero_left', 'cat_trenckot', 'hero_right'],
-    trenckot: ['cat_trenckot', 'hero_center', 'cat_ceket', 'cat_diger'],
-    ceket:    ['cat_ceket', 'hero_mobile', 'cat_takim', 'hero_left'],
-    takim:    ['cat_takim', 'hero_right', 'cat_yeni', 'hero_center'],
-    diger:    ['cat_diger', 'cat_ceket', 'hero_mobile', 'cat_trenckot'],
+    yeni:     ['band_yeni_1', 'band_yeni_2', 'band_yeni_3', 'band_yeni_4'],
+    trenckot: ['band_trenckot_1', 'band_trenckot_2', 'band_trenckot_3', 'band_trenckot_4'],
+    ceket:    ['band_ceket_1', 'band_ceket_2', 'band_ceket_3', 'band_ceket_4'],
+    takim:    ['band_takim_1', 'band_takim_2', 'band_takim_3', 'band_takim_4'],
+    diger:    ['band_diger_1', 'band_diger_2', 'band_diger_3', 'band_diger_4'],
   };
 
   // Galeri elemanı ya eski API/fallback'te düz URL string'i ya da yeni API'de
