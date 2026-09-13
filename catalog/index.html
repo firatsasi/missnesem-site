@@ -942,6 +942,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
    başlar, bkz. initCategoryVideos/data-seek-fraction). <900px'te (mobil) tek video, panel
    grid'i hiç DOM'a yüklenmez/oynatılmaz — bkz. initCategoryVideos'taki isDesktop ayrımı. */
 .cat-bg-video-panels { display: none; }
+/* Mobil bant videosu: yüz üstte kalsın, kesilmesin (masaüstü panellerinden farklı odak). */
+.cat-bg-video-mobile { object-fit: cover; object-position: center 20%; }
 @media (min-width: 900px) {
   .section-header-video { max-height: 620px; }
   .cat-bg-video-panels {
@@ -1021,10 +1023,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   .section-video-badge { animation: none; }
   .yeni-sezon-marquee-track { animation: none; }
 }
-@media (max-width: 768px) {
-  .section-header-video { height: 38vh; min-height: 220px; }
-}
-
 /* ===== MODAL ===== */
 #modal-overlay {
   position: fixed;
@@ -2660,9 +2658,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
       // ile aynı prensip) — .section-wrap 1400px'te sınırlı olduğundan içeride kalırsa tam
       // genişlik olamaz.
       // Masaüstü: 4 dikey panel, HER BİRİ FARKLI bir video dosyası (bkz. BAND_PANELS) — aynı
-      // videoyu farklı zamanda tekrar oynatmak yerine gerçek çeşitlilik. Mobil: tek video,
-      // bandın kendi kategori videosu (değişmedi). İkisi de DOM'da durur, initCategoryVideos
-      // sadece viewport'a uyanı yükler.
+      // videoyu farklı zamanda tekrar oynatmak yerine gerçek çeşitlilik. Mobil: TEK <video>
+      // elemanı ama AYNI 4 dosyayı sırayla oynatır (data-panels, bkz. initCategoryVideos'taki
+      // bindMobileRotation) — 'ended' olunca bir sonrakine geçer, 4.'den sonra başa döner.
+      // İkisi de DOM'da durur, initCategoryVideos sadece viewport'a uyanı yükler.
       const bandKey = videoBase.replace(/^band_/, '').replace(/_1$/, '');
       const panelVideos = BAND_PANELS[bandKey] || [videoBase, videoBase, videoBase, videoBase];
       const panelsHtml = panelVideos.map(pv => {
@@ -2679,8 +2678,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
           <div class="section-header-video reveal">
             <div class="cat-bg-video-panels">${panelsHtml}
             </div>
-            <video class="cat-bg-video cat-bg-video-mobile" muted playsinline loop preload="none"
-                   poster="/catalog/video/${videoBase}_poster.jpg" data-src="/catalog/video/${videoBase}.mp4?v=1"></video>
+            <video class="cat-bg-video cat-bg-video-mobile" muted playsinline autoplay preload="metadata"
+                   poster="/catalog/video/${panelVideos[0]}_poster.jpg" data-src="/catalog/video/${panelVideos[0]}.mp4?v=1"
+                   data-panels='${JSON.stringify(panelVideos)}'></video>
             <div class="cat-bg-video-overlay"></div>
             <div class="cat-bg-video-text">
               ${isNewSection ? `<span class="section-video-badge">NEW SEASON</span>` : ''}
@@ -3028,12 +3028,39 @@ html, body { overflow-x: hidden; max-width: 100%; }
         ? band.querySelectorAll('.cat-bg-video-panels .cat-bg-video')
         : [band.querySelector('.cat-bg-video-mobile')].filter(Boolean);
     }
+    // Mobil bant tek <video> elemanında 4 paneli SIRAYLA oynatır (data-panels, bkz. markup
+    // yorumu). 'ended' olunca bir sonraki panelin poster'ı HEMEN atanır (siyah kare yerine o
+    // panelin kendi önizlemesi görünür), src değişir, gerçek oynatma ise 'canplay' beklenip
+    // başlar — buffer dolmadan play() çağırıp takılmasın/flash yapmasın diye. 4.'den sonra başa
+    // döner. Masaüstteki 4-panel grid'i bundan etkilenmez (ayrı elemanlar, ayrı loop mantığı).
+    function bindMobileRotation(v) {
+      if (v.dataset.rotationBound) return;
+      v.dataset.rotationBound = '1';
+      let panels;
+      try { panels = JSON.parse(v.dataset.panels || '[]'); } catch (e) { panels = []; }
+      if (panels.length <= 1) return;
+      v._panelIdx = 0;
+      v.addEventListener('ended', function () {
+        v._panelIdx = (v._panelIdx + 1) % panels.length;
+        const name = panels[v._panelIdx];
+        v.poster = `/catalog/video/${name}_poster.jpg`;
+        v.src = `/catalog/video/${name}.mp4?v=1`;
+        v.load();
+        const onReady = function () {
+          v.removeEventListener('canplay', onReady);
+          const p = v.play();
+          if (p && p.catch) p.catch(() => {});
+        };
+        v.addEventListener('canplay', onReady);
+      });
+    }
     function loadVideo(v) {
       if (!v || v.dataset.loaded) return;
       v.dataset.loaded = '1';
       if (v.dataset.focus) v.style.objectPosition = v.dataset.focus;
       if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); }
       v.load();
+      if (!isDesktop && v.dataset.panels) bindMobileRotation(v);
     }
     function playAll(vids) {
       vids.forEach(v => {
