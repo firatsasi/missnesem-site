@@ -2053,7 +2053,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // henüz ayrı bir indirim bölümü olmadığından aynı linke gider) tüm bölümleri geri getirir.
   // Tarayıcının native #hash navigasyonuna güvenilmez (preventDefault ile devre dışı
   // bırakılır) — böylece sayfadan hiç çıkılmaz, her zaman scroll/filtre JS ile yapılır.
+  let currentCategoryFilter = null;
   function filterByCategory(catId) {
+    currentCategoryFilter = catId;
     document.querySelectorAll('.cat-section').forEach(section => {
       section.style.display = (!catId || section.id === catId) ? '' : 'none';
     });
@@ -2069,13 +2071,115 @@ html, body { overflow-x: hidden; max-width: 100%; }
     window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
   }
 
+  // ===== TARAYICI GEÇMİŞİ (mobil geri tuşu sitede kalsın, 2026-09-13) =====
+  // Kategori/ürün/galeri/favori panelinin her açılışı history.pushState ile geçmişe yazılır;
+  // popstate (geri/ileri) açık olanı kapatır, yoksa önceki kategoriye döner — en başa
+  // gelince (bizim yazdığımız hiçbir kayıt kalmayınca) bir geri daha normal şekilde siteden
+  // çıkar. Dil değişimi KASITLI olarak history'ye yazılmaz. ?intro=1 sorgu parametresi ve
+  // intro akışı buradan etkilenmez — sadece location.hash'e dokunuyoruz, search'e değil.
+  // restoringHistory=true iken open* fonksiyonları yeni bir pushState YAPMAZ (popstate'in
+  // kendisi zaten bir geçmiş hareketi, üstüne tekrar yazmak yığında çöp biriktirirdi).
+  let restoringHistory = false;
+
+  function visibleState() {
+    return {
+      cat: currentCategoryFilter,
+      product: (overlay.classList.contains('open') && currentProduct) ? currentProduct.code : null,
+      gallery: fullscreenOverlay.classList.contains('open'),
+      fav: favPanel.classList.contains('open'),
+    };
+  }
+  function stateHash(state) {
+    const parts = [];
+    if (state.cat) parts.push('kategori=' + encodeURIComponent(state.cat));
+    if (state.product) parts.push('urun=' + encodeURIComponent(state.product));
+    if (state.gallery) parts.push('galeri=1');
+    if (state.fav) parts.push('favoriler=1');
+    return parts.join('&');
+  }
+  function pushCatalogState(state) {
+    if (restoringHistory) return;
+    const hash = stateHash(state);
+    history.pushState(state, '', hash ? ('#' + hash) : (location.pathname + location.search));
+  }
+  function replaceCatalogState(state) {
+    const hash = stateHash(state);
+    history.replaceState(state, '', hash ? ('#' + hash) : (location.pathname + location.search));
+  }
+  function parseHashState(hash) {
+    const params = new URLSearchParams((hash || '').replace(/^#/, ''));
+    return {
+      cat: params.get('kategori') || null,
+      product: params.get('urun') || null,
+      gallery: params.get('galeri') === '1',
+      fav: params.get('favoriler') === '1',
+    };
+  }
+
+  // Sayfa ilk açılışında hash'te bir durum varsa (ör. paylaşılan #urun=8651 linki) o duruma
+  // döner. Derin linkte bile ALTTA "kapalı" bir taban katman oluşturulur (replaceState) ki
+  // X ile kapatma/geri tuşu (ikisi de aşağıdaki history.back() çağrıları üzerinden akar)
+  // siteden hemen çıkmak yerine önce bu tabana insin.
+  function initHistoryState() {
+    const initial = parseHashState(location.hash);
+    const effectiveCat = (initial.cat && document.getElementById(initial.cat)) ? initial.cat : null;
+    restoringHistory = true;
+    try {
+      replaceCatalogState({ cat: effectiveCat, product: null, gallery: false, fav: false });
+      filterByCategory(effectiveCat);
+      if (effectiveCat) {
+        requestAnimationFrame(() => scrollToWithNavOffset(document.getElementById(effectiveCat)));
+      }
+      if (initial.product) {
+        const p = allProducts.find(x => x.code === initial.product);
+        if (p) {
+          openModal(p);
+          if (initial.gallery) openFullscreen();
+        }
+      } else if (initial.fav) {
+        favPanel.classList.add('open');
+      }
+    } finally {
+      restoringHistory = false;
+    }
+    // Ürün/galeri/favori gerçekten açıldıysa üstteki "açık" katmanı şimdi push et (taban zaten yazıldı).
+    const opened = visibleState();
+    if (opened.product || opened.fav) pushCatalogState(opened);
+  }
+
+  window.addEventListener('popstate', e => {
+    const newState = e.state || { cat: null, product: null, gallery: false, fav: false };
+    const old = visibleState();
+    restoringHistory = true;
+    try {
+      if (old.gallery && !newState.gallery) closeFullscreen();
+      if (old.product && !newState.product) closeModal();
+      if (old.fav && !newState.fav) favPanel.classList.remove('open');
+      if (newState.product && newState.product !== old.product) {
+        const p = allProducts.find(x => x.code === newState.product);
+        if (p) openModal(p);
+      }
+      if (newState.gallery && !old.gallery) openFullscreen();
+      if (newState.fav && !old.fav) favPanel.classList.add('open');
+      if (newState.cat !== old.cat) {
+        filterByCategory(newState.cat);
+        scrollToWithNavOffset(document.getElementById(newState.cat || 'catalog'));
+      }
+    } finally {
+      restoringHistory = false;
+    }
+  });
+
   function goToCategory(catId) {
     // Bölüm DOM'da yoksa (ör. "Yeni Sezon" ürünü henüz işaretlenmemişse) tüm kataloğa düş.
     const effectiveCatId = (catId && document.getElementById(catId)) ? catId : null;
+    const sameCategory = currentCategoryFilter === effectiveCatId;
     filterByCategory(effectiveCatId);
     requestAnimationFrame(() => {
       scrollToWithNavOffset(document.getElementById(effectiveCatId || 'catalog'));
     });
+    const state = { cat: effectiveCatId, product: null, gallery: false, fav: false };
+    if (sameCategory) replaceCatalogState(state); else pushCatalogState(state);
   }
 
   document.querySelectorAll('#nav-links a, .mobile-link, .footer-links a, .season-hero-cta').forEach(a => {
@@ -2166,11 +2270,19 @@ html, body { overflow-x: hidden; max-width: 100%; }
 
   // fav panel
   const favPanel = document.getElementById('fav-panel');
+  // Açma: pushState (yeni bir "favoriler açık" katmanı). Kapama: history.back() — böylece
+  // X butonu ile geri tuşu AYNI popstate akışından geçer, yığında çöp kalmaz.
   document.getElementById('fav-toggle').addEventListener('click', () => {
-    favPanel.classList.toggle('open');
+    if (favPanel.classList.contains('open')) {
+      history.back();
+    } else {
+      favPanel.classList.add('open');
+      const s = visibleState(); s.fav = true;
+      pushCatalogState(s);
+    }
   });
   document.getElementById('fav-panel-close').addEventListener('click', () => {
-    favPanel.classList.remove('open');
+    history.back();
   });
 
   function renderFavPanel() {
@@ -2439,6 +2551,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
     updateFullscreenView();
     adjustFullscreenPhotoHeight();
     fullscreenOverlay.classList.add('open');
+    if (!restoringHistory && currentProduct) {
+      pushCatalogState({ cat: currentCategoryFilter, product: currentProduct.code, gallery: true, fav: false });
+    }
   }
 
   function closeFullscreen() {
@@ -2451,11 +2566,12 @@ html, body { overflow-x: hidden; max-width: 100%; }
     openFullscreen();
   });
 
-  document.getElementById('fullscreen-close').addEventListener('click', closeFullscreen);
+  // history.back() — X/dışına tıklama ile geri tuşu aynı popstate akışından geçer.
+  document.getElementById('fullscreen-close').addEventListener('click', () => history.back());
   fullscreenNavPrev.addEventListener('click', () => goToPhoto(currentPhotoIndex - 1));
   fullscreenNavNext.addEventListener('click', () => goToPhoto(currentPhotoIndex + 1));
   fullscreenOverlay.addEventListener('click', e => {
-    if (e.target === fullscreenOverlay) closeFullscreen();
+    if (e.target === fullscreenOverlay) history.back();
   });
 
   let fsTouchStartX = 0;
@@ -2550,6 +2666,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
         });
       }
     }
+
+    if (!restoringHistory) {
+      pushCatalogState({ cat: currentCategoryFilter, product: product.code, gallery: false, fav: false });
+    }
   }
 
   function closeModal() {
@@ -2557,8 +2677,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
     document.body.style.overflow = '';
   }
 
-  document.getElementById('modal-close').addEventListener('click', closeModal);
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  // history.back() — X/dışına tıklama ile geri tuşu aynı popstate akışından geçer (bkz.
+  // yukarıdaki TARAYICI GEÇMİŞİ bloğu); gerçek kapatma popstate handler'da closeModal() çağırır.
+  document.getElementById('modal-close').addEventListener('click', () => history.back());
+  overlay.addEventListener('click', e => { if (e.target === overlay) history.back(); });
 
   // Meta Pixel: Contact — modal WhatsApp butonuna tıklanınca. modalBody.innerHTML her
   // openModal()'da yeniden yazıldığından butona doğrudan değil, sabit modalBody'ye
@@ -2568,12 +2690,12 @@ html, body { overflow-x: hidden; max-width: 100%; }
   });
   document.addEventListener('keydown', e => {
     if (fullscreenOverlay.classList.contains('open')) {
-      if (e.key === 'Escape') closeFullscreen();
+      if (e.key === 'Escape') history.back();
       if (e.key === 'ArrowLeft') goToPhoto(currentPhotoIndex - 1);
       if (e.key === 'ArrowRight') goToPhoto(currentPhotoIndex + 1);
       return;
     }
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape' && overlay.classList.contains('open')) history.back();
     if (overlay.classList.contains('open')) {
       if (e.key === 'ArrowLeft') goToPhoto(currentPhotoIndex - 1);
       if (e.key === 'ArrowRight') goToPhoto(currentPhotoIndex + 1);
@@ -2781,6 +2903,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     initReveal();
     updateFavCount();
     renderFavPanel();
+    initHistoryState();
   }
 
   // ===== API ENTEGRASYONU =====
