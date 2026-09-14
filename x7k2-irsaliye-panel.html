@@ -28,6 +28,13 @@ body{font-family:Arial,Helvetica,sans-serif;background:#e8ddc9;padding:1rem;colo
 input.finp{width:100%;font-size:15px;padding:9px 10px}
 input.finp:focus,input.ri:focus{outline:1.5px solid #a64d3e;border-color:#a64d3e}
 .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* Kalem tablosu SADECE burada table-scroll KULLANMIYOR (Rapor tablosundan ayrı, bkz. altta) —
+   overflow-x:auto tek başına bile CSS'in "biri visible değilse diğeri de auto olur" kuralı
+   yüzünden overflow-y'yi de örtük auto yapıp KOD/ÜRÜN/RENK dropdown'larını (position:absolute,
+   satırın dışına taşıyor) tablo kutusunun alt sınırında kesiyordu. Bu yüzden kalem tablosu
+   sarmalayıcısı overflow:visible (her iki eksen) — tablo içerik kadar uzar, sayfa scroll eder,
+   dropdown hiçbir zaman kesilmez. Dar ekranda yatay taşma olursa sayfa kendisi scroll eder. */
+.kalem-scroll{overflow:visible}
 table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed;min-width:560px}
 #tblKalemler{min-width:900px}
 thead{background:#2c2419}
@@ -332,7 +339,7 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
       </div>
     <div><label class="flbl">TARİH</label><input class="finp cell" type="date" id="tarih" /></div>
   </div>
-  <div class="table-scroll">
+  <div class="kalem-scroll">
   <table id="tblKalemler">
     <colgroup><col style="width:100px"><col><col style="width:170px"><col style="width:150px"><col style="width:50px" class="iade-col"><col style="width:40px" class="del-col"></colgroup>
     <thead><tr><th>ADET</th><th>KOD / ÜRÜN / RENK</th><th class="r">BİRİM FİYAT</th><th class="r">TOPLAM</th><th class="iade-col">İADE</th><th class="del-col"></th></tr></thead>
@@ -1097,10 +1104,21 @@ var sym={TL:'₺',USD:'$',EUR:'€'};
 function birim(){var el=document.getElementById('para');var v=el?el.value:'TL';return (sym&&sym[v])||'₺';}
 function fmt(n){var el=document.getElementById('para');var p=el?el.value:'TL';if(p==='TL')return n.toLocaleString('tr-TR')+' ₺';return ((sym&&sym[p])||'')+' '+n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmtTL(n){return n.toLocaleString('tr-TR')+' ₺';}
-function ekle(){
+// sessiz=true: programatik toplu satır oluşturma (temizle()'nin ilk 3 boş satırı,
+// irsaliyeDuzenle()'nin kayıtlı kalemleri geri yüklemesi) sırasında sayfa zıplamasın/odak
+// çalınmasın diye kaydırma+focus atlanır. Kullanıcının "+ Satır ekle" tıklaması her zaman sessiz
+// OLMAYAN çağrıdır.
+function ekle(sessiz){
   var tr=_satirOlustur();
   document.getElementById('tb').appendChild(tr);
   hesapla();
+  if(!sessiz){
+    // Uzun kalem listesinde yeni satır ekran dışında kalmasın diye görünür alana kaydırılır,
+    // KOD alanı da otomatik odaklanır (kullanıcı hemen yazmaya başlayabilsin).
+    tr.scrollIntoView({block:'nearest'});
+    var iKod=tr.querySelector('.ri-kod');
+    if(iKod)iKod.focus();
+  }
   return tr;
 }
 // Satırı oluşturur ama tbody'ye eklemez — "+ Satır ekle" akışı ekle() sarmalayıcısı
@@ -1309,7 +1327,7 @@ function temizle(){
   document.getElementById('iadeRow').style.display='none';
   document.getElementById('gt').textContent='0 ₺';
   sc=0;
-ekle();ekle();ekle();
+ekle(true);ekle(true);ekle(true);
   _duzenlemeBanneriGuncelle();
 }
 
@@ -2030,7 +2048,7 @@ function irsaliyeDuzenle(id){
     }
   });
   gruplar.forEach(function(g){
-    ekle();
+    ekle(true);
     var rows=document.querySelectorAll('#tb tr');
     var tr=rows[rows.length-1];
     var fiyat,iade;
@@ -2059,7 +2077,7 @@ function irsaliyeDuzenle(id){
     var tag=tr.querySelector('.iade-tag');
     if(tag)tag.style.display=iade?'inline':'none';
   });
-  if(gruplar.length===0)ekle();
+  if(gruplar.length===0)ekle(true);
 
   var kargoVar=!!kayit.kargoFirma;
   document.getElementById('kargoChk').checked=kargoVar;
@@ -2970,7 +2988,7 @@ function cariBorc(musteri,tutar,irsaliyeId,tarih,para){
   cariVeriYaz(d);
 }
 
-ekle();ekle();ekle();
+ekle(true);ekle(true);ekle(true);
 
 // Ctrl+P → rapor tek sayfaya sığsın
 window.addEventListener('beforeprint',function(){
