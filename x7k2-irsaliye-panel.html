@@ -1877,7 +1877,7 @@ function popPdf(id){
     acikHesap:k.odeme==='AcikHesap',eski:k.eskiBakiye||0,genelGoster:genelGoster
   };
   var dosyaAdi='MissNesem_'+k.musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.pdf';
-  _notoFontYukle().then(function(){
+  Promise.all([_notoFontYukle(),_notoMediumYukle()]).then(function(){
     var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
     _notoFontEkle(doc);
     _irsaliyePdfCiz(doc,veri);
@@ -2252,7 +2252,7 @@ function pdfIndir(){
   kaydet(true,true);
   var veri=_irsaliyeGosterimVerisi();
   var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.pdf';
-  _notoFontYukle().then(function(){
+  Promise.all([_notoFontYukle(),_notoMediumYukle()]).then(function(){
     var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
     _notoFontEkle(doc);
     _irsaliyePdfCiz(doc,veri);
@@ -2452,22 +2452,30 @@ function _raporTarihEtiketi(){
 // Google Fonts'tan gerçek TTF olarak Noto Sans (regular+bold) indirip jsPDF'e gömüyoruz — Türkçe
 // karakterler ve ₺ işareti bu fontla doğru basıyor (ayrıca test edildi). Font ilk kullanımda
 // indirilip _notoRegB64/_notoBoldB64'te önbelleğe alınıyor, sonraki indirmelerde tekrar fetch yok.
-var _notoRegB64=null, _notoBoldB64=null;
+var _notoRegB64=null, _notoBoldB64=null, _notoMedB64=null;
+function _b64FromBuf(buf){
+  var bytes=new Uint8Array(buf), CHUNK=0x8000, chunks=[];
+  for(var i=0;i<bytes.length;i+=CHUNK){chunks.push(String.fromCharCode.apply(null,bytes.subarray(i,i+CHUNK)));}
+  return btoa(chunks.join(''));
+}
 function _notoFontYukle(){
   if(_notoRegB64&&_notoBoldB64)return Promise.resolve();
-  function bufToBase64(buf){
-    var bytes=new Uint8Array(buf), CHUNK=0x8000, chunks=[];
-    for(var i=0;i<bytes.length;i+=CHUNK){chunks.push(String.fromCharCode.apply(null,bytes.subarray(i,i+CHUNK)));}
-    return btoa(chunks.join(''));
-  }
   // gstatic sürüm URL'leri kalıcıdır (Google Fonts CDN garantisi) — ileride kırılmaz.
   return Promise.all([
     fetch('https://fonts.gstatic.com/s/notosans/v42/o-0mIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjcz6L1SoM-jCpoiyD9A99d41X6zQ.ttf').then(function(r){return r.arrayBuffer();}),
     fetch('https://fonts.gstatic.com/s/notosans/v42/o-0mIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjcz6L1SoM-jCpoiyAaBN9d41X6zQ.ttf').then(function(r){return r.arrayBuffer();})
   ]).then(function(bufs){
-    _notoRegB64=bufToBase64(bufs[0]);
-    _notoBoldB64=bufToBase64(bufs[1]);
+    _notoRegB64=_b64FromBuf(bufs[0]);
+    _notoBoldB64=_b64FromBuf(bufs[1]);
   });
+}
+// Medium (500) ağırlık SADECE İrsaliye PDF tablo gövdesinde kullanılıyor (bkz. _irsaliyePdfCiz) —
+// Kasa Raporu/Günlük Rapor bunu hiç fetch etmez, onların çizimi/davranışı değişmez.
+function _notoMediumYukle(){
+  if(_notoMedB64)return Promise.resolve();
+  return fetch('https://fonts.gstatic.com/s/notosans/v42/o-0mIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjcz6L1SoM-jCpoiyDPA99d41X6zQ.ttf')
+    .then(function(r){return r.arrayBuffer();})
+    .then(function(buf){_notoMedB64=_b64FromBuf(buf);});
 }
 // _notoFontYukle() ile indirilmiş TTF'leri verilen jsPDF doc'una gömüp 'NotoSans' ailesini
 // (normal+bold) kullanılabilir hale getirir — İrsaliye/Rapor/Kasa Raporu PDF'lerinin hepsi
@@ -2477,6 +2485,11 @@ function _notoFontEkle(doc){
   doc.addFont('NotoSans-Regular.ttf','NotoSans','normal');
   doc.addFileToVFS('NotoSans-Bold.ttf',_notoBoldB64);
   doc.addFont('NotoSans-Bold.ttf','NotoSans','bold');
+  // Medium sadece _notoMediumYukle() çağrılmışsa (İrsaliye PDF akışı) mevcuttur.
+  if(_notoMedB64){
+    doc.addFileToVFS('NotoSans-Medium.ttf',_notoMedB64);
+    doc.addFont('NotoSans-Medium.ttf','NotoSans','medium');
+  }
 }
 // Kasa (fiziksel para giriş-çıkış) raporu — Kredi Kartı/POS kasaya girmediğinden Resmi+Gayri
 // Resmi bölüm toplamları ile Genel Toplam (tüm ödeme yöntemleri) her zaman örtüşmeyebilir;
@@ -2592,7 +2605,8 @@ function kasaRaporuIndir(btn){
 var _PDF_W=210,_PDF_H=297,_PDF_M=10,_PDF_R=200; // sayfa genişlik/yükseklik, kenar boşluğu, sağ sınır (=_PDF_W-_PDF_M)
 var _PDF_ALT=_PDF_H-_PDF_M-16; // içerik bu Y'den sonrasına taşmasın (altta footer için yer bırakılır)
 var _C_KOYU=[44,36,25],_C_VURGU=[166,77,62],_C_GOLD=[184,152,94],_C_LINE=[200,168,122],
-    _C_BG=[240,228,211],_C_ZEBRA=[250,246,240],_C_IADE_BG=[255,224,224],_C_IADE=[192,57,43],_C_BEYAZ=[255,255,255];
+    _C_BG=[240,228,211],_C_ZEBRA=[250,246,240],_C_IADE_BG=[255,224,224],_C_IADE=[192,57,43],_C_BEYAZ=[255,255,255],
+    _C_ROWLINE=[232,222,208],_C_BORDO=[110,31,44];
 
 function _pdfArkaplan(doc){doc.setFillColor.apply(doc,_C_BG);doc.rect(0,0,_PDF_W,_PDF_H,'F');}
 function _pdfYeniSayfa(doc){doc.addPage();_pdfArkaplan(doc);return _PDF_M+6;}
@@ -2614,24 +2628,28 @@ function _pdfFooterYaz(doc,sosyalSatir){
   }
 }
 
-function _pdfAlanKutusu(doc,x,y,w,h,etiket,deger){
-  doc.setDrawColor.apply(doc,_C_LINE);doc.setLineWidth(0.25);
-  doc.setFillColor.apply(doc,_C_BEYAZ);
-  doc.roundedRect(x,y,w,h,1.5,1.5,'FD');
+// Düz etiket+değer yazısı — form alanı/kutu görünümü YOK (çerçeve/dolgu yok), sadece metin.
+function _pdfAlanYazisi(doc,x,etiket,deger,y){
   doc.setFont('NotoSans','bold');doc.setFontSize(7);doc.setTextColor.apply(doc,_C_VURGU);
-  doc.text(etiket,x+3,y+5.5);
+  doc.text(etiket,x,y);
   doc.setFont('NotoSans','normal');doc.setFontSize(11);doc.setTextColor.apply(doc,_C_KOYU);
-  doc.text(deger||'',x+3,y+12);
+  doc.text(deger||'',x,y+6.5);
 }
 
 /* ---- İRSALİYE ---- */
-var _IRS_COLW={adet:14,kod:16,urun:42,renk:62,fiyat:26,toplam:30};
-var _IRS_COLX={adet:_PDF_M,kod:_PDF_M+14,urun:_PDF_M+30,renk:_PDF_M+72,fiyat:_PDF_M+134,toplam:_PDF_M+160};
+// Sütun genişlikleri yüzde tabanlı: ADET 8% / KOD 10% / ÜRÜN 16% / RENK 34% / BİRİM FİYAT 16% / TOPLAM 16%
+// (190mm tablo genişliği üzerinden). RENK en geniş sütun çünkü "BEJ (8) / SİYAH (4)" gibi çok
+// renkli dökümler uzun olabiliyor.
+var _IRS_COLW={adet:15.2,kod:19,urun:30.4,renk:64.6,fiyat:30.4,toplam:30.4};
+var _IRS_COLX={adet:_PDF_M,kod:_PDF_M+15.2,urun:_PDF_M+34.2,renk:_PDF_M+64.6,fiyat:_PDF_M+129.2,toplam:_PDF_M+159.6};
+// TOPLAM sütunundaki rakamların sağ hizası — ARA TOPLAM/KDV/GENEL TOPLAM satırları da bu hizaya
+// oturur ki alt alta gelen rakamlar tam aynı sağ kenara hizalı görünsün (bkz. totalSatir).
+var _IRS_TXT_R=_PDF_R-1.5;
 function _irsaliyeTabloBasligi(doc,y){
   var h=8;
   doc.setFillColor.apply(doc,_C_KOYU);
   doc.rect(_PDF_M,y,_PDF_R-_PDF_M,h,'F');
-  doc.setFont('NotoSans','bold');doc.setFontSize(8);doc.setTextColor.apply(doc,_C_BG);
+  doc.setFont('NotoSans','bold');doc.setFontSize(8);doc.setTextColor.apply(doc,_C_BEYAZ);
   doc.text('ADET',_IRS_COLX.adet+_IRS_COLW.adet/2,y+5.3,{align:'center'});
   doc.text('KOD',_IRS_COLX.kod+1.5,y+5.3);
   doc.text('ÜRÜN',_IRS_COLX.urun+1.5,y+5.3);
@@ -2657,43 +2675,44 @@ function _irsaliyePdfCiz(doc,veri){
   doc.text('İRSALİYE',_PDF_W/2,y,{align:'center'});
   y+=10;
 
-  var kutuW=(_PDF_R-_PDF_M-4)/2,kutuH=16;
-  _pdfAlanKutusu(doc,_PDF_M,y,kutuW,kutuH,'MÜŞTERİ',veri.musteri);
-  _pdfAlanKutusu(doc,_PDF_M+kutuW+4,y,kutuW,kutuH,'TARİH',veri.tarihStr);
-  y+=kutuH+8;
+  var yariGenislik=(_PDF_R-_PDF_M)/2;
+  _pdfAlanYazisi(doc,_PDF_M,'MÜŞTERİ',veri.musteri,y+5.5);
+  _pdfAlanYazisi(doc,_PDF_M+yariGenislik,'TARİH',veri.tarihStr,y+5.5);
+  y+=18;
 
   y=_irsaliyeTabloBasligi(doc,y);
 
-  var lineH=4.1,padY=1.8,padX=1.5;
-  doc.setFontSize(9);
+  var lineH=4.6,padY=2,padX=1.5;
+  doc.setFontSize(10);
   veri.satirlar.forEach(function(s,idx){
     var kodLines=doc.splitTextToSize(s.kod||'',_IRS_COLW.kod-2*padX);
     var urunTxt=(s.iade?'İADE: ':'')+(s.urun||'');
     var urunLines=doc.splitTextToSize(urunTxt,_IRS_COLW.urun-2*padX);
     var renkLines=doc.splitTextToSize(s.renk||'',_IRS_COLW.renk-2*padX);
     var maxLines=Math.max(kodLines.length,urunLines.length,renkLines.length,1);
-    var rowH=Math.max(8,maxLines*lineH+2*padY);
+    var rowH=Math.max(9,maxLines*lineH+2*padY);
     if(y+rowH>_PDF_ALT){
       y=_pdfYeniSayfa(doc);
       y=_irsaliyeTabloBasligi(doc,y);
     }
-    doc.setFillColor.apply(doc,s.iade?_C_IADE_BG:(idx%2===0?_C_BEYAZ:_C_ZEBRA));
+    // Zebra yok, kutu/çerçeve yok — düz satır (iade hariç beyaz), aralarında ince #e8ded0 ayırıcı çizgi.
+    doc.setFillColor.apply(doc,s.iade?_C_IADE_BG:_C_BEYAZ);
     doc.rect(_PDF_M,y,_PDF_R-_PDF_M,rowH,'F');
-    var textY=y+padY+3.2;
-    var midY=y+rowH/2+1.1;
-    doc.setFont('NotoSans','normal');doc.setTextColor.apply(doc,_C_KOYU);
+    var textY=y+padY+3.5;
+    var midY=y+rowH/2+1.2;
+    doc.setFont('NotoSans','medium');doc.setTextColor.apply(doc,_C_KOYU);
     doc.text(String(s.adet),_IRS_COLX.adet+_IRS_COLW.adet/2,midY,{align:'center'});
     doc.text(kodLines,_IRS_COLX.kod+padX,textY);
-    doc.setFont('NotoSans',s.iade?'bold':'normal');
+    doc.setFont('NotoSans',s.iade?'bold':'medium');
     doc.setTextColor.apply(doc,s.iade?_C_IADE:_C_KOYU);
     doc.text(urunLines,_IRS_COLX.urun+padX,textY);
-    doc.setFont('NotoSans','normal');doc.setTextColor.apply(doc,_C_KOYU);
+    doc.setFont('NotoSans','medium');doc.setTextColor.apply(doc,_C_KOYU);
     doc.text(renkLines,_IRS_COLX.renk+padX,textY);
     doc.text(fmtPara(s.fiyat,veri.para),_IRS_COLX.fiyat+_IRS_COLW.fiyat-padX,midY,{align:'right'});
     doc.setFont('NotoSans','bold');
     doc.setTextColor.apply(doc,s.iade?_C_IADE:_C_KOYU);
-    doc.text(fmtPara(s.iade?-s.toplam:s.toplam,veri.para),_IRS_COLX.toplam+_IRS_COLW.toplam-padX,midY,{align:'right'});
-    doc.setDrawColor.apply(doc,_C_LINE);doc.setLineWidth(0.15);
+    doc.text(fmtPara(s.iade?-s.toplam:s.toplam,veri.para),_IRS_TXT_R,midY,{align:'right'});
+    doc.setDrawColor.apply(doc,_C_ROWLINE);doc.setLineWidth(0.25);
     doc.line(_PDF_M,y+rowH,_PDF_R,y+rowH);
     y+=rowH;
   });
@@ -2709,7 +2728,8 @@ function _irsaliyePdfCiz(doc,veri){
     doc.setFont('NotoSans',renk?'bold':'normal');doc.setFontSize(10);
     doc.setTextColor.apply(doc,renk||_C_KOYU);
     doc.text(etiket,_PDF_M+158,y,{align:'right'});
-    doc.text(deger,_PDF_R,y,{align:'right'});
+    // TOPLAM sütunundaki rakamlarla (_IRS_TXT_R) aynı sağ kenara hizalanır.
+    doc.text(deger,_IRS_TXT_R,y,{align:'right'});
     y+=7;
   }
   if(showAra)totalSatir('ARA TOPLAM',fmtPara(veri.ara,veri.para));
@@ -2736,9 +2756,10 @@ function _irsaliyePdfCiz(doc,veri){
      ['TOPLAM AÇIK BAKİYE',fmtPara(veri.genelGoster,veri.para)]
     ].forEach(function(c,i){
       var cx=_PDF_M+colW3*i;
-      doc.setFont('NotoSans','bold');doc.setFontSize(7);doc.setTextColor.apply(doc,_C_VURGU);
+      var vurgu=i===2; // TOPLAM AÇIK BAKİYE bordo renkte öne çıkar
+      doc.setFont('NotoSans','bold');doc.setFontSize(7);doc.setTextColor.apply(doc,vurgu?_C_BORDO:_C_VURGU);
       doc.text(c[0],cx+4,by+7);
-      doc.setFont('NotoSans','normal');doc.setFontSize(11);doc.setTextColor.apply(doc,_C_KOYU);
+      doc.setFont('NotoSans','bold');doc.setFontSize(12);doc.setTextColor.apply(doc,vurgu?_C_BORDO:_C_KOYU);
       doc.text(c[1],cx+4,by+15);
     });
     y=by+bh+6;
