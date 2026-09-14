@@ -2223,31 +2223,42 @@ function _pdfUrunKontrol(){
   if(!hasUrun){alert('En az 1 ürün girin');return null;}
   return musteri;
 }
-// Canlı formdan (DOM'dan) İrsaliye PDF'i için normalize veri üretir — ekrandaki her <tr> tek
-// bir satıra karşılık gelir (çoklu renk çipleri varsa "SİYAH (2) / KAHVE (1)" düz metin olarak
-// birleştirilir, bkz. tr._renkKalemleri). Kargo firması/müşteri kodu burada hiç okunmuyor —
-// PDF'e bilerek yazılmıyor (mevcut davranış).
+// Canlı formdan (DOM'dan) İrsaliye PDF'i için normalize veri üretir. Satır gösterimi artık
+// popPdf() (kayıtlı irsaliye indirme) ile AYNI mantık: satirKalemleri() her <tr>'yi renk bazlı
+// düz kalemlere ayırır (çoklu renk çipi varsa her renk kendi kalemi, tekli/manuel satırda tek
+// kalem), _urunlerSatiraGrupla() bunları kod+ürün+fiyat+iade bazında TEK SATIRDA toplar (altına
+// renkler yazılır) - böylece aynı ürün farklı <tr>'lere dağılmış olsa bile (ör. aynı kodu 3 ayrı
+// satırda 3 renkle girmek) PDF'te tek satır olarak çıkar (2026-09-14, #1362 şikayeti: bu satır
+// gösterimi eskiden hiç gruplanmıyordu, her <tr> ayrı satırdı - bkz. eski kod).
+// ARA TOPLAM/KDV/GENEL TOPLAM ise AYRI hesaplanır, satırların adetiyle DEĞİL <tr>'nin ADET
+// alanının o anki (elle override edilmiş olabilecek) değeriyle - kaydet()'teki rowAdet ile aynı
+// mantık (satirKalemleri()'nin döndürdüğü adet çoklu renkte SERİ×5'tir, override'ı yok sayar -
+// bu SADECE stok/PDF-satır amaçlı, para hesaplarını etkilememeli).
+// Kargo firması/müşteri kodu burada hiç okunmuyor - PDF'e bilerek yazılmıyor (mevcut davranış).
 function _irsaliyeGosterimVerisi(){
   var musteri=document.getElementById('musteri').value.trim();
   var tarihVal=document.getElementById('tarih').value;
   var tarihStr=tarihVal?(function(){var p=tarihVal.split('-');return p[2]+'.'+p[1]+'.'+p[0];})():'';
   var para=document.getElementById('para').value;
-  var satirlar=[];
+  var kalemler=[];
+  var ara=0,iadeTutar=0;
   document.querySelectorAll('#tb tr').forEach(function(tr){
     var adet=gercekAdet(tr);
     var bilgi=satirKalemBilgisi(tr);
-    var renkText=(tr._renkKalemleri&&tr._renkKalemleri.length)
-      ?tr._renkKalemleri.map(function(k){return k.renk+' ('+k.seri+')';}).join(' / ')
-      :bilgi.renk;
-    if(adet<=0||!(bilgi.kod||bilgi.urun||renkText))return;
+    var hasRenk=bilgi.renk||(tr._renkKalemleri&&tr._renkKalemleri.length);
+    if(adet<=0||!(bilgi.kod||bilgi.urun||hasRenk))return;
     var chk=tr.querySelector('.iade-chk');
     var isIade=!!(chk&&chk.checked);
     var fiyatInp=tr.querySelector('.fiyat-wrap input');
     var fiyat=parseFloat((fiyatInp.value||'').replace(',','.'))||0;
-    satirlar.push({adet:adet,kod:bilgi.kod,urun:bilgi.urun,renk:renkText,fiyat:fiyat,toplam:adet*fiyat,iade:isIade});
+    var rowTutar=adet*fiyat;
+    if(isIade)iadeTutar+=rowTutar;else ara+=rowTutar;
+    satirKalemleri(tr).forEach(function(k){
+      if(k.adet<=0||!(k.kod||k.urun||k.renk))return;
+      kalemler.push({kod:k.kod,urun:k.urun,renk:k.renk,seri:k.seri,adet:k.adet,fiyat:fiyat,iade:isIade});
+    });
   });
-  var ara=0,iadeTutar=0;
-  satirlar.forEach(function(s){if(s.iade)iadeTutar+=s.toplam;else ara+=s.toplam;});
+  var satirlar=_urunlerSatiraGrupla(kalemler);
   var oran=parseInt(document.getElementById('kdvOran').value)||0;
   var kdv=Math.round(ara*oran/100*100)/100;
   var kargoUcret=parseFloat((document.getElementById('kargoUcret').value||'').replace(/\./g,'').replace(',','.'))||0;
