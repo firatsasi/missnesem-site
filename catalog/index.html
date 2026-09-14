@@ -1855,6 +1855,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
       closed = true;
       introEl.classList.add('hidden');
       hideSplash(); // intro kapanınca doğrudan kataloğa geçilsin, eski splash araya girmesin
+      // hero_mobile.mp4'ün indirilmesini burada tetikleriz (bkz. initSeasonHero) - intro_mobile.mp4
+      // ile AYNI ANDA indirilmeye başlarsa (önceki davranış) ikisi bant genişliği için yarışıp
+      // ikisi de takılıyordu (2026-09-14 şikayeti: "video yüklenirken donmalar").
+      window.dispatchEvent(new CustomEvent('mn-intro-closed'));
       setTimeout(() => introEl.remove(), 700);
     }
     skipEl.addEventListener('click', e => { e.preventDefault(); closeIntro(); });
@@ -1914,10 +1918,35 @@ html, body { overflow-x: hidden; max-width: 100%; }
     const selector = isDesktop
       ? '.season-hero-panel-left .season-hero-video, .season-hero-panel-center .season-hero-video, .season-hero-panel-right .season-hero-video'
       : '.season-hero-panel-mobile .season-hero-video';
+    // 2026-09-14 düzeltme ("video yüklenirken donmalar" şikayeti): önceden bu panellerin
+    // hepsi (masaüstünde 3, mobilde 1) sayfa açılışında AYNI ANDA src atanıp play() çağrılıyordu.
+    // Mobilde bu, ekranda görünen intro_mobile.mp4 ile (ayrı dosya, bkz. initIntroVideo) tam
+    // aynı anda inmeye başlıyor, ikisi bant genişliğini bölüşünce ikisi de kesik kesik oynuyordu -
+    // hero_mobile hiç görünmediği (intro overlay'in arkasında) halde boşuna indiriliyordu. Artık
+    // mobilde intro kapanana kadar (mn-intro-closed event'i, bkz. closeIntro) hiç başlamıyor.
+    // Masaüstünde 3 panel arasında da aynı sorun küçük ölçekte vardı (üçü aynı anda inmeye
+    // başlıyordu) - orta panel hemen, yan paneller 200ms gecikmeyle başlatılır. play() de artık
+    // load() sonrası hemen değil, 'canplay' beklenip çağrılır (aynı desen kategori bantlarının
+    // mobil rotasyonunda zaten kullanılıyordu, bkz. bindMobileRotation) - buffer dolmadan
+    // oynatmaya çalışıp takılmasın diye.
+    const introOverlayActive = !isDesktop && document.getElementById('intro-video');
     document.querySelectorAll(selector).forEach(v => {
-      if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); v.load(); }
-      const p = v.play();
-      if (p && p.catch) p.catch(() => {});
+      function startLoad() {
+        if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); v.load(); }
+        const onReady = function () {
+          v.removeEventListener('canplay', onReady);
+          const p = v.play();
+          if (p && p.catch) p.catch(() => {});
+        };
+        v.addEventListener('canplay', onReady);
+      }
+      if (introOverlayActive) {
+        window.addEventListener('mn-intro-closed', startLoad, { once: true });
+      } else if (isDesktop && !v.closest('.season-hero-panel-center')) {
+        setTimeout(startLoad, 200);
+      } else {
+        startLoad();
+      }
     });
 
     // Scroll parallax: video panelleri %20 yavaş kayar, metin fade-out olur.
@@ -3188,8 +3217,21 @@ html, body { overflow-x: hidden; max-width: 100%; }
     function playAll(vids) {
       vids.forEach(v => {
         loadVideo(v);
-        const p = v.play();
-        if (p && p.catch) p.catch(() => {});
+        // İlk yüklemede (readyState<3, henüz yeterli buffer yok) play() hemen çağrılırsa video
+        // kesik kesik başlıyordu (2026-09-14 şikayeti) - canplay beklenir. Daha önce yüklenip
+        // ekrandan çıkmış (readyState>=3, ör. tekrar scroll ile görünür olan bant) bir video
+        // içinse gecikme gereksiz, hemen oynatılır.
+        if (v.readyState >= 3) {
+          const p = v.play();
+          if (p && p.catch) p.catch(() => {});
+        } else {
+          const onReady = function () {
+            v.removeEventListener('canplay', onReady);
+            const p = v.play();
+            if (p && p.catch) p.catch(() => {});
+          };
+          v.addEventListener('canplay', onReady);
+        }
       });
     }
     function pauseAll(vids) {
