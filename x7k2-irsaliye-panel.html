@@ -2606,7 +2606,7 @@ var _PDF_W=210,_PDF_H=297,_PDF_M=10,_PDF_R=200; // sayfa genişlik/yükseklik, k
 var _PDF_ALT=_PDF_H-_PDF_M-16; // içerik bu Y'den sonrasına taşmasın (altta footer için yer bırakılır)
 var _C_KOYU=[44,36,25],_C_VURGU=[166,77,62],_C_GOLD=[184,152,94],_C_LINE=[200,168,122],
     _C_BG=[240,228,211],_C_ZEBRA=[250,246,240],_C_IADE_BG=[255,224,224],_C_IADE=[192,57,43],_C_BEYAZ=[255,255,255],
-    _C_ROWLINE=[232,222,208],_C_BORDO=[110,31,44];
+    _C_ROWLINE=[232,222,208];
 
 function _pdfArkaplan(doc){doc.setFillColor.apply(doc,_C_BG);doc.rect(0,0,_PDF_W,_PDF_H,'F');}
 function _pdfYeniSayfa(doc){doc.addPage();_pdfArkaplan(doc);return _PDF_M+6;}
@@ -2718,24 +2718,39 @@ function _irsaliyePdfCiz(doc,veri){
   });
   y+=4;
 
-  var showAra=veri.oran>0||veri.iadeTutar>0||veri.kargoUcret>0;
-  var showKdv=veri.oran>0,showIade=veri.iadeTutar>0,showKargo=veri.kargoUcret>0;
-  var satirSayisi=(showAra?1:0)+(showKdv?1:0)+(showIade?1:0)+(showKargo?1:0);
-  var blokH=satirSayisi*7+14+(veri.acikHesap?24:0)+6;
+  // Toplam bloğu, sağa hizalı tek liste (kılçıksız — müşteriye giden belge):
+  // ARA TOPLAM / KDV / İADE / KARGO (varsa) → BU İŞLEM (=ara+kdv-iade+kargo, sadece açık hesapta
+  // gösterilir çünkü GENEL TOPLAM ondan farklı) → ESKİ BAKİYE (açık hesap) → ince çizgi →
+  // GENEL TOPLAM kutusu. Açık hesap değilse ve KDV/iade/kargo yoksa hiç ek satır olmadan
+  // doğrudan GENEL TOPLAM kutusuna geçilir (ARA TOPLAM=GENEL TOPLAM olurdu, tekrar olmasın).
+  var showBreakdown=veri.oran>0||veri.iadeTutar>0||veri.kargoUcret>0;
+  var toplamSatirlari=[];
+  if(showBreakdown){
+    toplamSatirlari.push(['ARA TOPLAM',fmtPara(veri.ara,veri.para)]);
+    if(veri.oran>0)toplamSatirlari.push(['KDV (%'+veri.oran+')',fmtPara(veri.kdv,veri.para)]);
+    if(veri.iadeTutar>0)toplamSatirlari.push(['İADE',fmtPara(-veri.iadeTutar,veri.para),_C_IADE]);
+    if(veri.kargoUcret>0)toplamSatirlari.push(['KARGO ÜCRETİ',fmtPara(veri.kargoUcret,veri.para)]);
+  }
+  if(veri.acikHesap){
+    toplamSatirlari.push(['BU İŞLEM',fmtPara(veri.genel,veri.para),null,true]);
+    toplamSatirlari.push(['ESKİ BAKİYE',fmtPara(veri.eski,veri.para)]);
+  }
+  var blokH=toplamSatirlari.length*7+14+8;
   if(y+blokH>_PDF_ALT)y=_pdfYeniSayfa(doc);
 
-  function totalSatir(etiket,deger,renk){
-    doc.setFont('NotoSans',renk?'bold':'normal');doc.setFontSize(10);
-    doc.setTextColor.apply(doc,renk||_C_KOYU);
-    doc.text(etiket,_PDF_M+158,y,{align:'right'});
+  toplamSatirlari.forEach(function(r){
+    doc.setFont('NotoSans',r[3]?'bold':(r[2]?'bold':'normal'));doc.setFontSize(10);
+    doc.setTextColor.apply(doc,r[2]||_C_KOYU);
+    doc.text(r[0],_PDF_M+158,y,{align:'right'});
     // TOPLAM sütunundaki rakamlarla (_IRS_TXT_R) aynı sağ kenara hizalanır.
-    doc.text(deger,_IRS_TXT_R,y,{align:'right'});
+    doc.text(r[1],_IRS_TXT_R,y,{align:'right'});
     y+=7;
+  });
+  if(toplamSatirlari.length){
+    doc.setDrawColor.apply(doc,_C_GOLD);doc.setLineWidth(0.3);
+    doc.line(_PDF_M+120,y,_PDF_R,y);
+    y+=5;
   }
-  if(showAra)totalSatir('ARA TOPLAM',fmtPara(veri.ara,veri.para));
-  if(showKdv)totalSatir('KDV (%'+veri.oran+')',fmtPara(veri.kdv,veri.para));
-  if(showIade)totalSatir('İADE',fmtPara(-veri.iadeTutar,veri.para),_C_IADE);
-  if(showKargo)totalSatir('KARGO ÜCRETİ',fmtPara(veri.kargoUcret,veri.para));
 
   var kutuY=y,kutuH2=14;
   doc.setFillColor.apply(doc,_C_KOYU);
@@ -2745,25 +2760,6 @@ function _irsaliyePdfCiz(doc,veri){
   doc.setFont('NotoSans','bold');doc.setFontSize(15);doc.setTextColor.apply(doc,_C_BG);
   doc.text(fmtPara(veri.genelGoster,veri.para),_PDF_R-4,kutuY+10.5,{align:'right'});
   y=kutuY+kutuH2+6;
-
-  if(veri.acikHesap){
-    var by=y,bh=20;
-    doc.setDrawColor.apply(doc,_C_VURGU);doc.setLineWidth(0.4);
-    doc.roundedRect(_PDF_M,by,_PDF_R-_PDF_M,bh,2,2,'S');
-    var colW3=(_PDF_R-_PDF_M)/3;
-    [['ESKİ BAKİYE',fmtPara(veri.eski,veri.para)],
-     ['BU İŞLEM',fmtPara(veri.genel,veri.para)],
-     ['TOPLAM AÇIK BAKİYE',fmtPara(veri.genelGoster,veri.para)]
-    ].forEach(function(c,i){
-      var cx=_PDF_M+colW3*i;
-      var vurgu=i===2; // TOPLAM AÇIK BAKİYE bordo renkte öne çıkar
-      doc.setFont('NotoSans','bold');doc.setFontSize(7);doc.setTextColor.apply(doc,vurgu?_C_BORDO:_C_VURGU);
-      doc.text(c[0],cx+4,by+7);
-      doc.setFont('NotoSans','bold');doc.setFontSize(12);doc.setTextColor.apply(doc,vurgu?_C_BORDO:_C_KOYU);
-      doc.text(c[1],cx+4,by+15);
-    });
-    y=by+bh+6;
-  }
 
   _pdfFooterYaz(doc,'missnesem.com  |  Telegram: @missnesemwholesale  |  Instagram: @missnesemtoptan  |  info@missnesem.com');
 }
