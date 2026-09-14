@@ -1868,7 +1868,18 @@ html, body { overflow-x: hidden; max-width: 100%; }
     videoEl.poster = '/catalog/video/intro_mobile_poster.jpg'; // yüklenirken poster görünsün, siyah ekran olmasın
     videoEl.src = '/catalog/video/intro_mobile.mp4?v=4';
     videoEl.load();
-    videoEl.play().catch(() => {}); // engellenirse aşağıdaki 8sn bekçi zamanlayıcı kapatır
+    // 2026-09-14 düzeltme: play() önceden load() sonrası hemen çağrılıyordu - buffer henüz
+    // dolmadan oynatma başlayınca ilk 1-2 saniye takılıp sonra düzeliyordu ("ilk kare" şikayeti).
+    // preload="auto" zaten indirmeyi hemen başlatıyor (play() beklemez) - burada sadece GÖRSEL
+    // oynatmayı 'canplay'e (yeterli buffer) kadar erteliyoruz, indirme geç başlamıyor.
+    if (videoEl.readyState >= 3) {
+      videoEl.play().catch(() => {});
+    } else {
+      videoEl.addEventListener('canplay', function onReady() {
+        videoEl.removeEventListener('canplay', onReady);
+        videoEl.play().catch(() => {}); // engellenirse aşağıdaki 8sn bekçi zamanlayıcı kapatır
+      });
+    }
     setTimeout(() => { if (!started) closeIntro(); }, 8000); // video hiç başlamadıysa yedek
     setTimeout(closeIntro, 7300); // videonun gerçek süresiyle eşleşen son güvenlik ağı
   })();
