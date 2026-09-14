@@ -2724,13 +2724,14 @@ function _irsaliyePdfCiz(doc,veri){
   // GENEL TOPLAM kutusu. Açık hesap değilse ve KDV/iade/kargo yoksa hiç ek satır olmadan
   // doğrudan GENEL TOPLAM kutusuna geçilir (ARA TOPLAM=GENEL TOPLAM olurdu, tekrar olmasın).
   var showBreakdown=veri.oran>0||veri.iadeTutar>0||veri.kargoUcret>0;
-  var toplamSatirlari=[];
+  var araKdvSatirlari=[];
   if(showBreakdown){
-    toplamSatirlari.push(['ARA TOPLAM',fmtPara(veri.ara,veri.para)]);
-    if(veri.oran>0)toplamSatirlari.push(['KDV (%'+veri.oran+')',fmtPara(veri.kdv,veri.para)]);
-    if(veri.iadeTutar>0)toplamSatirlari.push(['İADE',fmtPara(-veri.iadeTutar,veri.para),_C_IADE]);
-    if(veri.kargoUcret>0)toplamSatirlari.push(['KARGO ÜCRETİ',fmtPara(veri.kargoUcret,veri.para)]);
+    araKdvSatirlari.push(['ARA TOPLAM',fmtPara(veri.ara,veri.para)]);
+    if(veri.oran>0)araKdvSatirlari.push(['KDV (%'+veri.oran+')',fmtPara(veri.kdv,veri.para)]);
+    if(veri.iadeTutar>0)araKdvSatirlari.push(['İADE',fmtPara(-veri.iadeTutar,veri.para),_C_IADE]);
+    if(veri.kargoUcret>0)araKdvSatirlari.push(['KARGO ÜCRETİ',fmtPara(veri.kargoUcret,veri.para)]);
   }
+  var toplamSatirlari=araKdvSatirlari.slice();
   if(veri.acikHesap){
     toplamSatirlari.push(['BU İŞLEM',fmtPara(veri.genel,veri.para),null,true]);
     toplamSatirlari.push(['ESKİ BAKİYE',fmtPara(veri.eski,veri.para)]);
@@ -2746,19 +2747,34 @@ function _irsaliyePdfCiz(doc,veri){
     doc.text(r[1],_IRS_TXT_R,y,{align:'right'});
     y+=7;
   });
+
+  // GENEL TOPLAM kutusunun SOL kenarı ARA TOPLAM/KDV (varsa İADE/KARGO) etiketlerinin en soldaki
+  // başlangıcıyla hizalanır — kutu tam o blokla aynı sütunda duruyormuş gibi görünsün diye.
+  // Bu satırların hiçbiri yoksa (peşin + KDV'siz) eski sabit konumda kalır.
+  var kutuSolX=_PDF_M+120;
+  if(araKdvSatirlari.length){
+    var enGenisEtiket=0;
+    araKdvSatirlari.forEach(function(r){
+      doc.setFont('NotoSans',r[2]?'bold':'normal');doc.setFontSize(10);
+      enGenisEtiket=Math.max(enGenisEtiket,doc.getTextWidth(r[0]));
+    });
+    kutuSolX=_PDF_M+158-enGenisEtiket;
+  }
+
   if(toplamSatirlari.length){
     doc.setDrawColor.apply(doc,_C_GOLD);doc.setLineWidth(0.3);
-    doc.line(_PDF_M+120,y,_PDF_R,y);
+    doc.line(kutuSolX,y,_PDF_R,y);
     y+=5;
   }
 
   var kutuY=y,kutuH2=14;
   doc.setFillColor.apply(doc,_C_KOYU);
-  doc.roundedRect(_PDF_M+120,kutuY,_PDF_R-(_PDF_M+120),kutuH2,2,2,'F');
+  doc.roundedRect(kutuSolX,kutuY,_PDF_R-kutuSolX,kutuH2,2,2,'F');
   doc.setFont('NotoSans','normal');doc.setFontSize(8);doc.setTextColor.apply(doc,_C_GOLD);
-  doc.text('GENEL TOPLAM',_PDF_M+126,kutuY+6);
+  doc.text('GENEL TOPLAM',kutuSolX+6,kutuY+6);
   doc.setFont('NotoSans','bold');doc.setFontSize(15);doc.setTextColor.apply(doc,_C_BG);
-  doc.text(fmtPara(veri.genelGoster,veri.para),_PDF_R-4,kutuY+10.5,{align:'right'});
+  // TOPLAM sütunuyla (_IRS_TXT_R) aynı sağ kenara hizalı.
+  doc.text(fmtPara(veri.genelGoster,veri.para),_IRS_TXT_R,kutuY+10.5,{align:'right'});
   y=kutuY+kutuH2+6;
 
   _pdfFooterYaz(doc,'missnesem.com  |  Telegram: @missnesemwholesale  |  Instagram: @missnesemtoptan  |  info@missnesem.com');
