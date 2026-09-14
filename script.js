@@ -9,6 +9,9 @@ const i18n = {
     mail_title: 'E-posta',
     loc_title: 'Konumumuz',
     loc_sub: 'Mehmet Nesih Özmen Mh. Fatih Cd. Gülsever Sk. No:7/A D:15, Merter/İstanbul',
+    cat_badge: 'YENİ',
+    cat_eyebrow: 'YENİ SEZON · SONBAHAR KIŞ 2026',
+    cat_title: 'Kataloğu Keşfet',
   },
   en: {
     lang: 'en', dir: 'ltr',
@@ -20,6 +23,9 @@ const i18n = {
     mail_title: 'E-mail',
     loc_title: 'Our Location',
     loc_sub: 'Mehmet Nesih Özmen Mh. Fatih Cd. Gülsever Sk. No:7/A D:15, Merter/Istanbul',
+    cat_badge: 'NEW',
+    cat_eyebrow: 'NEW SEASON · AUTUMN WINTER 2026',
+    cat_title: 'Discover the Catalog',
   },
   ar: {
     lang: 'ar', dir: 'rtl',
@@ -31,6 +37,9 @@ const i18n = {
     mail_title: 'البريد الإلكتروني',
     loc_title: 'موقعنا',
     loc_sub: 'م. نصيح أوزمن، شارع الفاتح، زقاق غولسيفر رقم 7/أ - 15، مرتر/إسطنبول',
+    cat_badge: 'جديد',
+    cat_eyebrow: 'الموسم الجديد · خريف شتاء 2026',
+    cat_title: 'اكتشف الكتالوج',
   },
   ru: {
     lang: 'ru', dir: 'ltr',
@@ -42,6 +51,9 @@ const i18n = {
     mail_title: 'Эл. почта',
     loc_title: 'Наш Адрес',
     loc_sub: 'Мехмет Несих Озмен Мх., Фатих Дж., Гюльсевер Ск., No:7/A D:15, Мертер/Стамбул',
+    cat_badge: 'НОВОЕ',
+    cat_eyebrow: 'НОВЫЙ СЕЗОН · ОСЕНЬ-ЗИМА 2026',
+    cat_title: 'Смотреть каталог',
   }
 };
 

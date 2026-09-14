@@ -9,6 +9,8 @@
   --text-dark: #2c2419;
   --text-light: #6b5d4f;
   --card-bg: rgba(255, 255, 255, 0.7);
+  --wine: #6e1f2c;
+  --cream: #f0e4d3;
   --radius: 16px;
   --transition: 0.3s cubic-bezier(.4, 0, .2, 1);
 }
@@ -192,6 +194,114 @@ body::before {
   background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
   margin: 8px auto 0;
 }
+
+/* ── Catalog banner ── */
+.catalog-banner {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 200px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1.5px solid rgba(184,152,94,0.4);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.catalog-banner picture { display: block; width: 100%; height: 100%; }
+
+.catalog-banner-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(.4, 0, .2, 1);
+}
+
+.catalog-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top,
+    rgba(10,7,5,0.95) 0%,
+    rgba(10,7,5,0.9) 45%,
+    rgba(10,7,5,0.55) 65%,
+    rgba(10,7,5,0.18) 85%,
+    transparent 100%);
+}
+
+.catalog-banner-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  background: var(--wine);
+  color: var(--cream);
+  font-family: 'Montserrat', 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 100px;
+}
+
+.catalog-banner-overlay {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+}
+
+.catalog-banner-eyebrow {
+  font-family: 'Montserrat', 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(240,228,211,0.85);
+}
+
+.catalog-banner-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(20px, 5vw, 26px);
+  color: var(--cream);
+}
+
+.catalog-banner-arrow {
+  display: inline-block;
+  transition: transform var(--transition);
+}
+
+@media (hover: hover) {
+  .catalog-banner:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent-pink);
+    box-shadow:
+      0 10px 28px rgba(212,165,165,0.22),
+      0 2px 8px rgba(44,36,25,0.06);
+  }
+  .catalog-banner:hover .catalog-banner-img { transform: scale(1.03); }
+  .catalog-banner:hover .catalog-banner-arrow { transform: translateX(4px); }
+}
+
+.catalog-banner:active { transform: translateY(-2px); }
+
+@media (max-width: 480px) {
+  .catalog-banner { height: 160px; }
+}
+
+[dir="rtl"] .catalog-banner-badge { right: auto; left: 10px; }
+[dir="rtl"] .catalog-banner-eyebrow,
+[dir="rtl"] .catalog-banner-title { font-family: 'Noto Sans Arabic', 'Cormorant Garamond', serif; font-style: normal; }
+[dir="rtl"] .catalog-banner-arrow { transform: scaleX(-1); }
+[dir="rtl"] .catalog-banner:hover .catalog-banner-arrow { transform: scaleX(-1) translateX(4px); }
 
 /* ── Button grid ── */
 .btn-grid {
