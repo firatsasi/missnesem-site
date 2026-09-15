@@ -542,9 +542,16 @@ function oturumKontrolEt(){
   if(!v)return;
   try{
     var oturum=JSON.parse(v);
-    if(oturum&&oturum.token&&oturum.kullanici){
+    if(oturum&&oturum.token&&oturum.kullaniciAdi){
+      // aktifKullanici her zaman GORUNEN_ADLAR'dan taze hesaplanır — localStorage'daki eski/bozuk
+      // bir "kullanici" (ör. giriş adının kendisi) burada üzerine yazılır. Günlük Rapor'da aynı
+      // kişinin iki satıra bölünmesine yol açan client-side kök nedenlerden biri buydu.
+      var guncelKullanici=GORUNEN_ADLAR[oturum.kullaniciAdi]||oturum.kullanici||oturum.kullaniciAdi;
       AUTH_TOKEN=oturum.token;
-      aktifKullanici=oturum.kullanici;
+      aktifKullanici=guncelKullanici;
+      if(oturum.kullanici!==guncelKullanici){
+        localStorage.setItem(OTURUM_KEY,JSON.stringify({kullaniciAdi:oturum.kullaniciAdi,kullanici:guncelKullanici,token:oturum.token}));
+      }
       goster();
     }
   }catch(e){}
