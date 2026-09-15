@@ -2635,7 +2635,7 @@ var _PDF_W=210,_PDF_H=297,_PDF_M=10,_PDF_R=200; // sayfa genişlik/yükseklik, k
 var _PDF_ALT=_PDF_H-_PDF_M-16; // içerik bu Y'den sonrasına taşmasın (altta footer için yer bırakılır)
 var _C_KOYU=[44,36,25],_C_VURGU=[166,77,62],_C_GOLD=[184,152,94],_C_LINE=[200,168,122],
     _C_BG=[240,228,211],_C_ZEBRA=[250,246,240],_C_IADE_BG=[255,224,224],_C_IADE=[192,57,43],_C_BEYAZ=[255,255,255],
-    _C_ROWLINE=[232,222,208],_C_KUTU_KENAR=[217,203,181];
+    _C_ROWLINE=[232,222,208],_C_KUTU_KENAR=[217,203,181],_C_GRI=[153,153,153];
 
 function _pdfArkaplan(doc){doc.setFillColor.apply(doc,_C_BG);doc.rect(0,0,_PDF_W,_PDF_H,'F');}
 function _pdfYeniSayfa(doc){doc.addPage();_pdfArkaplan(doc);return _PDF_M+6;}
@@ -2824,7 +2824,7 @@ function _irsaliyePdfCiz(doc,veri){
     toplamSatirlari.push(['BU İŞLEM',fmtPara(veri.genel,veri.para),null,true]);
     toplamSatirlari.push(['ESKİ BAKİYE',fmtPara(veri.eski,veri.para)]);
   }
-  var blokH=toplamSatirlari.length*7+14+8;
+  var blokH=toplamSatirlari.length*7+14+8+6; // +6: GENEL TOPLAM altındaki iletişim satırı için
   if(y+blokH>_PDF_ALT)y=_pdfYeniSayfa(doc);
 
   toplamSatirlari.forEach(function(r){
@@ -2881,9 +2881,17 @@ function _irsaliyePdfCiz(doc,veri){
   doc.text(degerMetni,_IRS_TXT_R,kutuMidY,{align:'right'});
   y=kutuY+kutuH2+6;
 
-  // Not: gömülü NotoSans'ta emoji/piktogram glyph'i yok (🌐✈📷✉ dahil ★●→ gibi basit semboller
-  // bile boş çıkıyor, test edildi) — ikon yerine düz metin kullanılıyor.
-  _pdfFooterYaz(doc,'missnesem.com  |  Telegram: @missnesemwholesale  |  Instagram: @missnesemtoptan  |  info@missnesem.com');
+  // İletişim satırı GENEL TOPLAM kutusunun hemen altında, tek satır, nötr gri (#999 —
+  // eski html2canvas dönemindeki footer'la aynı ton, sayfanın altındaki marka notundan farklı
+  // olsun diye kırmızı/bordo DEĞİL). Not: gömülü NotoSans'ta emoji/piktogram glyph'i yok
+  // (🌐✈📷✉ dahil ★●→ gibi basit semboller bile boş çıkıyor, test edildi) — ikon yerine düz
+  // metin kullanılıyor.
+  doc.setFont('NotoSans','normal');doc.setFontSize(7);doc.setTextColor.apply(doc,_C_GRI);
+  doc.text('missnesem.com  |  Telegram: @missnesemwholesale  |  Instagram: @missnesemtoptan  |  info@missnesem.com',_PDF_W/2,y,{align:'center'});
+  y+=6;
+
+  // Sayfa altı: artık sadece marka notu + altın ayırıcı çizgi (iletişim satırı yukarı taşındı).
+  _pdfFooterYaz(doc,null);
 }
 
 /* ---- GÜNLÜK RAPOR ---- */
