@@ -1498,9 +1498,19 @@ async function tumunuSyncEt(){
 // (tr._renkKalemleri dolu) satırları tekrar kontrol eder — serbest metin/çipsiz satırlara
 // dokunmaz. Düzenleme modunda satırın kendi orijinal kalemleri _renkKullanilabilirStok
 // üzerinden geri kredilendirilir. Promise<true|{kod,renk,istenenAdet,mevcutStok}> döner.
+// API'ye ULAŞILAMAZSA (timeout/ağ hatası/401/500) kontrol ATLANIR, kayıt normal devam eder -
+// sadece console'a uyarı yazılır (2026-09-16). 5sn AbortController timeout'u ŞART: fetch'in
+// kendi varsayılan zaman aşımı yok, yanıt hiç gelmezse bu kontrol olmadan promise sonsuza kadar
+// askıda kalır ve kaydet() sessizce hiçbir şey yapmadan durur (ne kayıt, ne uyarı).
 function _stokTazeKontrolEt(){
-  return fetch('https://panel.missnesem.com/api/products/search',{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
-    .then(function(r){return r.ok?r.json():null;})
+  var controller=('AbortController' in window)?new AbortController():null;
+  var timeoutId=controller?setTimeout(function(){controller.abort();},5000):null;
+  return fetch('https://panel.missnesem.com/api/products/search',{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN},signal:controller?controller.signal:undefined})
+    .then(function(r){
+      if(timeoutId)clearTimeout(timeoutId);
+      if(!r.ok){console.warn('Stok taze kontrolü atlandı: API '+r.status+' döndü, kayıt normal devam ediyor.');return null;}
+      return r.json();
+    })
     .then(function(taze){
       if(!taze)return true; // taze katalog çekilemedi - kaydetmeyi burada engelleme
       var tazeMap={};
@@ -1525,7 +1535,11 @@ function _stokTazeKontrolEt(){
       });
       return hata||true;
     })
-    .catch(function(){return true;}); // ağ hatasında kaydetmeyi engelleme - sunucu zaten reddetmiyor, sadece loglar
+    .catch(function(err){
+      if(timeoutId)clearTimeout(timeoutId);
+      console.warn('Stok taze kontrolü atlandı: '+(err&&err.name==='AbortError'?'API 5sn içinde yanıt vermedi':(err&&err.message))+', kayıt normal devam ediyor.');
+      return true; // ağ hatası/timeout'ta kaydetmeyi engelleme - sunucu zaten reddetmiyor, sadece loglar
+    });
 }
 function kaydet(sessiz,skipSync){
   var musteri=document.getElementById('musteri').value.trim();
