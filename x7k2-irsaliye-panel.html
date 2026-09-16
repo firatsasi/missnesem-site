@@ -2158,6 +2158,9 @@ function hazirla(){
   optsRow.style.display='none';
   var kargoToggle=document.getElementById('kargoToggle');
   kargoToggle.style.display='none';
+  var kargoBoxEl=document.getElementById('kargoBox');
+  var kargoBoxDisplay=kargoBoxEl.style.display;
+  kargoBoxEl.style.display='none';
   document.getElementById('duzenlemeBanner').style.display='none';
   var bakAktif=bakBox.classList.contains('aktif');
   if(bakAktif)bakBox.style.display='none';
@@ -2197,12 +2200,13 @@ function hazirla(){
     }
   });
   var saved=inputlariMetneCevir();
-  return {addBtn:addBtn,optsRow:optsRow,bakBox:bakBox,bakAktif:bakAktif,delCells:delCells,delCols:delCols,iadeCells:iadeCells,iadeCols:iadeCols,kargoUcretRow:kargoUcretRow,kargoUcretGizli:kargoUcretGizli,renkChipRows:renkChipRows,saved:saved};
+  return {addBtn:addBtn,optsRow:optsRow,bakBox:bakBox,bakAktif:bakAktif,delCells:delCells,delCols:delCols,iadeCells:iadeCells,iadeCols:iadeCols,kargoUcretRow:kargoUcretRow,kargoUcretGizli:kargoUcretGizli,renkChipRows:renkChipRows,saved:saved,kargoBoxEl:kargoBoxEl,kargoBoxDisplay:kargoBoxDisplay};
 }
 function geriAl(s){
   s.addBtn.style.display='';
   s.optsRow.style.display='flex';
   document.getElementById('kargoToggle').style.display='flex';
+  s.kargoBoxEl.style.display=s.kargoBoxDisplay;
   _duzenlemeBanneriGuncelle();
   if(s.bakAktif)s.bakBox.style.display='';
   s.delCells.forEach(function(c){c.style.display='';});
