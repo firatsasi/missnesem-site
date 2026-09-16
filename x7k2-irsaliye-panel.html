@@ -922,16 +922,33 @@ function _kodSec(tr,p){
     iRenk.value='';
     tr._renkKomitli='';
     tr._renkKalemleri=[];
+    tr._duzenlemeOrijinalKalemler=[]; // farklı ürüne geçildi, eski ürünün rezerve stoğu artık geçersiz
     _renkChipleriRender(tr);
     _seriToplamGuncelle(tr);
   }
   _riDropdownGizle(tr.querySelector('.ri-kod-dd'));
   iRenk.focus();
 }
+// Bir satırın belirli bir renk için o an KULLANILABİLECEĞİ stok — API'nin taze döndürdüğü
+// colorStocks[renk] + (düzenleme modundaysa) satırın kendi ORİJİNAL kalemlerinde o renk için
+// ayrılmış seri×5 adet (bkz. irsaliyeDuzenle → tr._duzenlemeOrijinalKalemler). Bu ikinci kısım
+// olmasa, düzenlenen bir irsaliyenin kendi eski kalemi (zaten stoktan düşülmüş sayılıyor) yüzünden
+// aynı rengi tekrar eklemek gereksiz yere reddedilirdi — irsaliye kendi stoğunu düşmüş sayılmaz.
+function _renkKullanilabilirStok(tr,renk){
+  var secim=tr._urunSecim;
+  var canliStok=(secim&&secim.colorStocks&&secim.colorStocks[renk])||0;
+  var orijinalRezerve=0;
+  (tr._duzenlemeOrijinalKalemler||[]).forEach(function(k){
+    if(k.renk&&k.renk.toLocaleUpperCase('tr-TR')===renk.toLocaleUpperCase('tr-TR'))orijinalRezerve+=(k.seri||0)*5;
+  });
+  return canliStok+orijinalRezerve;
+}
 // RENK dropdown'ı: kod seçilmiş ürünün stoktaki renklerini (kısaltma desteğiyle) listeler.
 // Satırda (veya tabloda aynı koda sahip başka satırlarda) zaten eklenmiş renkler listeden
 // çıkarılır (bir rengin iki kez eklenmesini engeller). Renk seçimi SADECE bu dropdown'dan
 // yapılır — RENK alanına yazılan metin yalnızca filtreleme amaçlıdır (bkz. _renkSecildi).
+// Stoğu <= 0 (kendi orijinal kalemi hariç, bkz. _renkKullanilabilirStok) olan renkler listede
+// hiç görünmez (2026-09-16 — satılamayacak renk irsaliyeye yazılmasın kuralı).
 function renkDropdownFiltrele(tr,q){
   var secim=tr._urunSecim;
   var dd=tr.querySelector('.ri-renk-dd');
@@ -944,7 +961,10 @@ function renkDropdownFiltrele(tr,q){
     (r._renkKalemleri||[]).forEach(function(k){kullanilan[k.renk.toLocaleUpperCase('tr-TR')]=true;});
   });
   var query=(q||'').trim().toLocaleUpperCase('tr-TR');
-  var list=secim.colors.filter(function(c){return !kullanilan[c.toLocaleUpperCase('tr-TR')];});
+  var list=secim.colors.filter(function(c){
+    if(kullanilan[c.toLocaleUpperCase('tr-TR')])return false;
+    return _renkKullanilabilirStok(tr,c)>0;
+  });
   if(query){
     var kisaltmaHedef=MN_RENK_KISALTMA[query];
     list=list.filter(function(c){
@@ -962,6 +982,11 @@ function renkDropdownFiltrele(tr,q){
 function _renkSecildi(tr,renk){
   _riDropdownGizle(tr.querySelector('.ri-renk-dd'));
   _seriPopupGoster(tr,renk,function(seri){
+    var mevcutStok=_renkKullanilabilirStok(tr,renk);
+    if(seri*5>mevcutStok){
+      alert('Stokta '+mevcutStok+' adet var, '+(seri*5)+' adet eklenemez.');
+      return;
+    }
     if(!tr._renkKalemleri)tr._renkKalemleri=[];
     tr._renkKalemleri.push({renk:renk,seri:seri});
     _renkChipleriRender(tr);
@@ -1467,11 +1492,61 @@ async function tumunuSyncEt(){
   }
   console.log('tumunuSyncEt tamamlandı → Başarılı: '+basarili+' / Hatalı: '+hatali+' / Toplam: '+v.length);
 }
+// Kaydet'ten hemen önce, sync'e gitmeden çağrılır — bellekteki katalog (urunKatalogYukle
+// önbelleği, sayfa açılışında bir kez çekilir) eski olabilir, başka bir cihaz/kullanıcı arada
+// aynı rengi düşürmüş olabilir. API'den TAZE bir katalog çeker ve SADECE çip akışından geçmiş
+// (tr._renkKalemleri dolu) satırları tekrar kontrol eder — serbest metin/çipsiz satırlara
+// dokunmaz. Düzenleme modunda satırın kendi orijinal kalemleri _renkKullanilabilirStok
+// üzerinden geri kredilendirilir. Promise<true|{kod,renk,istenenAdet,mevcutStok}> döner.
+function _stokTazeKontrolEt(){
+  return fetch('https://panel.missnesem.com/api/products/search',{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(taze){
+      if(!taze)return true; // taze katalog çekilemedi - kaydetmeyi burada engelleme
+      var tazeMap={};
+      taze.forEach(function(p){tazeMap[p.code]=p;});
+      var hata=null;
+      document.querySelectorAll('#tb tr').forEach(function(tr){
+        if(hata||!(tr._renkKalemleri&&tr._renkKalemleri.length))return;
+        var kod=((tr.querySelector('.ri-kod')||{}).value||'').trim();
+        var tazeUrun=tazeMap[kod];
+        if(!tazeUrun)return; // katalogda artık yok - burada engellenmiyor
+        tr._renkKalemleri.forEach(function(k){
+          if(hata)return;
+          var istenenAdet=(k.seri||0)*5;
+          var canliStok=(tazeUrun.colorStocks&&tazeUrun.colorStocks[k.renk])||0;
+          var orijinalRezerve=0;
+          (tr._duzenlemeOrijinalKalemler||[]).forEach(function(o){
+            if(o.renk&&o.renk.toLocaleUpperCase('tr-TR')===k.renk.toLocaleUpperCase('tr-TR'))orijinalRezerve+=(o.seri||0)*5;
+          });
+          var mevcutStok=canliStok+orijinalRezerve;
+          if(istenenAdet>mevcutStok)hata={kod:kod,renk:k.renk,istenenAdet:istenenAdet,mevcutStok:mevcutStok};
+        });
+      });
+      return hata||true;
+    })
+    .catch(function(){return true;}); // ağ hatasında kaydetmeyi engelleme - sunucu zaten reddetmiyor, sadece loglar
+}
 function kaydet(sessiz,skipSync){
   var musteri=document.getElementById('musteri').value.trim();
   if(!musteri){if(!sessiz)alert('Müşteri adı boş olamaz');return false;}
   var tarih=document.getElementById('tarih').value;
   if(!tarih){if(!sessiz)alert('Tarih boş olamaz');return false;}
+  if(!skipSync){
+    _stokTazeKontrolEt().then(function(sonuc){
+      if(sonuc!==true){
+        alert('Stok yetersiz: '+sonuc.kod+' '+sonuc.renk+' — '+sonuc.istenenAdet+' adet isteniyor, stokta '+sonuc.mevcutStok+' adet var.\nKaydetme durduruldu, lütfen adedi düzeltin.');
+        return;
+      }
+      _kaydetGovde(sessiz,skipSync);
+    });
+    return true;
+  }
+  return _kaydetGovde(sessiz,skipSync);
+}
+function _kaydetGovde(sessiz,skipSync){
+  var musteri=document.getElementById('musteri').value.trim();
+  var tarih=document.getElementById('tarih').value;
   var urunler=[];
   var parca=0;
   var ara=0;
@@ -2063,6 +2138,10 @@ function irsaliyeDuzenle(id){
       tr.querySelector('.ri-kod').value=g.kod;
       tr.querySelector('.ri-urun').value=g.urun;
       tr._renkKalemleri=g.renkler.slice();
+      // Düzenlemeye girerken donmuş bir kopya - _renkKalemleri sonradan eklenip/çıkarılsa da
+      // BUNA dokunulmaz, kaydet öncesi taze stok kontrolünde "bu irsaliyenin zaten düşmüş
+      // sayılan kendi payı" olarak geri kredilendirilir (bkz. _renkKullanilabilirStok).
+      tr._duzenlemeOrijinalKalemler=g.renkler.slice();
       _renkChipleriRender(tr);
       _seriToplamGuncelle(tr);
       // RENK dropdown'ının çalışması için ürün kataloğundan eşleşen kaydı arka planda getir
