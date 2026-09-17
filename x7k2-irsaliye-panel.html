@@ -834,9 +834,14 @@ function bakiyeHesapla(){
   var ebRaw=(eb?eb.value:'').replace(/\./g,'').replace(',','.');
   var eski=parseFloat(ebRaw)||0;
   var genel=window.sonGenel||0;
+  var toplam=eski+genel;
+  // 2026-09-17: negatif (alacaklı) bakiye ASLA 0'a yuvarlanmıyor - fmt() zaten "-" işaretiyle
+  // doğru gösteriyor, burada sadece net bir "(Alacak)" etiketi ekleniyor ki eksi değer sessizce
+  // gözden kaçmasın.
+  function etiketli(v){return fmt(v)+(v<0?' (Alacak)':'');}
   // Üst bakiye kutusu
   document.getElementById('buIslem').value=fmt(genel);
-  document.getElementById('toplamBakiye').textContent=fmt(eski+genel);
+  document.getElementById('toplamBakiye').textContent=etiketli(toplam);
   // Alt satırlar (irsaliye totals kısmında görünür)
   var biRow=document.getElementById('buIslemRow');
   var ebSatir=document.getElementById('eskiBakiyeSatir');
@@ -844,7 +849,7 @@ function bakiyeHesapla(){
     biRow.style.display='flex';
     ebSatir.style.display='flex';
     document.getElementById('buIslemSatir').textContent=fmt(genel);
-    document.getElementById('eskiBakiyeVal').textContent=fmt(eski);
+    document.getElementById('eskiBakiyeVal').textContent=etiketli(eski);
   }else{
     biRow.style.display='none';
     ebSatir.style.display='none';
@@ -2044,17 +2049,31 @@ function raporListeYap(liste){
   html+='</tbody></table></div>';
   el.innerHTML=html;
 }
+// Bir müşterinin belirli bir para birimindeki GERÇEK bakiyesini yerel hareketler listesinden
+// canlı hesaplar - kayit.eskiBakiye gibi donuk bir anlık görüntüye güvenmez, her zaman güncel.
+// haricKayitId verilirse o kaydın kendi "İrsaliye #id" hareketi toplamdan HARİÇ tutulur
+// (düzenleme modunda irsaliyenin kendi eski tutarı eski bakiyeye karışmasın diye - bkz.
+// irsaliyeDuzenle/_cariHareketGeriAl). Negatif (alacaklı) bakiye ASLA 0'a yuvarlanmaz - müşterinin
+// gerçek alacağını gizlerdi (2026-09-17 fix, panel tarafındaki aynı sınıf hatayla birlikte).
+function _eskiBakiyeHesapla(musteri,para,haricKayitId){
+  cariMigrasyon();
+  var d=cariVeriCek();
+  var key=cariKey(musteri);
+  var haricAciklama=haricKayitId!=null?('İrsaliye #'+haricKayitId):null;
+  var bakiye=0;
+  d.hareketler.filter(function(h){return h.key===key&&(h.para||'TL')===para&&h.aciklama!==haricAciklama;}).forEach(function(h){
+    if(h.tip==='borc')bakiye+=h.tutar;else bakiye-=h.tutar;
+  });
+  return bakiye;
+}
 function _cariHareketGeriAl(kayit){
   cariMigrasyon();
   var d=cariVeriCek();
   var key=cariKey(kayit.musteri);
   var para=kayit.para||'TL';
+  var bakiye=_eskiBakiyeHesapla(kayit.musteri,para,kayit.id);
   d.hareketler=d.hareketler.filter(function(h){return h.aciklama!=='İrsaliye #'+kayit.id;});
-  var bakiye=0;
-  d.hareketler.filter(function(h){return h.key===key&&(h.para||'TL')===para;}).forEach(function(h){
-    if(h.tip==='borc')bakiye+=h.tutar;else bakiye-=h.tutar;
-  });
-  if(d.musteri[key])_bakiyeAyarla(d.musteri[key],para,Math.max(0,bakiye));
+  if(d.musteri[key])_bakiyeAyarla(d.musteri[key],para,bakiye);
   cariVeriYaz(d);
 }
 function kayitSil(id){
@@ -2190,7 +2209,12 @@ function irsaliyeDuzenle(id){
 
   bakiyeGoster();
   if(kayit.odeme==='AcikHesap'){
-    var eskiBak=typeof kayit.eskiBakiye==='number'?kayit.eskiBakiye:0;
+    // 2026-09-17: kayit.eskiBakiye donuk bir anlık görüntüydü (son kayıt anındaki değeri hep
+    // aynen gösteriyordu - o zamandan beri bakiye değiştiyse bayatlardı, ayrıca eski sunucu
+    // tarafı Math.max(0,...) hatası yüzünden yanlışlıkla sıfırlanmış olabilirdi). Artık her
+    // düzenleme açılışında yerel hareketlerden TAZE hesaplanıyor - bu irsaliyenin kendi
+    // "İrsaliye #id" kaydı hariç tutularak (kendi eski tutarı eski bakiyeye karışmasın diye).
+    var eskiBak=_eskiBakiyeHesapla(kayit.musteri,kayit.para||'TL',id);
     document.getElementById('eskiBakiye').value=eskiBak.toLocaleString('tr-TR');
   }
 
@@ -2928,7 +2952,7 @@ function _irsaliyePdfCiz(doc,veri){
   var toplamSatirlari=araKdvSatirlari.slice();
   if(veri.acikHesap){
     toplamSatirlari.push(['BU İŞLEM',fmtPara(veri.genel,veri.para),null,true]);
-    toplamSatirlari.push(['ESKİ BAKİYE',fmtPara(veri.eski,veri.para)]);
+    toplamSatirlari.push(['ESKİ BAKİYE',fmtPara(veri.eski,veri.para)+(veri.eski<0?' (Alacak)':'')]);
   }
   var blokH=toplamSatirlari.length*7+14+8+6; // +6: GENEL TOPLAM altındaki iletişim satırı için
   if(y+blokH>_PDF_ALT)y=_pdfYeniSayfa(doc);
