@@ -666,6 +666,25 @@ function _musteriSonIrsaliyeDefaultlariniUygula(isim){
     .catch(function(){}); // sessizce yoksay — statik varsayılanlar zaten uygulanmış durumda
 }
 function _paraApiAnahtari(para){return para==='TL'?'TRY':para;}
+// Panel API'sinden GERÇEK güncel bakiyeyi çeker (müşteri autocomplete'te kullanılan AYNI
+// /api/customers/search uç noktası - bkz. musteriAutocomplete). Yerel cari hareketlerden ASLA
+// hesaplanmaz - yerel kayıt panelden girilen tahsilat/düzeltme gibi hareketleri hiç içermediğinden
+// eksik/yanlış bir toplam üretiyordu (2026-09-17, Bircan Çil vakası: yerelden 100.485 çıkmıştı,
+// panel API'sine göre doğrusu -21.544'tü). reject olursa (ağ/401/vb.) çağıran taraf yerelden
+// UYDURMAMALI - "Bakiye alınamadı" göstermeli.
+function _apiBakiyeGetir(musteri,para){
+  if(!musteri||musteri.trim().length<2)return Promise.reject(new Error('musteri adi cok kisa'));
+  return fetch('https://panel.missnesem.com/api/customers/search?q='+encodeURIComponent(musteri.trim()),{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
+    .then(function(r){if(!r.ok)throw new Error('bakiye alinamadi');return r.json();})
+    .then(function(list){
+      var canon=cariKey(musteri);
+      var m=(list||[]).find(function(x){return cariKey(x.name)===canon;});
+      if(!m)return 0; // panelde bu isimle müşteri bulunamadı -> bakiye yok say
+      var paraKodu=_paraApiAnahtari(para);
+      if(m.bakiyeler&&m.bakiyeler[paraKodu]!==undefined)return m.bakiyeler[paraKodu];
+      return paraKodu==='TRY'?(m.bakiye||0):0;
+    });
+}
 function _musteriBakiyeKutusunaYaz(isim){
   var para=document.getElementById('para').value;
   var bak=(_lastMusteriBakiyeler&&_lastMusteriBakiyeler[_paraApiAnahtari(para)])||0;
@@ -2209,13 +2228,31 @@ function irsaliyeDuzenle(id){
 
   bakiyeGoster();
   if(kayit.odeme==='AcikHesap'){
-    // 2026-09-17: kayit.eskiBakiye donuk bir anlık görüntüydü (son kayıt anındaki değeri hep
-    // aynen gösteriyordu - o zamandan beri bakiye değiştiyse bayatlardı, ayrıca eski sunucu
-    // tarafı Math.max(0,...) hatası yüzünden yanlışlıkla sıfırlanmış olabilirdi). Artık her
-    // düzenleme açılışında yerel hareketlerden TAZE hesaplanıyor - bu irsaliyenin kendi
-    // "İrsaliye #id" kaydı hariç tutularak (kendi eski tutarı eski bakiyeye karışmasın diye).
-    var eskiBak=_eskiBakiyeHesapla(kayit.musteri,kayit.para||'TL',id);
-    document.getElementById('eskiBakiye').value=eskiBak.toLocaleString('tr-TR');
+    // 2026-09-17: kayit.eskiBakiye donuk bir anlık görüntüydü VE bir ara sürümde yerel cari
+    // hareketlerden hesaplanıyordu - yerel kayıt panelden girilen tahsilat/düzeltme gibi
+    // hareketleri hiç içermediğinden (sadece bu cihazda oluşturulan irsaliyelerin borçlarını
+    // biliyor) yanlış/eksik bir toplam üretiyordu (Bircan Çil vakası: yerelden 100.485 çıkmıştı,
+    // doğrusu panel API'sine göre -21.544'tü). Artık HER ZAMAN panel API'sinden (_apiBakiyeGetir)
+    // çekiliyor - müşteri autocomplete'in kullandığı aynı sunucu kaynağı. API bu irsaliyeyi ZATEN
+    // içeriyorsa (panel daha önce senkronize ettiyse - senkron kuyruğunda bekleyen değilse
+    // senkronize sayılır) kendi tutarı API bakiyesinden düşülüyor; henüz senkronize edilmediyse
+    // API zaten içermediği için düşülmüyor.
+    var dIsim=kayit.musteri,dPara=kayit.para||'TL',dId=id;
+    document.getElementById('eskiBakiye').value='';
+    document.getElementById('bakiyeInfo').textContent='⏳ Bakiye panelden alınıyor…';
+    var beklemede=_syncKuyrukOku().some(function(k){return k.tip==='irsaliye_kaydet'&&k.id===dId;});
+    _apiBakiyeGetir(dIsim,dPara).then(function(apiBakiye){
+      if(document.getElementById('musteri').value!==dIsim)return; // arada başka müşteri seçilmiş olabilir
+      var eski=beklemede?apiBakiye:(apiBakiye-(kayit.genel||0));
+      document.getElementById('eskiBakiye').value=eski.toLocaleString('tr-TR');
+      document.getElementById('bakiyeInfo').textContent='';
+      bakiyeHesapla();
+    }).catch(function(){
+      if(document.getElementById('musteri').value!==dIsim)return;
+      document.getElementById('eskiBakiye').value='';
+      document.getElementById('bakiyeInfo').textContent='⚠️ Bakiye alınamadı - panelden kontrol edin.';
+      bakiyeHesapla();
+    });
   }
 
   _duzenlemeId=id;
