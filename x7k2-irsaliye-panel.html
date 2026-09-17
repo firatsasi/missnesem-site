@@ -993,6 +993,8 @@ function _renkSecildi(tr,renk){
     _seriToplamGuncelle(tr);
     tr.querySelector('.ri-renk').value='';
     hesapla();
+    var fiyatInp=tr.querySelector('.fiyat-wrap input');
+    if(fiyatInp){setTimeout(function(){fiyatInp.focus();fiyatInp.select();},0);}
   });
 }
 
