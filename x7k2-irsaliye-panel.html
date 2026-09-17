@@ -1914,6 +1914,67 @@ function fmtPara(n,para){
   if(!para||para==='TL')return n.toLocaleString('tr-TR')+' ₺';
   return s[para]+' '+n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
+// PNG kartındaki TOPLAM bölümü (sağ ÖZET KARTI + sol TOPLAM ADET kutusu) - jsPDF'teki
+// _ozetKart*/_adetKutusuCiz ile AYNI yerleşim/kurallar (2026-09-17), sadece HTML/CSS'e çevrilmiş.
+// Ödeme şekli/Tür burada da YAZILMIYOR.
+function _toplamKartlariHtml(k,birimSym){
+  var acikHesap=k.odeme==='AcikHesap';
+  var genelGoster=k.genel;
+  if(acikHesap)genelGoster=(typeof k.yeniBakiye==='number')?k.yeniBakiye:((k.eskiBakiye||0)+k.genel);
+  var eski=k.eskiBakiye||0;
+  var showBreakdown=(k.kdvOran||0)>0||(k.iadeToplam||0)>0||(k.kargoUcret||0)>0;
+
+  function satirHtml(label,deger,renk,rozetHtml){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0">'+
+      '<span style="font-size:10px;letter-spacing:0.8px;font-weight:700;color:#a64d3e;text-transform:uppercase">'+label+(rozetHtml||'')+'</span>'+
+      '<span style="font-size:13px;color:'+(renk||'#2c2419')+'">'+deger+'</span>'+
+    '</div>';
+  }
+  function buIslemHtml(label,deger){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0">'+
+      '<span style="font-size:13.5px;font-weight:700;color:#a64d3e">'+label+'</span>'+
+      '<span style="font-size:13.5px;font-weight:700;color:#2c2419">'+deger+'</span>'+
+    '</div>';
+  }
+  function rozetHtml(text,bg,fg){
+    return '<span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:700;letter-spacing:0.4px;background:'+bg+';color:'+fg+'">'+text+'</span>';
+  }
+
+  var ust='';
+  if(showBreakdown){
+    ust+=satirHtml('ARA TOPLAM',fmtPara(k.ara,k.para));
+    if(k.kdvOran>0)ust+=satirHtml('KDV (%'+k.kdvOran+')',fmtPara(k.kdv,k.para));
+    if((k.iadeToplam||0)>0)ust+=satirHtml('İADE',fmtPara(-k.iadeToplam,k.para),'#c0392b');
+    if((k.kargoUcret||0)>0)ust+=satirHtml('KARGO',fmtPara(k.kargoUcret,k.para));
+  }
+  var alt='';
+  if(acikHesap){
+    alt+=buIslemHtml('BU İŞLEM',fmtPara(k.genel,k.para));
+    if(eski!==0){
+      var eksi=eski<0;
+      var roz=rozetHtml(eksi?'ALACAK':'BORÇ',eksi?'#e6f2ea':'#f6e4e1',eksi?'#2e7d4f':'#a64d3e');
+      alt+=satirHtml('ESKİ BAKİYE',fmtPara(eski,k.para),eksi?'#2e7d4f':'#a64d3e',roz);
+    }
+  }
+  var ayracHtml=(ust&&alt)?'<div style="height:1px;background:#b8985e;margin:6px 0"></div>':'';
+
+  var toplamAdet=(k.urunler||[]).reduce(function(s,u){return s+(u.iade?0:(u.adet||0));},0);
+
+  var solKutu='<div style="background:#fff;border:1px solid #b8985e;border-radius:6px;padding:10px 14px;align-self:flex-start">'+
+    '<div style="font-size:10px;letter-spacing:0.8px;font-weight:700;color:#a64d3e;text-transform:uppercase;margin-bottom:6px">TOPLAM ADET</div>'+
+    '<div style="font-size:22px;font-weight:700;color:#2c2419">'+toplamAdet+'</div>'+
+  '</div>';
+
+  var sagKart='<div style="background:#fff;border:1px solid #b8985e;border-radius:6px;padding:14px;width:340px;box-sizing:border-box">'+
+    ust+ayracHtml+alt+
+    '<div style="background:#2c2419;border-radius:6px;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;margin-top:10px">'+
+      '<span style="font-size:10px;letter-spacing:1.5px;color:#c9a96e;text-transform:uppercase">GENEL TOPLAM</span>'+
+      '<span style="font-size:22px;font-weight:700;color:#fff">'+fmtPara(genelGoster,k.para)+'</span>'+
+    '</div>'+
+  '</div>';
+
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-top:1.8rem">'+solKutu+sagKart+'</div>';
+}
 function irsaliyeHtmlOlustur(k){
   var d=k.tarih.split('-');
   var tarihStr=d[2]+'.'+d[1]+'.'+d[0];
@@ -1930,23 +1991,7 @@ function irsaliyeHtmlOlustur(k){
     satirlar+='<td style="padding:9px 10px;text-align:right;color:'+clr+';font-size:14px;font-weight:700;border-bottom:1px solid #e0cdb5;background:'+bg+';vertical-align:middle">'+fmtPara(u.toplam,k.para)+'</td>';
     satirlar+='</tr>';
   });
-  var kdvHtml='';
-  if(k.kdvOran>0||(k.iadeToplam||0)>0||(k.kargoUcret||0)>0){
-    kdvHtml='<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#a64d3e;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">ARA TOPLAM</span><span style="color:#2c2419;font-weight:700;min-width:100px;text-align:right">'+fmtPara(k.ara,k.para)+'</span></div>';
-    if(k.kdvOran>0){
-      kdvHtml+='<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#a64d3e;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">KDV (%'+k.kdvOran+')</span><span style="color:#2c2419;font-weight:700;min-width:100px;text-align:right">'+fmtPara(k.kdv,k.para)+'</span></div>';
-    }
-    if((k.iadeToplam||0)>0){
-      kdvHtml+='<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#c0392b;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">İADE</span><span style="color:#c0392b;font-weight:700;min-width:100px;text-align:right">'+fmtPara(-k.iadeToplam,k.para)+'</span></div>';
-    }
-    if((k.kargoUcret||0)>0){
-      kdvHtml+='<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px"><span style="color:#a64d3e;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right">KARGO</span><span style="color:#2c2419;font-weight:700;min-width:100px;text-align:right">'+fmtPara(k.kargoUcret,k.para)+'</span></div>';
-    }
-  }
-  var genelGoster=k.genel;
-  if(k.odeme==='AcikHesap'){
-    genelGoster=(typeof k.yeniBakiye==='number')?k.yeniBakiye:((k.eskiBakiye||0)+k.genel);
-  }
+  var toplamKartlariHtml=_toplamKartlariHtml(k,birimSym);
   var el=document.createElement('div');
   el.style.cssText='background:#f0e4d3;border-radius:10px;border:1px solid #b8985e;padding:2rem;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#2c2419;box-sizing:border-box;width:760px';
   el.innerHTML=
@@ -1970,13 +2015,7 @@ function irsaliyeHtmlOlustur(k){
       '</tr></thead>'+
       '<tbody>'+satirlar+'</tbody>'+
     '</table>'+
-    '<div style="margin-top:1.5rem;display:flex;flex-direction:column;align-items:flex-end;gap:5px">'+
-      kdvHtml+
-      '<div style="background:#2c2419;border-radius:8px;padding:13px 22px;display:flex;align-items:center;gap:20px;margin-top:6px">'+
-        '<span style="font-size:10px;letter-spacing:2px;color:#b8985e">GENEL TOPLAM</span>'+
-        '<span style="font-size:20px;font-weight:700;color:#f0e4d3">'+fmtPara(genelGoster,k.para)+'</span>'+
-      '</div>'+
-    '</div>'+
+    toplamKartlariHtml+
     '<div style="margin-top:1.5rem;text-align:center;font-size:10px;color:#a64d3e;letter-spacing:1px">MISS NEŞEM · MERTER · İSTANBUL</div>'+
     '<div style="text-align:center;color:#999;font-size:11px;margin-top:6px;line-height:1.8">🌐 missnesem.com &nbsp;|&nbsp; ✈ Telegram: @missnesemwholesale &nbsp;|&nbsp; 📷 Instagram: @missnesemtoptan &nbsp;|&nbsp; ✉ info@missnesem.com</div>';
   return el;
@@ -2802,7 +2841,13 @@ var _PDF_W=210,_PDF_H=297,_PDF_M=10,_PDF_R=200; // sayfa genişlik/yükseklik, k
 var _PDF_ALT=_PDF_H-_PDF_M-16; // içerik bu Y'den sonrasına taşmasın (altta footer için yer bırakılır)
 var _C_KOYU=[44,36,25],_C_VURGU=[166,77,62],_C_GOLD=[184,152,94],_C_LINE=[200,168,122],
     _C_BG=[240,228,211],_C_ZEBRA=[250,246,240],_C_IADE_BG=[255,224,224],_C_IADE=[192,57,43],_C_BEYAZ=[255,255,255],
-    _C_ROWLINE=[232,222,208],_C_KUTU_KENAR=[217,203,181],_C_GRI=[153,153,153];
+    _C_ROWLINE=[232,222,208],_C_KUTU_KENAR=[217,203,181],_C_GRI=[153,153,153],
+    // 2026-09-17 TOPLAM bölümü yeniden tasarımı: GENEL TOPLAM etiketi biraz daha açık bir altın
+    // (#c9a96e) kullanıyor, kenarlıklardaki _C_GOLD'dan (#b8985e) kasıtlı olarak farklı. Rozetler
+    // (ALACAK/BORÇ) kendi açık zemin renklerini taşıyor - yazı rengi ALACAK'ta yeşil, BORÇ'ta
+    // mevcut _C_VURGU bordo.
+    _C_GOLD2=[201,169,110],_C_ROZET_YESIL_BG=[230,242,234],_C_ROZET_YESIL_TXT=[46,125,79],
+    _C_ROZET_BORDO_BG=[246,228,225];
 
 function _pdfArkaplan(doc){doc.setFillColor.apply(doc,_C_BG);doc.rect(0,0,_PDF_W,_PDF_H,'F');}
 function _pdfYeniSayfa(doc){doc.addPage();_pdfArkaplan(doc);return _PDF_M+6;}
@@ -2838,6 +2883,131 @@ function _pdfAlanKutusu(doc,x,y,w,h,etiket,deger){
   doc.text(deger||'',x+3,y+12);
 }
 
+/* ---- İRSALİYE TOPLAM BÖLÜMÜ (2026-09-17 yeniden tasarım) ----
+   Sağda beyaz/altın kenarlı ÖZET KARTI (ara toplam/KDV/iade/kargo → ayraç → açık hesapta
+   BU İŞLEM+ESKİ BAKİYE → kart tabanında koyu kahve GENEL TOPLAM kutusu), solda (kartla üstten
+   hizalı) küçük TOPLAM ADET kutusu. Ödeme şekli/Tür burada YAZILMIYOR - bu bölümün tasarım
+   amacı tamamen tutarlar, o bilgi PDF'te hiçbir yerde gösterilmiyor. */
+var _KART_W=(_PDF_R-_PDF_M)*0.45,_KART_PAD=5,_KART_ROWH=6.5,_KART_GT_H=12,_KART_R=2;
+var _ADET_KUTU_W=48,_ADET_KUTU_H=20;
+
+// Kart satırlarını (üst blok: ara toplam/KDV/iade/kargo; alt blok: bu işlem/eski bakiye) ve
+// aralarında ayraç gerekip gerekmediğini hesaplar - hem yükseklik ölçümü hem çizim AYNI bu
+// listeyi kullanır ki ikisi arasında asla tutarsızlık olmasın.
+function _ozetKartVerisi(veri){
+  var showBreakdown=veri.oran>0||veri.iadeTutar>0||veri.kargoUcret>0;
+  var ustSatirlar=[];
+  if(showBreakdown){
+    ustSatirlar.push({label:'ARA TOPLAM',deger:fmtPara(veri.ara,veri.para)});
+    if(veri.oran>0)ustSatirlar.push({label:'KDV (%'+veri.oran+')',deger:fmtPara(veri.kdv,veri.para)});
+    if(veri.iadeTutar>0)ustSatirlar.push({label:'İADE',deger:fmtPara(-veri.iadeTutar,veri.para),renk:_C_IADE});
+    if(veri.kargoUcret>0)ustSatirlar.push({label:'KARGO',deger:fmtPara(veri.kargoUcret,veri.para)});
+  }
+  var altSatirlar=[];
+  if(veri.acikHesap){
+    altSatirlar.push({label:'BU İŞLEM',deger:fmtPara(veri.genel,veri.para),kalin:true});
+    if(veri.eski!==0){
+      var eksi=veri.eski<0;
+      altSatirlar.push({
+        label:'ESKİ BAKİYE',deger:fmtPara(veri.eski,veri.para),
+        renk:eksi?_C_ROZET_YESIL_TXT:_C_VURGU,
+        rozet:eksi?'ALACAK':'BORÇ',rozetBg:eksi?_C_ROZET_YESIL_BG:_C_ROZET_BORDO_BG,
+        rozetTxt:eksi?_C_ROZET_YESIL_TXT:_C_VURGU
+      });
+    }
+  }
+  return {ustSatirlar:ustSatirlar,altSatirlar:altSatirlar,ayrac:ustSatirlar.length>0&&altSatirlar.length>0};
+}
+function _ozetKartYuksekligi(veri){
+  var d=_ozetKartVerisi(veri);
+  var h=_KART_PAD;
+  h+=d.ustSatirlar.length*_KART_ROWH;
+  if(d.ayrac)h+=4;
+  h+=d.altSatirlar.length*_KART_ROWH;
+  h+=3;
+  h+=_KART_GT_H;
+  h+=_KART_PAD;
+  return h;
+}
+function _ozetKartCiz(doc,y,veri){
+  var d=_ozetKartVerisi(veri);
+  var kartX=_PDF_R-_KART_W;
+  var h=_ozetKartYuksekligi(veri);
+  doc.setDrawColor.apply(doc,_C_GOLD);doc.setLineWidth(0.3);
+  doc.setFillColor.apply(doc,_C_BEYAZ);
+  doc.roundedRect(kartX,y,_KART_W,h,_KART_R,_KART_R,'FD');
+
+  var solX=kartX+_KART_PAD,sagX=kartX+_KART_W-_KART_PAD;
+  var ry=y+_KART_PAD+3.2;
+
+  function satirCiz(r){
+    var kalin=!!r.kalin;
+    doc.setFont('NotoSans',kalin?'bold':'normal');
+    doc.setFontSize(kalin?10.5:7.5);
+    doc.setTextColor.apply(doc,kalin?_C_VURGU:_C_VURGU);
+    if(kalin){doc.text(r.label,solX,ry);}
+    else{doc.text(r.label.toUpperCase(),solX,ry,{charSpace:0.6});}
+    if(r.rozet){
+      var etiketW=doc.getTextWidth(r.label.toUpperCase())+(r.label.length-1)*0.6;
+      var rx=solX+etiketW+2.5;
+      doc.setFont('NotoSans','bold');doc.setFontSize(6.5);
+      var rozTxt=r.rozet;
+      var rozTw=doc.getTextWidth(rozTxt);
+      var rozPadX=1.8,rozH=3.6,rozW=rozTw+2*rozPadX;
+      var rozY=ry-rozH+0.8;
+      doc.setFillColor.apply(doc,r.rozetBg);
+      doc.roundedRect(rx,rozY,rozW,rozH,1,1,'F');
+      doc.setTextColor.apply(doc,r.rozetTxt);
+      doc.text(rozTxt,rx+rozPadX,rozY+rozH-1.1);
+    }
+    doc.setFont('NotoSans',kalin?'bold':'normal');
+    doc.setFontSize(kalin?10.5:10);
+    doc.setTextColor.apply(doc,r.renk||_C_KOYU);
+    doc.text(r.deger,sagX,ry,{align:'right'});
+    ry+=_KART_ROWH;
+  }
+
+  d.ustSatirlar.forEach(satirCiz);
+  if(d.ayrac){
+    ry+=0.5;
+    doc.setDrawColor.apply(doc,_C_GOLD);doc.setLineWidth(0.25);
+    doc.line(solX,ry,sagX,ry);
+    ry+=3.5;
+  }
+  d.altSatirlar.forEach(satirCiz);
+
+  // Kartın en altında, kart genişliğinde koyu kahve GENEL TOPLAM kutusu - solda altın etiket,
+  // sağda büyük beyaz kalın rakam (item 9). Çok büyük tutarlarda 18pt etiketle çakışırsa (nadir,
+  // ör. 6+ haneli tutarlar) rakam etiketle en az 3mm boşluk kalana kadar küçültülür - bu SADECE
+  // bir taşma güvencesi, normal tutarlarda hep 18pt kalır.
+  var gtY=y+h-_KART_PAD-_KART_GT_H;
+  doc.setFillColor.apply(doc,_C_KOYU);
+  doc.roundedRect(kartX,gtY,_KART_W,_KART_GT_H,_KART_R,_KART_R,'F');
+  var gtMidY=gtY+_KART_GT_H/2+2;
+  doc.setFont('NotoSans','normal');doc.setFontSize(8);doc.setTextColor.apply(doc,_C_GOLD2);
+  doc.text('GENEL TOPLAM',solX,gtMidY,{charSpace:0.6});
+  var etiketSonX=solX+doc.getTextWidth('GENEL TOPLAM')+('GENEL TOPLAM'.length-1)*0.6;
+  var degerMetni=fmtPara(veri.genelGoster,veri.para),degerBoyut=18;
+  doc.setFont('NotoSans','bold');
+  while(degerBoyut>11){
+    doc.setFontSize(degerBoyut);
+    if(sagX-doc.getTextWidth(degerMetni)>etiketSonX+3)break;
+    degerBoyut--;
+  }
+  doc.setFontSize(degerBoyut);doc.setTextColor.apply(doc,_C_BEYAZ);
+  doc.text(degerMetni,sagX,gtMidY,{align:'right'});
+}
+// Sol küçük kutu: SADECE TOPLAM ADET (iade hariç) - etiket üstte küçük bordo, rakam altında
+// büyük kalın koyu kahve (item 3/10). Kartla üstten aynı Y'de çizilir.
+function _adetKutusuCiz(doc,y,adet){
+  doc.setDrawColor.apply(doc,_C_GOLD);doc.setLineWidth(0.3);
+  doc.setFillColor.apply(doc,_C_BEYAZ);
+  doc.roundedRect(_PDF_M,y,_ADET_KUTU_W,_ADET_KUTU_H,_KART_R,_KART_R,'FD');
+  doc.setFont('NotoSans','bold');doc.setFontSize(7.5);doc.setTextColor.apply(doc,_C_VURGU);
+  doc.text('TOPLAM ADET',_PDF_M+5,y+7.5,{charSpace:0.6});
+  doc.setFont('NotoSans','bold');doc.setFontSize(16);doc.setTextColor.apply(doc,_C_KOYU);
+  doc.text(String(adet),_PDF_M+5,y+16.5);
+}
 /* ---- İRSALİYE ---- */
 // Sütun genişlikleri yüzde tabanlı: ADET 8% / KOD 10% / ÜRÜN 16% / RENK 34% / BİRİM FİYAT 16% / TOPLAM 16%
 // (190mm tablo genişliği üzerinden). RENK en geniş sütun çünkü "BEJ (8) / SİYAH (4)" gibi çok
@@ -2971,88 +3141,24 @@ function _irsaliyePdfCiz(doc,veri){
     if(segStart>=satirMetrik.length)break;
     y=_pdfYeniSayfa(doc);
   }
-  y+=4;
+  y+=9; // tablo ile toplam bölümü arasında 8-10mm boşluk (item 1)
 
-  // Toplam bloğu, sağa hizalı tek liste (kılçıksız — müşteriye giden belge):
-  // ARA TOPLAM / KDV / İADE / KARGO (varsa) → BU İŞLEM (=ara+kdv-iade+kargo, sadece açık hesapta
-  // gösterilir çünkü GENEL TOPLAM ondan farklı) → ESKİ BAKİYE (açık hesap) → ince çizgi →
-  // GENEL TOPLAM kutusu. Açık hesap değilse ve KDV/iade/kargo yoksa hiç ek satır olmadan
-  // doğrudan GENEL TOPLAM kutusuna geçilir (ARA TOPLAM=GENEL TOPLAM olurdu, tekrar olmasın).
-  var showBreakdown=veri.oran>0||veri.iadeTutar>0||veri.kargoUcret>0;
-  var araKdvSatirlari=[];
-  if(showBreakdown){
-    araKdvSatirlari.push(['ARA TOPLAM',fmtPara(veri.ara,veri.para)]);
-    if(veri.oran>0)araKdvSatirlari.push(['KDV (%'+veri.oran+')',fmtPara(veri.kdv,veri.para)]);
-    if(veri.iadeTutar>0)araKdvSatirlari.push(['İADE',fmtPara(-veri.iadeTutar,veri.para),_C_IADE]);
-    if(veri.kargoUcret>0)araKdvSatirlari.push(['KARGO ÜCRETİ',fmtPara(veri.kargoUcret,veri.para)]);
-  }
-  var toplamSatirlari=araKdvSatirlari.slice();
-  if(veri.acikHesap){
-    toplamSatirlari.push(['BU İŞLEM',fmtPara(veri.genel,veri.para),null,true]);
-    toplamSatirlari.push(['ESKİ BAKİYE',fmtPara(veri.eski,veri.para)+(veri.eski<0?' (Alacak)':'')]);
-  }
-  var blokH=toplamSatirlari.length*7+14+8+6; // +6: GENEL TOPLAM altındaki iletişim satırı için
-  if(y+blokH>_PDF_ALT)y=_pdfYeniSayfa(doc);
+  // Sağda ÖZET KARTI (ara toplam/KDV/iade/kargo → ayraç → açık hesapta bu işlem/eski bakiye →
+  // GENEL TOPLAM kutusu), solda (kartla üstten hizalı) TOPLAM ADET kutusu - bkz. yukarıdaki
+  // _ozetKart*/_adetKutusuCiz tanımları. Ödeme şekli/Tür burada YAZILMIYOR.
+  var toplamAdet=veri.satirlar.reduce(function(s,r){return s+(r.iade?0:(r.adet||0));},0);
+  var kartH=_ozetKartYuksekligi(veri);
+  var blokH=Math.max(kartH,_ADET_KUTU_H)+6; // +6: altındaki iletişim satırı için
+  if(y+blokH>_PDF_ALT)y=_pdfYeniSayfa(doc); // uzun kalem listesinde bütün blok yeni sayfaya geçer
 
-  toplamSatirlari.forEach(function(r){
-    var kalin=r[3]?'bold':(r[2]?'bold':'normal');
-    doc.setFont('NotoSans',kalin);doc.setFontSize(10);
-    // Etiket bordo/vurgu (#a64d3e), rakam koyu kahve — İADE kendi kırmızısını hem etikette hem
-    // rakamda korur (r[2]).
-    doc.setTextColor.apply(doc,r[2]||_C_VURGU);
-    doc.text(r[0],_PDF_M+158,y,{align:'right'});
-    doc.setTextColor.apply(doc,r[2]||_C_KOYU);
-    // TOPLAM sütunundaki rakamlarla (_IRS_TXT_R) aynı sağ kenara hizalanır.
-    doc.text(r[1],_IRS_TXT_R,y,{align:'right'});
-    y+=7;
-  });
+  _adetKutusuCiz(doc,y,toplamAdet);
+  _ozetKartCiz(doc,y,veri);
+  y+=kartH+6;
 
-  // GENEL TOPLAM kutusunun SOL kenarı ARA TOPLAM/KDV (varsa İADE/KARGO) etiketlerinin en soldaki
-  // başlangıcıyla hizalanır — kutu tam o blokla aynı sütunda duruyormuş gibi görünsün diye.
-  // Bu satırların hiçbiri yoksa (peşin + KDV'siz) eski sabit konumda kalır.
-  var kutuSolX=_PDF_M+120;
-  if(araKdvSatirlari.length){
-    var enGenisEtiket=0;
-    araKdvSatirlari.forEach(function(r){
-      doc.setFont('NotoSans',r[2]?'bold':'normal');doc.setFontSize(10);
-      enGenisEtiket=Math.max(enGenisEtiket,doc.getTextWidth(r[0]));
-    });
-    kutuSolX=_PDF_M+158-enGenisEtiket;
-  }
-
-  if(toplamSatirlari.length){
-    doc.setDrawColor.apply(doc,_C_GOLD);doc.setLineWidth(0.3);
-    doc.line(kutuSolX,y,_PDF_R,y);
-    y+=5;
-  }
-
-  // Tek satır: solda etiket (altın, küçük), sağda rakam (beyaz, büyük kalın) — aynı satırda,
-  // dikeyde ortalı (ortak baseline). Kutu sol=ARA TOPLAM hizası, sağ=TOPLAM sütunu hizası.
-  var kutuY=y,kutuH2=10,kutuMidY=kutuY+kutuH2/2+2;
-  doc.setFillColor.apply(doc,_C_KOYU);
-  doc.roundedRect(kutuSolX,kutuY,_PDF_R-kutuSolX,kutuH2,2,2,'F');
-  doc.setFont('NotoSans','normal');doc.setFontSize(8);doc.setTextColor.apply(doc,_C_GOLD);
-  doc.text('GENEL TOPLAM',kutuSolX+6,kutuMidY);
-  var etiketSonX=kutuSolX+6+doc.getTextWidth('GENEL TOPLAM');
-  // Açık hesapta çok büyük tutarlar (eski bakiye+bu işlem) etiketle çakışabiliyor — rakam,
-  // etiketle en az 4mm boşluk kalana kadar (9pt'ye kadar) küçültülür.
-  var degerMetni=fmtPara(veri.genelGoster,veri.para),degerBoyut=15;
-  doc.setFont('NotoSans','bold');
-  while(degerBoyut>9){
-    doc.setFontSize(degerBoyut);
-    if(_IRS_TXT_R-doc.getTextWidth(degerMetni)>etiketSonX+4)break;
-    degerBoyut--;
-  }
-  doc.setFontSize(degerBoyut);doc.setTextColor.apply(doc,_C_BG);
-  // TOPLAM sütunuyla (_IRS_TXT_R) aynı sağ kenara hizalı.
-  doc.text(degerMetni,_IRS_TXT_R,kutuMidY,{align:'right'});
-  y=kutuY+kutuH2+6;
-
-  // İletişim satırı GENEL TOPLAM kutusunun hemen altında, tek satır, nötr gri (#999 —
-  // eski html2canvas dönemindeki footer'la aynı ton, sayfanın altındaki marka notundan farklı
-  // olsun diye kırmızı/bordo DEĞİL). Not: gömülü NotoSans'ta emoji/piktogram glyph'i yok
-  // (🌐✈📷✉ dahil ★●→ gibi basit semboller bile boş çıkıyor, test edildi) — ikon yerine düz
-  // metin kullanılıyor.
+  // İletişim satırı kartın hemen altında, tek satır, nötr gri (#999 — eski html2canvas
+  // dönemindeki footer'la aynı ton, sayfanın altındaki marka notundan farklı olsun diye
+  // kırmızı/bordo DEĞİL). Not: gömülü NotoSans'ta emoji/piktogram glyph'i yok (🌐✈📷✉ dahil
+  // ★●→ gibi basit semboller bile boş çıkıyor, test edildi) — ikon yerine düz metin kullanılıyor.
   doc.setFont('NotoSans','normal');doc.setFontSize(7);doc.setTextColor.apply(doc,_C_GRI);
   doc.text('missnesem.com  |  Telegram: @missnesemwholesale  |  Instagram: @missnesemtoptan  |  info@missnesem.com',_PDF_W/2,y,{align:'center'});
   y+=6;
