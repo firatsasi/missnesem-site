@@ -68,6 +68,7 @@ input.ri-urun{flex:1 1 140px;min-width:120px}
 .fiyat-wrap{display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #c8a87a;border-radius:6px;padding:0 8px}
 .fiyat-wrap input{border:none !important;outline:none !important;background:transparent !important;padding:9px 0;text-align:right;width:100%;font-size:15px;color:#2c2419 !important;-webkit-text-fill-color:#2c2419 !important;min-width:0}
 .fiyat-sym{font-size:13px;color:#a64d3e;font-weight:700;white-space:nowrap}
+.ri-fiyat-hint{display:none;font-size:10px;color:#999;text-align:right;padding:2px 8px 0 0}
 .td-top{padding:9px 10px;text-align:right;color:#2c2419;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .td-del{text-align:center}
 .td-del button{background:none;border:none;cursor:pointer;color:#a64d3e;font-size:20px;padding:2px 6px}
@@ -1055,6 +1056,27 @@ function _seriToplamGuncelle(tr){
   tr.querySelector('td:nth-child(1) input').value=toplamSeri>0?(toplamSeri*5):'';
 }
 
+// BİRİM FİYAT alanı imleç aldığında (KOD+RENK+SERİ eklendikten sonra ya da doğrudan tıklanınca,
+// hepsi aynı yoldan geçer) kutu hâlâ boşsa ve satır katalogda eşleşen bir ürüne bağlıysa
+// (tr._urunSecim, bkz. _kodSec) seçili para birimine göre katalog fiyatıyla doldurur. Değer
+// otomatik SEÇİLİ bırakılır ki kullanıcı üzerine yazınca eski değer tamamen silinsin. Kutu
+// zaten doluysa (elle girilmiş VEYA düzenleme modunda kayıttan yüklenmiş, bkz. irsaliyeDuzenle)
+// ya da tr._fiyatManuel bayrağı (bkz. i3 'input' listener) set edilmişse HİÇBİR ŞEY yapmaz —
+// bu iki koşul birlikte edit-modunda mevcut fiyatların asla ezilmemesini garanti eder.
+function _fiyatKatalogDoldur(tr,i3,fiyatHint){
+  if(i3.value||tr._fiyatManuel)return;
+  var secim=tr._urunSecim;
+  if(!secim)return;
+  var para=(document.getElementById('para')||{}).value||'TL';
+  var alanAdi={TL:'priceTl',USD:'priceUsd',EUR:'priceEur'}[para];
+  var fiyat=alanAdi?secim[alanAdi]:null;
+  if(fiyat===null||fiyat===undefined)return; // katalogda bu para biriminde fiyat yok — kutu boş kalır, uydurma
+  i3.value=String(fiyat);
+  i3.select();
+  fiyatHint.style.display='block';
+  hesapla();
+}
+
 // Renk seçildikten sonra çıkan küçük "Kaç seri?" popup'ı — native prompt()/confirm() KULLANILMIYOR
 // (tarayıcı otomasyonunu ve sayfayı dondurur, bkz. proje notları). 1-100 arası tam sayı ister;
 // onaylanınca callback(seri) çağrılır. Dışarı tıklanınca veya Esc'e basılınca sessizce kapanır (iptal,
@@ -1276,8 +1298,19 @@ function _satirOlustur(){
   var sspan=document.createElement('span');sspan.className='fiyat-sym';sspan.textContent=birim();fw.appendChild(sspan);
   var i3=document.createElement('input');
   i3.type='text';i3.inputMode='decimal';i3.placeholder='0';
-  i3.addEventListener('input',function(){i3.value=i3.value.replace(/[^0-9.,]/g,'');hesapla();});
-  fw.appendChild(i3);td3.appendChild(fw);
+  var fiyatHint=document.createElement('div');fiyatHint.className='ri-fiyat-hint';fiyatHint.textContent='katalog fiyatı';
+  i3.addEventListener('input',function(){
+    i3.value=i3.value.replace(/[^0-9.,]/g,'');
+    tr._fiyatManuel=true; // kullanıcı elle değiştirdi — bundan sonra katalogdan asla üzerine yazılmaz (bkz. _fiyatKatalogDoldur)
+    fiyatHint.style.display='none';
+    hesapla();
+  });
+  // KOD/RENK seçilip imleç BİRİM FİYAT'a geçtiğinde (tab veya tıklama fark etmez) kutu boşsa
+  // katalogdaki fiyatla doldurulur — bkz. _fiyatKatalogDoldur. Elle girilmiş veya düzenleme
+  // modunda zaten dolu gelen bir değerin üzerine ASLA yazılmaz (kutu dolu olduğu için zaten
+  // atlanır, ayrıca tr._fiyatManuel bayrağı da kalıcı bir ikinci güvence).
+  i3.addEventListener('focus',function(){_fiyatKatalogDoldur(tr,i3,fiyatHint);});
+  fw.appendChild(i3);td3.appendChild(fw);td3.appendChild(fiyatHint);
   var td4=document.createElement('td');td4.className='td-top';td4.textContent='-';
   var tdIade=document.createElement('td');tdIade.className='td-iade';
   var chk=document.createElement('input');chk.type='checkbox';chk.className='iade-chk';chk.title='İade';
