@@ -857,6 +857,42 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .modal-color-item { cursor: pointer; }
 
+/* ===== MASAÜSTÜ BÜYÜTEÇ (HOVER ZOOM) — sadece hover:hover + pointer:fine cihazlarda JS ile
+   gösterilir; touch cihazlarda hiç oluşturulmaz/görünmez. Yüksek çözünürlüklü (full) foto
+   sadece ilk hover'da lazy yüklenir, bkz. loadFullImage(). ===== */
+.zoom-lens {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.9);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.22);
+  background-color: #fdfaf7;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 6;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.zoom-lens.visible { display: block; opacity: 1; }
+.zoom-lens-spinner {
+  display: none;
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 24px; height: 24px;
+  margin: -12px 0 0 -12px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.15);
+  border-top-color: var(--accent);
+  animation: zoom-lens-spin 0.7s linear infinite;
+}
+.zoom-lens.loading .zoom-lens-spinner { display: block; }
+@keyframes zoom-lens-spin { to { transform: rotate(360deg); } }
+@media (max-width: 1100px) {
+  .zoom-lens { width: 160px; height: 160px; }
+}
+
 /* ===== MODAL GALLERY THUMBNAIL STRIP ===== */
 .modal-main-photo {
   position: relative;
@@ -1179,17 +1215,34 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 #fullscreen-overlay.open { opacity: 1; visibility: visible; }
-#fullscreen-photo {
+/* Açılış/kapanış scale animasyonu wrap'te, pinch-zoom/pan (JS) transform'u ise doğrudan
+   #fullscreen-photo'da — ikisi aynı transform'u paylaşırsa CSS transition JS'in her
+   touchmove'unu 0.3s'lik geçişle geciktirir (titrek/gecikmeli sürükleme).
+   #fullscreen-photo'nun boyutu YÜZDE değil vh-tabanlı calc() ile veriliyor — img yüzde
+   max-height'i ancak ebeveynin box modeli açısından "somut" bir yüksekliği varsa uygular
+   (flex item + object-fit kombinasyonunda bu güvenilir değil); vh birimi bu belirsizliği
+   tamamen by-pass eder, wrap'e de sadece pan/zoom'u kırpma sınırı olarak aynı yükseklik verilir. */
+.fullscreen-photo-wrap {
   width: 100vw;
+  height: calc(100vh - 110px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transform: scale(0.9);
+  transition: transform 0.3s ease, height 0.2s ease;
+}
+#fullscreen-overlay.open .fullscreen-photo-wrap { transform: scale(1); }
+#fullscreen-photo {
+  max-width: 100vw;
   max-height: calc(100vh - 110px);
   margin: 0;
   padding: 0;
   background: #ffffff;
   object-fit: contain;
-  transform: scale(0.9);
-  transition: transform 0.3s ease, max-height 0.2s ease;
+  touch-action: none;
+  transform: translate(0px, 0px) scale(1);
 }
-#fullscreen-overlay.open #fullscreen-photo { transform: scale(1); }
 .fullscreen-close {
   position: absolute;
   top: 1.25rem; right: 1.25rem;
@@ -1765,6 +1818,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         </div>
         <button class="modal-nav modal-nav-prev" id="modal-nav-prev" aria-label="Önceki fotoğraf"><i class="ti ti-chevron-left"></i></button>
         <button class="modal-nav modal-nav-next" id="modal-nav-next" aria-label="Sonraki fotoğraf"><i class="ti ti-chevron-right"></i></button>
+        <div class="zoom-lens" id="zoom-lens"><span class="zoom-lens-spinner"></span></div>
       </div>
       <div class="modal-thumb-strip" id="modal-thumb-strip"></div>
     </div>
@@ -1775,7 +1829,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
 <!-- ===== FULLSCREEN GÖRSEL MODU ===== -->
 <div id="fullscreen-overlay">
   <button class="fullscreen-close" id="fullscreen-close" aria-label="Kapat"><i class="ti ti-x"></i></button>
-  <img id="fullscreen-photo" alt="" />
+  <div class="fullscreen-photo-wrap" id="fullscreen-photo-wrap">
+    <img id="fullscreen-photo" alt="" />
+  </div>
   <button class="modal-nav fullscreen-nav-prev" id="fullscreen-nav-prev" aria-label="Önceki fotoğraf"><i class="ti ti-chevron-left"></i></button>
   <button class="modal-nav fullscreen-nav-next" id="fullscreen-nav-next" aria-label="Sonraki fotoğraf"><i class="ti ti-chevron-right"></i></button>
   <div class="fullscreen-bottom-bar">
@@ -2450,6 +2506,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     setModalPhoto(p.medium || p.full, false);
     updateThumbActive(idx);
     updateNavArrows();
+    resetZoomLens();
     if (fullscreenOverlay.classList.contains('open')) updateFullscreenView();
   }
 
@@ -2495,8 +2552,96 @@ html, body { overflow-x: hidden; max-width: 100%; }
     }
   }, { passive: true });
 
+  // ===== MASAÜSTÜ BÜYÜTEÇ (HOVER ZOOM) — Zara tarzı: imleç etrafında dairesel bir mercek,
+  // yüksek çözünürlüklü (full) fotoğrafı imlecin altındaki bölgeye odaklı gösterir. Sadece
+  // fare+hover destekleyen geniş ekranlarda çalışır; dokunmatik cihazlarda hiç tetiklenmez.
+  // Full çözünürlük ilk hover'da lazy yüklenir ve URL bazlı cache'lenir (renk/foto değişse
+  // de tekrar hover edilince yeniden inmez).
+  const zoomLens = document.getElementById('zoom-lens');
+  const ZOOM_FACTOR = 2.3;
+  const zoomFullCache = {};
+  let zoomActiveUrl = null;
+
+  function isDesktopPointer() {
+    return window.innerWidth >= 900 && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  }
+
+  function loadFullImage(url) {
+    if (!zoomFullCache[url]) {
+      zoomFullCache[url] = new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+      });
+    }
+    return zoomFullCache[url];
+  }
+
+  function resetZoomLens() {
+    zoomLens.classList.remove('visible', 'loading');
+    zoomActiveUrl = null;
+    modalPhoto.style.cursor = '';
+  }
+
+  function positionZoomLens(clientX, clientY) {
+    const containerRect = modalMainPhoto.getBoundingClientRect();
+    const photoRect = modalPhoto.getBoundingClientRect();
+    const lensSize = zoomLens.offsetWidth;
+    const x = clientX - photoRect.left;
+    const y = clientY - photoRect.top;
+
+    if (x < 0 || y < 0 || x > photoRect.width || y > photoRect.height) {
+      zoomLens.classList.remove('visible');
+      return;
+    }
+    zoomLens.classList.add('visible');
+
+    const photoOffsetX = photoRect.left - containerRect.left;
+    const photoOffsetY = photoRect.top - containerRect.top;
+    const clampedX = Math.max(lensSize / 2, Math.min(x, photoRect.width - lensSize / 2));
+    const clampedY = Math.max(lensSize / 2, Math.min(y, photoRect.height - lensSize / 2));
+    zoomLens.style.left = (photoOffsetX + clampedX - lensSize / 2) + 'px';
+    zoomLens.style.top = (photoOffsetY + clampedY - lensSize / 2) + 'px';
+
+    const bgWidth = photoRect.width * ZOOM_FACTOR;
+    const bgHeight = photoRect.height * ZOOM_FACTOR;
+    const posX = Math.min(0, Math.max(-(x * ZOOM_FACTOR - lensSize / 2), -(bgWidth - lensSize)));
+    const posY = Math.min(0, Math.max(-(y * ZOOM_FACTOR - lensSize / 2), -(bgHeight - lensSize)));
+    zoomLens.style.backgroundSize = bgWidth + 'px ' + bgHeight + 'px';
+    zoomLens.style.backgroundPosition = posX + 'px ' + posY + 'px';
+  }
+
+  modalMainPhoto.addEventListener('mouseenter', e => {
+    if (!isDesktopPointer() || modalPhoto.style.display === 'none' || !modalPhoto.src) return;
+    const p = currentPhotos[currentPhotoIndex];
+    const fullUrl = p && (p.full || p.medium);
+    if (!fullUrl) return;
+
+    zoomActiveUrl = fullUrl;
+    zoomLens.style.backgroundImage = '';
+    zoomLens.classList.add('loading');
+    modalPhoto.style.cursor = 'none';
+    positionZoomLens(e.clientX, e.clientY);
+
+    loadFullImage(fullUrl).then(ok => {
+      if (zoomActiveUrl !== fullUrl) return;
+      zoomLens.classList.remove('loading');
+      if (ok) zoomLens.style.backgroundImage = `url('${fullUrl}')`;
+    });
+  });
+
+  modalMainPhoto.addEventListener('mousemove', e => {
+    if (!isDesktopPointer() || !zoomActiveUrl) return;
+    if (e.target.closest('.modal-nav')) { zoomLens.classList.remove('visible'); return; }
+    positionZoomLens(e.clientX, e.clientY);
+  });
+
+  modalMainPhoto.addEventListener('mouseleave', resetZoomLens);
+
   // ===== FULLSCREEN GÖRSEL MODU =====
   const fullscreenOverlay = document.getElementById('fullscreen-overlay');
+  const fullscreenPhotoWrap = document.getElementById('fullscreen-photo-wrap');
   const fullscreenPhoto = document.getElementById('fullscreen-photo');
   const fullscreenThumbStrip = document.getElementById('fullscreen-thumb-strip');
   const fullscreenSwatches = document.getElementById('fullscreen-swatches');
@@ -2507,7 +2652,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
   function adjustFullscreenPhotoHeight() {
     const barHeight = fullscreenBottomBar ? fullscreenBottomBar.getBoundingClientRect().height : 0;
     fullscreenOverlay.style.paddingBottom = barHeight + 'px';
-    fullscreenPhoto.style.maxHeight = 'calc(100vh - ' + (barHeight + 20) + 'px)';
+    const maxH = 'calc(100vh - ' + (barHeight + 20) + 'px)';
+    fullscreenPhotoWrap.style.height = maxH;
+    fullscreenPhoto.style.maxHeight = maxH;
   }
 
   function renderFullscreenSwatches() {
@@ -2541,6 +2688,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     setModalPhoto(c.kapakFoto, false);
     renderThumbStrip(c);
     adjustModalPhotoHeight();
+    resetZoomLens();
 
     if (fullscreenOverlay.classList.contains('open')) {
       renderFullscreenThumbs();
@@ -2551,6 +2699,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   }
 
   function updateFullscreenView() {
+    fsResetZoom(false);
     const p = currentPhotos[currentPhotoIndex];
     const mediumUrl = p && (p.medium || p.full);
     const fullUrl = p && (p.full || p.medium);
@@ -2598,6 +2747,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
 
   function closeFullscreen() {
     fullscreenOverlay.classList.remove('open');
+    fsResetZoom(false);
   }
 
   modalMainPhoto.addEventListener('click', e => {
@@ -2614,17 +2764,209 @@ html, body { overflow-x: hidden; max-width: 100%; }
     if (e.target === fullscreenOverlay) history.back();
   });
 
-  let fsTouchStartX = 0;
-  let fsTouchStartY = 0;
+  // ===== MOBİL TAM EKRAN: PINCH-ZOOM / SÜRÜKLEYEREK GEZİNME / ÇİFT DOKUNUŞ / AŞAĞI
+  // KAYDIRINCA KAPATMA. Zum durumuna göre tek bir touch akışı 3 moda dallanır:
+  //  - 'pinch': iki parmak, ölçek değişir
+  //  - 'pan'   : zum > 1x iken tek parmak, görsel içinde gezinme (kaydırma/kapatma YOK)
+  //  - 'swipe' : zum == 1x iken tek parmak — yatay: foto değiştir, dikey aşağı: kapat,
+  //              hareketsiz + hızlı ikinci dokunuş: çift-tıklama zum
+  let fsScale = 1;
+  let fsTranslateX = 0;
+  let fsTranslateY = 0;
+  let fsBaseW = 0;
+  let fsBaseH = 0;
+  let fsDragMode = null;
+  let fsPinchStartDist = 0;
+  let fsPinchStartScale = 1;
+  let fsPanStart = { x: 0, y: 0 };
+  let fsTranslateStart = { x: 0, y: 0 };
+  let fsSwipeStartX = 0;
+  let fsSwipeStartY = 0;
+  let fsLastTapTime = 0;
+  let fsLastTapPos = { x: 0, y: 0 };
+  const FS_MAX_SCALE = 4;
+  const FS_DOUBLE_TAP_SCALE = 2.2;
+
+  function fsApplyTransform() {
+    fullscreenPhoto.style.transform = `translate(${fsTranslateX}px, ${fsTranslateY}px) scale(${fsScale})`;
+  }
+
+  function fsClamp(val, max) {
+    return Math.max(-max, Math.min(max, val));
+  }
+
+  function fsMaxPan() {
+    return {
+      x: Math.max(0, (fsBaseW * (fsScale - 1)) / 2),
+      y: Math.max(0, (fsBaseH * (fsScale - 1)) / 2),
+    };
+  }
+
+  function fsResetZoom(animate) {
+    fsScale = 1;
+    fsTranslateX = 0;
+    fsTranslateY = 0;
+    fullscreenPhoto.style.transition = animate ? 'transform 0.25s ease' : 'none';
+    fsApplyTransform();
+    fullscreenOverlay.style.transition = animate ? 'opacity 0.25s ease' : '';
+    fullscreenOverlay.style.opacity = '';
+  }
+
+  function fsCaptureBaseSize() {
+    const rect = fullscreenPhoto.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      fsBaseW = rect.width / fsScale;
+      fsBaseH = rect.height / fsScale;
+    }
+  }
+
+  function fsToggleZoomAt(clientX, clientY) {
+    if (fsScale > 1.01) {
+      fsResetZoom(true);
+      return;
+    }
+    const rect = fullscreenPhoto.getBoundingClientRect();
+    fsBaseW = rect.width;
+    fsBaseH = rect.height;
+    const offsetX = clientX - (rect.left + rect.width / 2);
+    const offsetY = clientY - (rect.top + rect.height / 2);
+    fsScale = FS_DOUBLE_TAP_SCALE;
+    const maxPan = fsMaxPan();
+    fsTranslateX = fsClamp(-offsetX * (fsScale - 1), maxPan.x);
+    fsTranslateY = fsClamp(-offsetY * (fsScale - 1), maxPan.y);
+    fullscreenPhoto.style.transition = 'transform 0.25s ease';
+    fsApplyTransform();
+  }
+
+  function fsDist(t1, t2) {
+    return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+  }
+
+  // Hem zum=1x'teki 'swipe' modundan hem zum>1x'teki 'pan' modundan (parmak hareket
+  // etmeden bırakılan bir dokunuş orada da "tap" sayılır) çağrılır — tek bir yerden
+  // zamanlama/konum durumunu yönetir.
+  function fsCheckDoubleTap(touch) {
+    const now = Date.now();
+    const isDouble = now - fsLastTapTime < 300 &&
+      Math.hypot(touch.clientX - fsLastTapPos.x, touch.clientY - fsLastTapPos.y) < 40;
+    if (isDouble) {
+      fsLastTapTime = 0;
+    } else {
+      fsLastTapTime = now;
+      fsLastTapPos = { x: touch.clientX, y: touch.clientY };
+    }
+    return isDouble;
+  }
+
   fullscreenOverlay.addEventListener('touchstart', e => {
-    fsTouchStartX = e.changedTouches[0].clientX;
-    fsTouchStartY = e.changedTouches[0].clientY;
+    if (e.target.closest('.fullscreen-close, .modal-nav, .fullscreen-swatch, .modal-thumb')) {
+      fsDragMode = null;
+      return;
+    }
+    if (e.touches.length === 2) {
+      fsDragMode = 'pinch';
+      fsPinchStartDist = fsDist(e.touches[0], e.touches[1]);
+      fsPinchStartScale = fsScale;
+      fullscreenPhoto.style.transition = 'none';
+      fsCaptureBaseSize();
+    } else if (e.touches.length === 1) {
+      const t = e.touches[0];
+      fsPanStart = { x: t.clientX, y: t.clientY };
+      fsTranslateStart = { x: fsTranslateX, y: fsTranslateY };
+      fsSwipeStartX = t.clientX;
+      fsSwipeStartY = t.clientY;
+      fullscreenPhoto.style.transition = 'none';
+      fullscreenOverlay.style.transition = 'none';
+      fsCaptureBaseSize();
+      fsDragMode = fsScale > 1.01 ? 'pan' : 'swipe';
+    }
   }, { passive: true });
+
+  fullscreenOverlay.addEventListener('touchmove', e => {
+    if (fsDragMode === 'pinch' && e.touches.length === 2) {
+      const dist = fsDist(e.touches[0], e.touches[1]);
+      fsScale = Math.min(FS_MAX_SCALE, Math.max(1, fsPinchStartScale * (dist / fsPinchStartDist)));
+      const maxPan = fsMaxPan();
+      fsTranslateX = fsClamp(fsTranslateX, maxPan.x);
+      fsTranslateY = fsClamp(fsTranslateY, maxPan.y);
+      fsApplyTransform();
+      e.preventDefault();
+    } else if (fsDragMode === 'pan' && e.touches.length === 1) {
+      const t = e.touches[0];
+      const maxPan = fsMaxPan();
+      fsTranslateX = fsClamp(fsTranslateStart.x + (t.clientX - fsPanStart.x), maxPan.x);
+      fsTranslateY = fsClamp(fsTranslateStart.y + (t.clientY - fsPanStart.y), maxPan.y);
+      fsApplyTransform();
+      e.preventDefault();
+    } else if (fsDragMode === 'swipe' && e.touches.length === 1) {
+      const t = e.touches[0];
+      const dx = t.clientX - fsSwipeStartX;
+      const dy = t.clientY - fsSwipeStartY;
+      if (dy > 0 && Math.abs(dy) > Math.abs(dx)) {
+        fullscreenPhoto.style.transform = `translateY(${dy}px) scale(${Math.max(1 - dy / 800, 0.82)})`;
+        fullscreenOverlay.style.opacity = Math.max(1 - dy / 350, 0.35);
+        e.preventDefault();
+      }
+    }
+  }, { passive: false });
+
   fullscreenOverlay.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - fsTouchStartX;
-    const dy = e.changedTouches[0].clientY - fsTouchStartY;
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-      goToPhoto(currentPhotoIndex + (dx < 0 ? 1 : -1));
+    if (fsDragMode === 'pinch') {
+      if (e.touches.length === 1) {
+        // İki parmaktan biri kalktı — kalan parmakla akıcı şekilde pan'e geç (transition
+        // kapalı kalmaya devam eder, aksi halde geçiş anında sıçrama/gecikme olur).
+        const t = e.touches[0];
+        fsPanStart = { x: t.clientX, y: t.clientY };
+        fsTranslateStart = { x: fsTranslateX, y: fsTranslateY };
+        fsCaptureBaseSize();
+        fsDragMode = fsScale > 1.01 ? 'pan' : null;
+        return;
+      }
+      fullscreenPhoto.style.transition = 'transform 0.25s ease';
+      if (fsScale <= 1.01) fsResetZoom(true);
+      fsDragMode = null;
+      return;
+    }
+
+    if (fsDragMode === 'pan') {
+      fullscreenPhoto.style.transition = 'transform 0.25s ease';
+      const t = e.changedTouches[0];
+      const dx = t.clientX - fsSwipeStartX;
+      const dy = t.clientY - fsSwipeStartY;
+      // Zum > 1x iken de hareketsiz bir dokunuş (bu durumda "sürükleme" değil "tap" sayılır)
+      // çift-dokunuşla dışarı zum kontrolüne girebilmeli — aksi halde zumluyken parmağı hiç
+      // oynatmadan çift dokununca hiçbir şey olmaz.
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && fsCheckDoubleTap(t)) {
+        fsToggleZoomAt(t.clientX, t.clientY);
+      } else if (fsScale <= 1.01) {
+        fsResetZoom(true);
+      }
+      fsDragMode = null;
+      return;
+    }
+
+    if (fsDragMode === 'swipe') {
+      fullscreenPhoto.style.transition = 'transform 0.25s ease';
+      fullscreenOverlay.style.transition = 'opacity 0.25s ease';
+      const t = e.changedTouches[0];
+      const dx = t.clientX - fsSwipeStartX;
+      const dy = t.clientY - fsSwipeStartY;
+      const isTap = Math.abs(dx) < 10 && Math.abs(dy) < 10;
+
+      if (isTap) {
+        const isDoubleTap = fsCheckDoubleTap(t);
+        fullscreenOverlay.style.opacity = '';
+        if (isDoubleTap) fsToggleZoomAt(t.clientX, t.clientY);
+      } else if (dy > 100 && Math.abs(dy) > Math.abs(dx)) {
+        history.back();
+      } else if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+        fullscreenOverlay.style.opacity = '';
+        goToPhoto(currentPhotoIndex + (dx < 0 ? 1 : -1));
+      } else {
+        fullscreenOverlay.style.opacity = '';
+        fsApplyTransform();
+      }
+      fsDragMode = null;
     }
   }, { passive: true });
 
@@ -2715,6 +3057,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   function closeModal() {
     overlay.classList.remove('open');
     document.body.style.overflow = '';
+    resetZoomLens();
   }
 
   // history.back() — X/dışına tıklama ile geri tuşu aynı popstate akışından geçer (bkz.
