@@ -2047,7 +2047,7 @@ function irsaliyeHtmlOlustur(k){
     '</table>'+
     toplamKartlariHtml+
     '<div style="margin-top:1.5rem;text-align:center;font-size:10px;color:#a64d3e;letter-spacing:1px">MISS NEŞEM · MERTER · İSTANBUL</div>'+
-    '<div style="text-align:center;color:#999;font-size:11px;margin-top:6px;line-height:1.8">🌐 missnesem.com &nbsp;|&nbsp; ✈ Telegram: @missnesemwholesale &nbsp;|&nbsp; 📷 Instagram: @missnesemtoptan &nbsp;|&nbsp; ✉ info@missnesem.com</div>';
+    '<div style="text-align:center;color:#6b6156;font-size:11px;margin-top:12px;line-height:1.8">🌐 missnesem.com &nbsp;|&nbsp; ✈ Telegram: @missnesemwholesale &nbsp;|&nbsp; 📷 Instagram: @missnesemtoptan &nbsp;|&nbsp; ✉ info@missnesem.com</div>';
   return el;
 }
 // Kayıtlı bir irsaliyenin urunler[]'i (kaydet()'te her renk ayrı kalem olarak flat kaydedilir,
@@ -2871,7 +2871,7 @@ var _PDF_W=210,_PDF_H=297,_PDF_M=10,_PDF_R=200; // sayfa genişlik/yükseklik, k
 var _PDF_ALT=_PDF_H-_PDF_M-16; // içerik bu Y'den sonrasına taşmasın (altta footer için yer bırakılır)
 var _C_KOYU=[44,36,25],_C_VURGU=[166,77,62],_C_GOLD=[184,152,94],_C_LINE=[200,168,122],
     _C_BG=[240,228,211],_C_ZEBRA=[250,246,240],_C_IADE_BG=[255,224,224],_C_IADE=[192,57,43],_C_BEYAZ=[255,255,255],
-    _C_ROWLINE=[232,222,208],_C_KUTU_KENAR=[217,203,181],_C_GRI=[153,153,153],
+    _C_ROWLINE=[232,222,208],_C_KUTU_KENAR=[217,203,181],_C_GRI=[107,97,86], // 2026-09-19: #999→#6b6156, iletişim satırı için daha okunur gri (item 2)
     // 2026-09-17 TOPLAM bölümü yeniden tasarımı: GENEL TOPLAM etiketi biraz daha açık bir altın
     // (#c9a96e) kullanıyor, kenarlıklardaki _C_GOLD'dan (#b8985e) kasıtlı olarak farklı. Rozetler
     // (ALACAK/BORÇ) kendi açık zemin renklerini taşıyor - yazı rengi ALACAK'ta yeşil, BORÇ'ta
@@ -3167,16 +3167,19 @@ function _irsaliyePdfCiz(doc,veri){
   // GENEL TOPLAM kutusu) - bkz. yukarıdaki _ozetKart* tanımları. Sol taraf boş (TOPLAM ADET
   // kutusu kaldırıldı, item 1). Ödeme şekli/Tür burada YAZILMIYOR.
   var kartH=_ozetKartYuksekligi(veri);
-  var blokH=kartH+6; // +6: altındaki iletişim satırı için
+  var blokH=kartH+8; // +8: altındaki iletişim satırı için (bkz. aşağıdaki aynı offset)
   if(y+blokH>_PDF_ALT)y=_pdfYeniSayfa(doc); // uzun kalem listesinde bütün blok yeni sayfaya geçer
 
   _ozetKartCiz(doc,y,veri);
-  y+=kartH+6;
+  // Kart ile altındaki iletişim satırı arasındaki boşluk (2026-09-19: ~4mm'den ~6mm'ye
+  // çıkarıldı, item 1) — burada eklenen 8mm'nin ~2mm'si metnin baseline'ın üstünde kalan
+  // kısmına (ascent) gidiyor, görsel boşluk gerçekte ~6mm oluyor.
+  y+=kartH+8;
 
-  // İletişim satırı kartın hemen altında, tek satır, nötr gri (#999 — eski html2canvas
-  // dönemindeki footer'la aynı ton, sayfanın altındaki marka notundan farklı olsun diye
-  // kırmızı/bordo DEĞİL). Not: gömülü NotoSans'ta emoji/piktogram glyph'i yok (🌐✈📷✉ dahil
-  // ★●→ gibi basit semboller bile boş çıkıyor, test edildi) — ikon yerine düz metin kullanılıyor.
+  // İletişim satırı kartın altında, tek satır, punto aynı (7pt) — 2026-09-19: okunurluk için
+  // ton koyulaştırıldı (#999 → #6b6156, item 2), sayfa altındaki marka notundan (kırmızı/bordo)
+  // hâlâ ayrışıyor. Not: gömülü NotoSans'ta emoji/piktogram glyph'i yok (🌐✈📷✉ dahil ★●→ gibi
+  // basit semboller bile boş çıkıyor, test edildi) — ikon yerine düz metin kullanılıyor.
   doc.setFont('NotoSans','normal');doc.setFontSize(7);doc.setTextColor.apply(doc,_C_GRI);
   doc.text('missnesem.com  |  Telegram: @missnesemwholesale  |  Instagram: @missnesemtoptan  |  info@missnesem.com',_PDF_W/2,y,{align:'center'});
   y+=6;
