@@ -1964,9 +1964,9 @@ function _toplamKartlariHtml(k,birimSym){
   // sayesinde kartın alt köşe yuvarlaklığıyla aynı hizada, boşluksuz bitiyor (item 3).
   var sagKart='<div style="background:#fff;border:1px solid #b8985e;border-radius:6px;padding:14px;width:42%;box-sizing:border-box;overflow:hidden">'+
     ust+ayracHtml+alt+
-    '<div style="background:#2c2419;padding:11px 16px;display:flex;align-items:center;justify-content:space-between;margin:10px -14px -14px -14px">'+
+    '<div style="background:#2c2419;padding:9px 16px;display:flex;align-items:center;justify-content:space-between;margin:10px -14px -14px -14px">'+
       '<span style="font-size:10px;letter-spacing:0.5px;color:#c9a96e;text-transform:uppercase">GENEL TOPLAM</span>'+
-      '<span style="font-size:22px;font-weight:700;color:#fff">'+fmtPara(genelGoster,k.para)+'</span>'+
+      '<span style="font-size:17px;font-weight:700;color:#fff">'+fmtPara(genelGoster,k.para)+'</span>'+
     '</div>'+
   '</div>';
 
@@ -2886,7 +2886,7 @@ function _pdfAlanKutusu(doc,x,y,w,h,etiket,deger){
    TOPLAM kutusu). Sol taraf boş - TOPLAM ADET kutusu kaldırıldı (item 1). Ödeme şekli/Tür
    burada YAZILMIYOR - bu bölümün tasarım amacı tamamen tutarlar, o bilgi PDF'te hiçbir
    yerde gösterilmiyor. */
-var _KART_W=(_PDF_R-_PDF_M)*0.42,_KART_PAD=5,_KART_ROWH=6.5,_KART_GT_H=12,_KART_R=2;
+var _KART_W=(_PDF_R-_PDF_M)*0.42,_KART_PAD=5,_KART_ROWH=6.5,_KART_GT_H=10,_KART_R=2;
 
 // Kart satırlarını (üst blok: ara toplam/KDV/iade/kargo; alt blok: bu işlem/eski bakiye) ve
 // aralarında ayraç gerekip gerekmediğini hesaplar - hem yükseklik ölçümü hem çizim AYNI bu
@@ -2973,18 +2973,19 @@ function _ozetKartCiz(doc,y,veri){
   }
   d.altSatirlar.forEach(satirCiz);
 
-  // Kartın en altında, kart genişliğinde koyu kahve GENEL TOPLAM kutusu - solda altın etiket,
-  // sağda büyük beyaz kalın rakam (item 9). Çok büyük tutarlarda 18pt etiketle çakışırsa (nadir,
-  // ör. 6+ haneli tutarlar) rakam etiketle en az 3mm boşluk kalana kadar küçültülür - bu SADECE
-  // bir taşma güvencesi, normal tutarlarda hep 18pt kalır.
+  // Kartın en altında, kart genişliğinde koyu kahve GENEL TOPLAM kutusu - solda altın etiket
+  // (8pt), sağda beyaz kalın rakam (2026-09-19: 18pt'ten 14pt'ye küçültüldü, kutu 12mm'den
+  // 10mm'ye indi). Çok büyük tutarlarda 14pt etiketle çakışırsa (nadir, ör. 6+ haneli tutarlar)
+  // rakam etiketle en az 3mm boşluk kalana kadar küçültülür - bu SADECE bir taşma güvencesi,
+  // normal tutarlarda hep 14pt kalır.
   var gtY=y+h-_KART_GT_H;
   doc.setFillColor.apply(doc,_C_KOYU);
   doc.roundedRect(kartX,gtY,_KART_W,_KART_GT_H,_KART_R,_KART_R,'F');
-  var gtMidY=gtY+_KART_GT_H/2+2;
+  var gtMidY=gtY+_KART_GT_H/2+1.6; // baseline'ı kutunun dikey merkezine göre görsel ortalar
   doc.setFont('NotoSans','normal');doc.setFontSize(8);doc.setTextColor.apply(doc,_C_GOLD2);
   doc.text('GENEL TOPLAM',solX,gtMidY,{charSpace:0.2});
   var etiketSonX=solX+doc.getTextWidth('GENEL TOPLAM')+('GENEL TOPLAM'.length-1)*0.2;
-  var degerMetni=fmtPara(veri.genelGoster,veri.para),degerBoyut=18;
+  var degerMetni=fmtPara(veri.genelGoster,veri.para),degerBoyut=14;
   doc.setFont('NotoSans','bold');
   while(degerBoyut>11){
     doc.setFontSize(degerBoyut);
