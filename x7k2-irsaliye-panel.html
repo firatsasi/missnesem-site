@@ -1993,15 +1993,28 @@ function _toplamKartlariHtml(k,birimSym){
   }
   var ayracHtml=(ust&&alt)?'<div style="height:1px;background:#b8985e;margin:6px 0"></div>':'';
 
-  // Kart genişliği sayfanın ~%42'si, sağa yaslı (item 2). GENEL TOPLAM kutusu overflow:hidden
-  // sayesinde kartın alt köşe yuvarlaklığıyla aynı hizada, boşluksuz bitiyor (item 3).
-  var sagKart='<div style="background:#fff;border:1px solid #b8985e;border-radius:6px;padding:14px;width:42%;box-sizing:border-box;overflow:hidden">'+
-    ust+ayracHtml+alt+
-    '<div style="background:#2c2419;padding:9px 16px;display:flex;align-items:center;justify-content:space-between;margin:10px -14px -14px -14px">'+
-      '<span style="font-size:10px;letter-spacing:0.5px;color:#c9a96e;text-transform:uppercase">GENEL TOPLAM</span>'+
-      '<span style="font-size:17px;font-weight:700;color:#fff">'+fmtPara(genelGoster,k.para)+'</span>'+
-    '</div>'+
-  '</div>';
+  // 2026-09-19: gösterilecek satır yoksa (gayri resmi + açık hesap olmayan irsaliye) beyaz/altın
+  // kenarlıklı kart alanı hiç çizilmiyor - sadece GENEL TOPLAM kutusu aynı konum/genişlikte
+  // kalıyor, üstte boş dolgu kalmasın diye kenarlık tamamen kalkıyor (item 1).
+  var sagKart;
+  if(!ust&&!alt){
+    sagKart='<div style="width:42%;box-sizing:border-box">'+
+      '<div style="background:#2c2419;border-radius:6px;padding:9px 16px;display:flex;align-items:center;justify-content:space-between">'+
+        '<span style="font-size:10px;letter-spacing:0.5px;color:#c9a96e;text-transform:uppercase">GENEL TOPLAM</span>'+
+        '<span style="font-size:17px;font-weight:700;color:#fff">'+fmtPara(genelGoster,k.para)+'</span>'+
+      '</div>'+
+    '</div>';
+  }else{
+    // Kart genişliği sayfanın ~%42'si, sağa yaslı (item 2). GENEL TOPLAM kutusu overflow:hidden
+    // sayesinde kartın alt köşe yuvarlaklığıyla aynı hizada, boşluksuz bitiyor (item 3).
+    sagKart='<div style="background:#fff;border:1px solid #b8985e;border-radius:6px;padding:14px;width:42%;box-sizing:border-box;overflow:hidden">'+
+      ust+ayracHtml+alt+
+      '<div style="background:#2c2419;padding:9px 16px;display:flex;align-items:center;justify-content:space-between;margin:10px -14px -14px -14px">'+
+        '<span style="font-size:10px;letter-spacing:0.5px;color:#c9a96e;text-transform:uppercase">GENEL TOPLAM</span>'+
+        '<span style="font-size:17px;font-weight:700;color:#fff">'+fmtPara(genelGoster,k.para)+'</span>'+
+      '</div>'+
+    '</div>';
+  }
 
   return '<div style="display:flex;justify-content:flex-end;margin-top:1.2rem">'+sagKart+'</div>';
 }
@@ -2949,6 +2962,10 @@ function _ozetKartVerisi(veri){
 }
 function _ozetKartYuksekligi(veri){
   var d=_ozetKartVerisi(veri);
+  // 2026-09-19: gösterilecek satır yoksa (gayri resmi + açık hesap olmayan irsaliye) beyaz
+  // kart alanı hiç çizilmiyor (bkz. _ozetKartCiz) - yükseklik de sadece GENEL TOPLAM kutusu
+  // kadar, üstte boş dolgu kalmasın (item 1).
+  if(d.ustSatirlar.length===0&&d.altSatirlar.length===0)return _KART_GT_H;
   var h=_KART_PAD;
   h+=d.ustSatirlar.length*_KART_ROWH;
   if(d.ayrac)h+=4;
@@ -2963,9 +2980,14 @@ function _ozetKartCiz(doc,y,veri){
   var d=_ozetKartVerisi(veri);
   var kartX=_PDF_R-_KART_W;
   var h=_ozetKartYuksekligi(veri);
-  doc.setDrawColor.apply(doc,_C_GOLD);doc.setLineWidth(0.3);
-  doc.setFillColor.apply(doc,_C_BEYAZ);
-  doc.roundedRect(kartX,y,_KART_W,h,_KART_R,_KART_R,'FD');
+  var isEmpty=d.ustSatirlar.length===0&&d.altSatirlar.length===0;
+  // Satır yoksa altın kenarlıklı beyaz kart hiç çizilmiyor - sadece aşağıdaki koyu kahve
+  // GENEL TOPLAM kutusu aynı konum/genişlikte kalıyor (item 1, 2026-09-19).
+  if(!isEmpty){
+    doc.setDrawColor.apply(doc,_C_GOLD);doc.setLineWidth(0.3);
+    doc.setFillColor.apply(doc,_C_BEYAZ);
+    doc.roundedRect(kartX,y,_KART_W,h,_KART_R,_KART_R,'FD');
+  }
 
   var solX=kartX+_KART_PAD,sagX=kartX+_KART_W-_KART_PAD;
   var ry=y+_KART_PAD+3.2;
