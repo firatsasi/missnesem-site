@@ -845,7 +845,7 @@ function musteriBakiyeYukle(){
     document.getElementById('eskiBakiye').value='';
     info.textContent='ℹ️ Bu müşteri için kayıtlı '+para+' bakiye yok. Yeni bakiye girin veya boş bırakın.';
   }
-  bakiyeHesapla();
+  hesapla(); // bakiyeHesapla() sadece üst kutuyu günceller, GENEL TOPLAM'ı (#gt) hesapla() yazar
 }
 
 function bakiyeHesapla(){
@@ -947,26 +947,72 @@ function _kodSec(tr,p){
     iRenk.value='';
     tr._renkKomitli='';
     tr._renkKalemleri=[];
-    tr._duzenlemeOrijinalKalemler=[]; // farklı ürüne geçildi, eski ürünün rezerve stoğu artık geçersiz
     _renkChipleriRender(tr);
     _seriToplamGuncelle(tr);
   }
   _riDropdownGizle(tr.querySelector('.ri-kod-dd'));
   iRenk.focus();
 }
+// Renk adlarını karşılaştırmak için tek bir anahtar: baştaki/sondaki boşluklar atılır, iç
+// boşluklar teke indirilir ("EKOSE /  BEYAZ" → "EKOSE / BEYAZ") ve tr-TR büyük harfe çevrilir.
+// Panel varyantları karışık harfle ("Ekose / Beyaz"), x7k2 çipleri büyük harfle tutuyor.
+function _renkAnahtar(s){return (s||'').replace(/\s+/g,' ').trim().toLocaleUpperCase('tr-TR');}
+
+// Düzenlenen irsaliyenin PANELDE KAYITLI hali — /api/irsaliye/kayitli'den gelir, düzenlemeye
+// girişte bir kez doldurulur (bkz. irsaliyeDuzenle), temizle()'de sıfırlanır.
+// {tutar:Number, satisAdet:{ 'kod|RENK': adet }} ya da null (panelde yok / alınamadı).
+//
+// 2026-09-22: bu referans EskiDEN localStorage'daki kayıttı (tr._duzenlemeOrijinalKalemler /
+// kayit.genel). Yerel kayıt, düzenleme formunda yapılıp panele henüz gitmemiş değişiklikleri
+// ZATEN içerdiği için yanlış referanstı: panelde hâlâ düşülü duran bir rengin adedi stok
+// kredisine girmiyor, panelde hâlâ kayıtlı olan tutar ise eski bakiyeden düşülmüyordu.
+var _duzenlemePanelKayit=null;
+
+function _panelKayitliGetir(id){
+  return fetch('https://panel.missnesem.com/api/irsaliye/kayitli?id='+encodeURIComponent(id),
+      {headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(d){
+      if(!d||!d.bulundu)return null;
+      var satisAdet={};
+      (d.kalemler||[]).forEach(function(k){
+        // İade kalemleri stoğu DÜŞÜRMEZ (tersine ekler), o yüzden satış kredisi üretmezler.
+        if(k.iade||!k.kod||!k.renk)return;
+        var anahtar=k.kod.trim()+'|'+_renkAnahtar(k.renk);
+        satisAdet[anahtar]=(satisAdet[anahtar]||0)+(k.adet||0);
+      });
+      return {tutar:d.tutar||0,satisAdet:satisAdet};
+    })
+    .catch(function(){return null;});
+}
+
+// Bu irsaliyenin PANELDE kayıtlı olan (yani stoktan zaten düşülmüş sayılan) adedi.
+function _panelKayitliAdet(kod,renk){
+  if(!_duzenlemePanelKayit)return 0;
+  return _duzenlemePanelKayit.satisAdet[(kod||'').trim()+'|'+_renkAnahtar(renk)]||0;
+}
+
 // Bir satırın belirli bir renk için o an KULLANILABİLECEĞİ stok — API'nin taze döndürdüğü
-// colorStocks[renk] + (düzenleme modundaysa) satırın kendi ORİJİNAL kalemlerinde o renk için
-// ayrılmış seri×5 adet (bkz. irsaliyeDuzenle → tr._duzenlemeOrijinalKalemler). Bu ikinci kısım
-// olmasa, düzenlenen bir irsaliyenin kendi eski kalemi (zaten stoktan düşülmüş sayılıyor) yüzünden
-// aynı rengi tekrar eklemek gereksiz yere reddedilirdi — irsaliye kendi stoğunu düşmüş sayılmaz.
+// colorStocks[renk] + bu irsaliyenin PANELDE kayıtlı kendi payı. İkinci kısım olmasa, düzenlenen
+// bir irsaliyenin kendi kalemi (zaten stoktan düşülmüş) yüzünden aynı rengi tekrar eklemek
+// gereksiz yere reddedilirdi — irsaliye kendi stoğunu düşmüş sayılmaz.
 function _renkKullanilabilirStok(tr,renk){
   var secim=tr._urunSecim;
-  var canliStok=(secim&&secim.colorStocks&&secim.colorStocks[renk])||0;
-  var orijinalRezerve=0;
-  (tr._duzenlemeOrijinalKalemler||[]).forEach(function(k){
-    if(k.renk&&k.renk.toLocaleUpperCase('tr-TR')===renk.toLocaleUpperCase('tr-TR'))orijinalRezerve+=(k.seri||0)*5;
-  });
-  return canliStok+orijinalRezerve;
+  var canliStok=_colorStokOku(secim,renk);
+  var kod=((tr.querySelector('.ri-kod')||{}).value||'').trim();
+  return canliStok+_panelKayitliAdet(kod,renk);
+}
+
+// colorStocks anahtarı panelde karışık harfle gelebildiği için doğrudan indeksleme yerine
+// normalize edilmiş eşleştirme yapılır (düz colorStocks[renk] "EKOSE / BEYAZ" için undefined
+// dönüp stoğu sessizce 0 gösterebiliyordu).
+function _colorStokOku(secim,renk){
+  var cs=secim&&secim.colorStocks;
+  if(!cs)return 0;
+  if(cs[renk]!=null)return cs[renk];
+  var hedef=_renkAnahtar(renk);
+  for(var k in cs){if(_renkAnahtar(k)===hedef)return cs[k];}
+  return 0;
 }
 // RENK dropdown'ı: kod seçilmiş ürünün stoktaki renklerini (kısaltma desteğiyle) listeler.
 // Satırda (veya tabloda aynı koda sahip başka satırlarda) zaten eklenmiş renkler listeden
@@ -1419,6 +1465,7 @@ function temizle(){
   document.getElementById('gt').textContent='0 ₺';
   sc=0;
 ekle(true);ekle(true);ekle(true);
+  _duzenlemePanelKayit=null; // düzenleme modundan çıkıldı - "panelde kayıtlı kendi payı" artık yok
   _duzenlemeBanneriGuncelle();
 }
 
@@ -1577,19 +1624,27 @@ function _stokTazeKontrolEt(){
       var hata=null;
       document.querySelectorAll('#tb tr').forEach(function(tr){
         if(hata||!(tr._renkKalemleri&&tr._renkKalemleri.length))return;
+        // İade satırları stoğu DÜŞÜRMEZ, ekler - stok yetersizliği diye engellenmeleri anlamsızdı.
+        var iadeChk=tr.querySelector('.iade-chk');
+        if(iadeChk&&iadeChk.checked)return;
         var kod=((tr.querySelector('.ri-kod')||{}).value||'').trim();
         var tazeUrun=tazeMap[kod];
         if(!tazeUrun)return; // katalogda artık yok - burada engellenmiyor
         tr._renkKalemleri.forEach(function(k){
           if(hata)return;
           var istenenAdet=(k.seri||0)*5;
-          var canliStok=(tazeUrun.colorStocks&&tazeUrun.colorStocks[k.renk])||0;
-          var orijinalRezerve=0;
-          (tr._duzenlemeOrijinalKalemler||[]).forEach(function(o){
-            if(o.renk&&o.renk.toLocaleUpperCase('tr-TR')===k.renk.toLocaleUpperCase('tr-TR'))orijinalRezerve+=(o.seri||0)*5;
-          });
-          var mevcutStok=canliStok+orijinalRezerve;
-          if(istenenAdet>mevcutStok)hata={kod:kod,renk:k.renk,istenenAdet:istenenAdet,mevcutStok:mevcutStok};
+          var kayitliAdet=_panelKayitliAdet(kod,k.renk); // panelde zaten düşülmüş kendi payı
+          // Kontrol İSTENEN üzerinden değil, stoğa asıl yansıyacak FARK üzerinden yapılır:
+          // düzenlemede adet aynı kaldıysa (ya da azaldıysa) stok hiç kötüleşmez, dolayısıyla
+          // stok o an eksideyse bile kayıt ENGELLENMEMELİ. Eskiden "istenen > canlı+kendi payı"
+          // karşılaştırılıyordu; bu, #1395'te değişmeden yeniden kaydetmeyi bile engelliyordu
+          // çünkü 8637'nin panel stoğu zaten -4'tü (20 istendi, -4+20=16 bulundu → "yetersiz").
+          var fark=istenenAdet-kayitliAdet;
+          if(fark<=0)return; // bu renk için stok talebi artmıyor
+          var canliStok=_colorStokOku(tazeUrun,k.renk);
+          if(fark>canliStok)
+            hata={kod:kod,renk:k.renk,istenenAdet:istenenAdet,kayitliAdet:kayitliAdet,
+                  ekIstenen:fark,mevcutStok:canliStok+kayitliAdet};
         });
       });
       return hata||true;
@@ -1608,7 +1663,10 @@ function kaydet(sessiz,skipSync){
   if(!skipSync){
     _stokTazeKontrolEt().then(function(sonuc){
       if(sonuc!==true){
-        alert('Stok yetersiz: '+sonuc.kod+' '+sonuc.renk+' — '+sonuc.istenenAdet+' adet isteniyor, stokta '+sonuc.mevcutStok+' adet var.\nKaydetme durduruldu, lütfen adedi düzeltin.');
+        var ek=sonuc.kayitliAdet>0
+          ? '\n(Bu irsaliyede zaten kayıtlı: '+sonuc.kayitliAdet+' adet — yalnızca '+sonuc.ekIstenen+' adetlik artış stoktan karşılanamıyor.)'
+          : '';
+        alert('Stok yetersiz: '+sonuc.kod+' '+sonuc.renk+' — '+sonuc.istenenAdet+' adet isteniyor, stokta '+sonuc.mevcutStok+' adet var.'+ek+'\nKaydetme durduruldu, lütfen adedi düzeltin.');
         return;
       }
       _kaydetGovde(sessiz,skipSync);
@@ -2269,6 +2327,12 @@ function irsaliyeDuzenle(id){
   kapatPop();
   tabGoster('irs');
 
+  // Bu irsaliyenin PANELDE kayıtlı halini hemen çekmeye başla — hem eski bakiye (aşağıda)
+  // hem kayıt öncesi stok kontrolü (_panelKayitliAdet) bunu referans alır. Yerel kayıt
+  // düzenleme sırasında değiştiği için referans olarak kullanılamaz (bkz. _duzenlemePanelKayit).
+  _duzenlemePanelKayit=null;
+  var _panelKayitliBekle=_panelKayitliGetir(id).then(function(pk){_duzenlemePanelKayit=pk;return pk;});
+
   document.getElementById('musteri').value=kayit.musteri;
   document.getElementById('tarih').value=kayit.tarih;
   document.getElementById('para').value=kayit.para||'TL';
@@ -2303,10 +2367,8 @@ function irsaliyeDuzenle(id){
       tr.querySelector('.ri-kod').value=g.kod;
       tr.querySelector('.ri-urun').value=g.urun;
       tr._renkKalemleri=g.renkler.slice();
-      // Düzenlemeye girerken donmuş bir kopya - _renkKalemleri sonradan eklenip/çıkarılsa da
-      // BUNA dokunulmaz, kaydet öncesi taze stok kontrolünde "bu irsaliyenin zaten düşmüş
-      // sayılan kendi payı" olarak geri kredilendirilir (bkz. _renkKullanilabilirStok).
-      tr._duzenlemeOrijinalKalemler=g.renkler.slice();
+      // NOT: "bu irsaliyenin zaten düşmüş sayılan kendi payı" artık buradan (yerel kayıttan)
+      // değil, panelden okunuyor — bkz. _duzenlemePanelKayit / _panelKayitliAdet.
       _renkChipleriRender(tr);
       _seriToplamGuncelle(tr);
       // RENK dropdown'ının çalışması için ürün kataloğundan eşleşen kaydı arka planda getir
@@ -2348,21 +2410,27 @@ function irsaliyeDuzenle(id){
     // içeriyorsa (panel daha önce senkronize ettiyse - senkron kuyruğunda bekleyen değilse
     // senkronize sayılır) kendi tutarı API bakiyesinden düşülüyor; henüz senkronize edilmediyse
     // API zaten içermediği için düşülmüyor.
-    var dIsim=kayit.musteri,dPara=kayit.para||'TL',dId=id;
+    var dIsim=kayit.musteri,dPara=kayit.para||'TL';
     document.getElementById('eskiBakiye').value='';
     document.getElementById('bakiyeInfo').textContent='⏳ Bakiye panelden alınıyor…';
-    var beklemede=_syncKuyrukOku().some(function(k){return k.tip==='irsaliye_kaydet'&&k.id===dId;});
-    _apiBakiyeGetir(dIsim,dPara).then(function(apiBakiye){
+    // ESKİ BAKİYE = panel bakiyesi − bu irsaliyenin PANELDE KAYITLI tutarı. Kayıtlı tutar
+    // _panelKayitliGetir'den (yukarıda başlatıldı) gelir; panelde hiç yoksa (henüz senkronize
+    // edilmemiş) düşülecek bir şey de yoktur, panel bakiyesi zaten içermiyordur.
+    // 2026-09-22: burada eskiden YEREL kayıt tutarı (kayit.genel) düşülüyordu. Yerel kayıt
+    // düzenlenmiş ama panele gitmemiş tutarı taşıdığı için aradaki fark kadar hayalet bir eski
+    // bakiye çıkıyordu — #1395'te panel 202.400, yerel 176.600 → ekranda 25.800 (gerçeği 0).
+    Promise.all([_apiBakiyeGetir(dIsim,dPara),_panelKayitliBekle]).then(function(r){
       if(document.getElementById('musteri').value!==dIsim)return; // arada başka müşteri seçilmiş olabilir
-      var eski=beklemede?apiBakiye:(apiBakiye-(kayit.genel||0));
+      var apiBakiye=r[0],panelKayit=r[1];
+      var eski=apiBakiye-(panelKayit?panelKayit.tutar:0);
       document.getElementById('eskiBakiye').value=eski.toLocaleString('tr-TR');
       document.getElementById('bakiyeInfo').textContent='';
-      bakiyeHesapla();
+      hesapla(); // sadece bakiyeHesapla() GENEL TOPLAM'ı (#gt) güncellemez - bkz. hesapla() sonu
     }).catch(function(){
       if(document.getElementById('musteri').value!==dIsim)return;
       document.getElementById('eskiBakiye').value='';
       document.getElementById('bakiyeInfo').textContent='⚠️ Bakiye alınamadı - panelden kontrol edin.';
-      bakiyeHesapla();
+      hesapla();
     });
   }
 
