@@ -2084,6 +2084,35 @@ function _urunlerSatiraGrupla(urunler){
     return {adet:g.adet,kod:g.kod,urun:g.urun,renk:g.renkler.join(' / '),fiyat:g.fiyat,toplam:g.adet*g.fiyat,iade:g.iade};
   });
 }
+// 2026-09-22: Dosya adı standardı - "MissNesem_{Tur}_{MUSTERI_ADI}_{gg.aa.yyyy}[-N].{uzanti}".
+// TCKN/VKN/ETTN/UUID KESİNLİKLE dosya adında yer almaz. buId verilirse (kayıtlı, id'si belli bir
+// irsaliye - popPdf/popPng), aynı müşteri+aynı güne ait TÜM kayıtlar id sırasına (Date.now() -
+// oluşturma sırası) göre dizilip bu kaydın 1-tabanlı sırası bulunur - aynı kayıt her indirildiğinde
+// AYNI adı alır (sıra localStorage'daki sabit id listesinden deterministik hesaplanır). buId
+// verilmezse (henüz kaydedilmemiş, ör. WhatsApp Sipariş önizlemesi) sıra "eşleşen kayıt sayısı+1"
+// olarak en iyi tahminle hesaplanır.
+function _musteriAdiSadelestir(musteri){
+  var harita={'Ç':'C','ç':'C','Ğ':'G','ğ':'G','İ':'I','ı':'I','Ö':'O','ö':'O','Ş':'S','ş':'S','Ü':'U','ü':'U'};
+  var sade=(musteri||'').replace(/[ÇçĞğİıÖöŞşÜü]/g,function(c){return harita[c];}).toUpperCase();
+  return sade.replace(/[^A-Z0-9 ]/g,'').trim().replace(/\s+/g,'_').replace(/_+/g,'_')||'MUSTERI';
+}
+function _dosyaAdiUret(tur,musteri,tarihIso,buId,uzanti){
+  var ad=_musteriAdiSadelestir(musteri);
+  var d=(tarihIso||'').split('-');
+  var tarihStr=d.length===3?(d[2]+'.'+d[1]+'.'+d[0]):'';
+  var v=veriCek();
+  var eslesenler=v.filter(function(x){return _musteriAdiSadelestir(x.musteri)===ad&&x.tarih===tarihIso;})
+                   .sort(function(a,b){return (a.id||0)-(b.id||0);});
+  var sira;
+  if(buId!=null){
+    var idx=eslesenler.findIndex(function(x){return x.id===buId;});
+    sira=idx>=0?idx+1:eslesenler.length+1;
+  }else{
+    sira=eslesenler.length+1;
+  }
+  var ek=sira>1?('-'+sira):'';
+  return 'MissNesem_'+tur+'_'+ad+'_'+tarihStr+ek+'.'+uzanti;
+}
 function popPdf(id){
   var v=veriCek();
   var k=v.find(function(x){return x.id===id;});
@@ -2098,7 +2127,7 @@ function popPdf(id){
     kargoUcret:k.kargoUcret||0,genel:k.genel||0,
     acikHesap:k.odeme==='AcikHesap',eski:k.eskiBakiye||0,genelGoster:genelGoster
   };
-  var dosyaAdi='MissNesem_'+k.musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.pdf';
+  var dosyaAdi=_dosyaAdiUret('Irsaliye',k.musteri,k.tarih,k.id,'pdf');
   Promise.all([_notoFontYukle(),_notoMediumYukle()]).then(function(){
     var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
     _notoFontEkle(doc);
@@ -2116,7 +2145,7 @@ function popPng(id){
   document.body.appendChild(el);
   html2canvas(el,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
     var link=document.createElement('a');
-    link.download='MissNesem_'+k.musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.png';
+    link.download=_dosyaAdiUret('Irsaliye',k.musteri,k.tarih,k.id,'png');
     link.href=canvas.toDataURL('image/png');
     link.click();
     el.remove();
@@ -2529,7 +2558,9 @@ function pdfIndir(){
   if(!musteri)return;
   kaydet(true,true);
   var veri=_irsaliyeGosterimVerisi();
-  var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.pdf';
+  var tarihIso=document.getElementById('tarih').value;
+  var buId=_duzenlemeId!=null?_duzenlemeId:_aktifKayitId;
+  var dosyaAdi=_dosyaAdiUret('Irsaliye',musteri,tarihIso,buId,'pdf');
   Promise.all([_notoFontYukle(),_notoMediumYukle()]).then(function(){
     var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
     _notoFontEkle(doc);
@@ -2544,7 +2575,9 @@ function pngIndir(){
   if(!musteri)return;
   kaydet(true,true);
   var s=hazirla();
-  var dosyaAdi='MissNesem_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.png';
+  var tarihIso=document.getElementById('tarih').value;
+  var buId=_duzenlemeId!=null?_duzenlemeId:_aktifKayitId;
+  var dosyaAdi=_dosyaAdiUret('Irsaliye',musteri,tarihIso,buId,'png');
   var el=document.getElementById('irsaliye');
   html2canvas(el,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
     var link=document.createElement('a');
@@ -2674,7 +2707,8 @@ function whatsappSiparis(){
   var kargoKod=document.getElementById('kargoChk').checked?document.getElementById('kargoKod').value.trim():'';
   var el=siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,kargoFirma,kargoKod,seriToplam,kalanToplam);
   document.body.appendChild(el);
-  var dosyaAdi='Siparis_'+no+'_'+musteri.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ ]/g,'').trim().replace(/\s+/g,'_')+'.png';
+  var buId=_duzenlemeId!=null?_duzenlemeId:_aktifKayitId;
+  var dosyaAdi=_dosyaAdiUret('Irsaliye',musteri,tarihVal,buId,'png');
   html2canvas(el,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
     var link=document.createElement('a');
     link.download=dosyaAdi;
