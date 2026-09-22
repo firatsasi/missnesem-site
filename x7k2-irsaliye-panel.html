@@ -1991,7 +1991,7 @@ function _toplamKartlariHtml(k,birimSym){
       alt+=satirHtml('ESKİ BAKİYE',fmtPara(eski,k.para),eksi?'#2e7d4f':'#a64d3e',roz);
     }
   }
-  var ayracHtml=(ust&&alt)?'<div style="height:1px;background:#b8985e;margin:6px 0"></div>':'';
+  var ayracHtml=(ust&&alt)?'<div style="height:1px;background:#b8985e;margin:6px 0 14px 0"></div>':'';
 
   // 2026-09-19: gösterilecek satır yoksa (gayri resmi + açık hesap olmayan irsaliye) beyaz/altın
   // kenarlıklı kart alanı hiç çizilmiyor - sadece GENEL TOPLAM kutusu aynı konum/genişlikte
@@ -2968,7 +2968,7 @@ function _ozetKartYuksekligi(veri){
   if(d.ustSatirlar.length===0&&d.altSatirlar.length===0)return _KART_GT_H;
   var h=_KART_PAD;
   h+=d.ustSatirlar.length*_KART_ROWH;
-  if(d.ayrac)h+=4;
+  if(d.ayrac)h+=6;
   h+=d.altSatirlar.length*_KART_ROWH;
   h+=3;
   h+=_KART_GT_H;
@@ -3024,7 +3024,7 @@ function _ozetKartCiz(doc,y,veri){
     ry+=0.5;
     doc.setDrawColor.apply(doc,_C_GOLD);doc.setLineWidth(0.25);
     doc.line(solX,ry,sagX,ry);
-    ry+=3.5;
+    ry+=5.5;
   }
   d.altSatirlar.forEach(satirCiz);
 
