@@ -329,6 +329,10 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
     <span>✏️ İRSALİYE DÜZENLEME<span id="duzenlemeNo"></span></span>
     <button type="button" onclick="duzenlemeIptal()" style="background:#fff;color:#a64d3e;border:none;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px">İPTAL</button>
   </div>
+  <!-- 2026-09-25: panelde "İrsaliyeye çevir" ile gelen rezerv (bkz. _rezervOnDolumBaslat) -->
+  <div id="rezervBanner" style="display:none;align-items:center;justify-content:center;gap:14px;background:#C4A55A;color:#2c2419;text-align:center;font-weight:700;font-size:13px;letter-spacing:0.3px;padding:10px 14px;border-radius:8px;margin-bottom:14px">
+    <span id="rezervBannerMetin"></span>
+  </div>
   <div class="fields">
     <div style="position:relative">
         <label class="flbl">MÜŞTERİ</label>
@@ -745,6 +749,73 @@ function goster(){
   sonAyarlariUygula(); // PARA/KDV/ÖDEME/TÜR son kullanılan değerlere döner
   kullaniciBarGuncelle();
   urunKatalogYukle(); // KOD/RENK autocomplete için ürün kataloğunu bir kez çek
+  _rezervOnDolumBaslat(); // panel "İrsaliyeye çevir" → ?rezerv=1,2,3
+}
+
+/* ====== REZERVASYON → İRSALİYE (2026-09-25) ======
+   Panelde /Rezervasyon'daki "İrsaliyeye çevir" bu sayfayı ?rezerv=1,2,3 ile açar. Açık
+   rezervlerin kalemleri panelden (/api/rezervasyon/ondolum) çekilip form ön doldurulur. Panelin
+   stok ucu (products/search colorStocks) artık SATILABİLİR döndürdüğü için (rezervli mal
+   düşülmüş) rezervin kendi adedi stok kontrolünde "bu irsaliyenin payı" olarak geri eklenir (bkz.
+   _panelKayitliAdet). Kaydedilince rezervIds payload'a eklenir; panel irsaliyeyle aynı commit'te
+   rezervleri İrsaliyeKesildi yapar, stok irsaliyenin kendi hareketleriyle düşer. */
+var _rezervKaynak=null; // {ids:[...], adet:{'KOD|RENK':n}, musteri:''}
+function _rezervPayi(kod,renk){
+  if(!_rezervKaynak)return 0;
+  return _rezervKaynak.adet[(kod||'').trim()+'|'+_renkAnahtar(renk)]||0;
+}
+function _rezervBanneriGuncelle(){
+  var b=document.getElementById('rezervBanner');
+  if(!b)return;
+  if(!_rezervKaynak||!_rezervKaynak.ids.length){b.style.display='none';return;}
+  document.getElementById('rezervBannerMetin').textContent='🔖 REZERVDEN İRSALİYE — '+_rezervKaynak.musteri+' · '+_rezervKaynak.ids.length+' kalem (kaydedince rezervler kapanır)';
+  b.style.display='flex';
+}
+function _rezervOnDolumBaslat(){
+  var q=new URLSearchParams(location.search).get('rezerv');
+  if(!q)return;
+  fetch('https://panel.missnesem.com/api/rezervasyon/ondolum?ids='+encodeURIComponent(q),{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
+    .then(function(r){if(r.status===401||r.status===403){_oturumGecersizce();_anahtarGecersizce();}return r.ok?r.json():null;})
+    .then(function(d){
+      // Link tekrar açılırsa (sayfa yenilenirse) aynı rezervler ikinci kez doldurulmasın.
+      try{history.replaceState(null,'',location.pathname);}catch(e){}
+      if(!d||!d.ok||!d.kalemler||!d.kalemler.length){
+        alert('Rezerv bulunamadı ya da hepsi zaten kapanmış (irsaliyesi kesilmiş / iptal edilmiş).');
+        return;
+      }
+      temizle();
+      _rezervKaynak={ids:[],adet:{},musteri:d.musteri||''};
+      var musteriEl=document.getElementById('musteri');
+      musteriEl.value=d.musteri||'';
+      var gruplar=[],gMap={};
+      d.kalemler.forEach(function(k){
+        _rezervKaynak.ids.push(k.id);
+        var anahtar=(k.kod||'').trim()+'|'+_renkAnahtar(k.renk);
+        _rezervKaynak.adet[anahtar]=(_rezervKaynak.adet[anahtar]||0)+k.adet;
+        var g=gMap[k.kod];
+        if(!g){g={kod:k.kod,urun:k.urun,renkler:[]};gMap[k.kod]=g;gruplar.push(g);}
+        var mevcut=g.renkler.find(function(x){return _renkAnahtar(x.renk)===_renkAnahtar(k.renk);});
+        if(mevcut)mevcut.seri+=k.seri;else g.renkler.push({renk:_renkAnahtar(k.renk),seri:k.seri});
+      });
+      var rows=document.querySelectorAll('#tb tr');
+      while(rows.length<gruplar.length){ekle(true);rows=document.querySelectorAll('#tb tr');}
+      urunKatalogYukle().then(function(katalog){
+        gruplar.forEach(function(g,i){
+          var tr=rows[i];
+          var eslesen=katalog.find(function(p){return p.code===g.kod;});
+          if(eslesen)_kodSec(tr,eslesen);else tr.querySelector('.ri-kod').value=g.kod;
+          if(!eslesen)tr.querySelector('.ri-urun').value=(g.urun||'').toLocaleUpperCase('tr-TR');
+          tr._renkKalemleri=g.renkler.slice();
+          _renkChipleriRender(tr);
+          _seriToplamGuncelle(tr);
+        });
+        if(typeof hesapla==='function')hesapla();
+      });
+      bakiyeGoster();
+      musteriBakiyeYukle();
+      _rezervBanneriGuncelle();
+    })
+    .catch(function(){alert('Rezerv bilgisi panelden alınamadı - bağlantıyı kontrol edip linki tekrar açın.');});
 }
 
 /* ====== KULLANICI (kesen kişi) — girişten belirlenir, elle seçilmez ====== */
@@ -988,8 +1059,10 @@ function _panelKayitliGetir(id){
 
 // Bu irsaliyenin PANELDE kayıtlı olan (yani stoktan zaten düşülmüş sayılan) adedi.
 function _panelKayitliAdet(kod,renk){
-  if(!_duzenlemePanelKayit)return 0;
-  return _duzenlemePanelKayit.satisAdet[(kod||'').trim()+'|'+_renkAnahtar(renk)]||0;
+  // + rezervden çevrilen irsaliyede rezervin kendi adedi (panelin satılabilir'inden düşülmüş, bkz. _rezervKaynak)
+  var rez=_rezervPayi(kod,renk);
+  if(!_duzenlemePanelKayit)return rez;
+  return (_duzenlemePanelKayit.satisAdet[(kod||'').trim()+'|'+_renkAnahtar(renk)]||0)+rez;
 }
 
 // Bir satırın belirli bir renk için o an KULLANILABİLECEĞİ stok — API'nin taze döndürdüğü
@@ -1466,6 +1539,8 @@ function temizle(){
   sc=0;
 ekle(true);ekle(true);ekle(true);
   _duzenlemePanelKayit=null; // düzenleme modundan çıkıldı - "panelde kayıtlı kendi payı" artık yok
+  _rezervKaynak=null; // rezervden çevirme modundan da çıkıldı
+  _rezervBanneriGuncelle();
   _duzenlemeBanneriGuncelle();
 }
 
@@ -1746,6 +1821,8 @@ function _kaydetGovde(sessiz,skipSync){
     kullanici:aktifKullanici
   };
   if(eskiKayit&&eskiKayit.siparisNo)kayit.siparisNo=eskiKayit.siparisNo;
+  if(_rezervKaynak&&_rezervKaynak.ids.length)kayit.rezervIds=_rezervKaynak.ids.slice();
+  else if(eskiKayit&&eskiKayit.rezervIds)kayit.rezervIds=eskiKayit.rezervIds;
 
   // Düzenleme modunda son-kullanılan-ayarlar localStorage'ına dokunulmaz — sadece yeni kayıtta yazılır.
   if(!duzenleniyor)sonAyarlariKaydet();
@@ -1791,6 +1868,9 @@ function _kaydetGovde(sessiz,skipSync){
     // Artık sunucu tarafı aynı id (CreatedAt) için doğrudan upsert yapıyor, ayrı bir sil gerekmiyor.
     syncSunucuKaydetVeBildir(Object.assign({tip:'irsaliye_kaydet'},kayit));
   }
+  // Rezerv irsaliyeye döndü: stok kontrolündeki "rezerv payı" artık panelde irsaliyenin kendi
+  // payı olarak sayılıyor (_duzenlemePanelKayit) - iki kez eklenmesin. id'ler kayıtta kalır.
+  if(_rezervKaynak){_rezervKaynak.adet={};}
   raporGuncelle();
 
   if(!sessiz&&duzenleniyor){
