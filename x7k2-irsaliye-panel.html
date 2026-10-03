@@ -1732,13 +1732,29 @@ function _stokTazeKontrolEt(){
       return true; // ağ hatası/timeout'ta kaydetmeyi engelleme - sunucu zaten reddetmiyor, sadece loglar
     });
 }
+// 2026-10-05 çift tıklama koruması: Kaydet basılınca buton kilitlenir (stok kontrolü + kayıt
+// bitene ve 1,5 sn geçene kadar). Sunucu da aynı isteği 10 sn içinde ikinci kez yazmaz (SyncApi).
+var _kaydetKilit=false;
+var _sonGonderilen=null; // {imza,t} - panele en son YENİ olarak gönderilen irsaliye
+function _kaydetKilitle(k){
+  _kaydetKilit=k;
+  document.querySelectorAll('button[onclick="kaydet()"]').forEach(function(b){
+    b.disabled=k;b.style.opacity=k?'.6':'';
+    if(k){b.dataset.metin=b.textContent;b.textContent='Kaydediliyor...';}
+    else if(b.dataset.metin){b.textContent=b.dataset.metin;}
+  });
+}
 function kaydet(sessiz,skipSync){
   var musteri=document.getElementById('musteri').value.trim();
   if(!musteri){if(!sessiz)alert('Müşteri adı boş olamaz');return false;}
   var tarih=document.getElementById('tarih').value;
   if(!tarih){if(!sessiz)alert('Tarih boş olamaz');return false;}
   if(!skipSync){
-    _stokTazeKontrolEt().then(function(sonuc){
+    if(_kaydetKilit)return false;
+    _kaydetKilitle(true);
+    var _kilidiAc=function(){setTimeout(function(){_kaydetKilitle(false);},1500);};
+    _stokTazeKontrolEt().catch(function(){return true;}).then(function(sonuc){
+      try{
       if(sonuc!==true){
         var ek=sonuc.kayitliAdet>0
           ? '\n(Bu irsaliyede zaten kayıtlı: '+sonuc.kayitliAdet+' adet — yalnızca '+sonuc.ekIstenen+' adetlik artış stoktan karşılanamıyor.)'
@@ -1747,6 +1763,7 @@ function kaydet(sessiz,skipSync){
         return;
       }
       _kaydetGovde(sessiz,skipSync);
+      }finally{_kilidiAc();}
     });
     return true;
   }
@@ -1801,6 +1818,14 @@ function _kaydetGovde(sessiz,skipSync){
   var v=veriCek();
   var duzenleniyor=!!_duzenlemeId;
   var eskiKayit=duzenleniyor?v.find(function(k){return k.id===_duzenlemeId;}):null;
+
+  // Yeni irsaliye kaydedildikten sonra form temizlenmediği için ikinci bir Kaydet AYNI irsaliyeyi
+  // yeni numarayla bir daha açıyordu (stok iki kez düşer). Aynı içerik 2 dk içinde tekrar yeni
+  // olarak gönderilecekse onay istenir.
+  var _imza=JSON.stringify([musteri,tarih,urunler,genel,document.getElementById('para').value,document.getElementById('odeme').value]);
+  if(!duzenleniyor&&!skipSync&&_sonGonderilen&&_sonGonderilen.imza===_imza&&Date.now()-_sonGonderilen.t<120000){
+    if(sessiz||!confirm('Bu irsaliye az önce kaydedildi (aynı müşteri ve kalemler).\n\nAynısını YENİ bir irsaliye olarak bir daha kaydetmek istiyor musun? (Stok tekrar düşer.)'))return false;
+  }
 
   var kayit={
     id:duzenleniyor?_duzenlemeId:Date.now(),
@@ -1869,6 +1894,7 @@ function _kaydetGovde(sessiz,skipSync){
     // sunucuya "kaydet"ten sonra ulaşırsa az önce güncellenmiş kayıt tamamen siliniyordu.
     // Artık sunucu tarafı aynı id (CreatedAt) için doğrudan upsert yapıyor, ayrı bir sil gerekmiyor.
     syncSunucuKaydetVeBildir(Object.assign({tip:'irsaliye_kaydet'},kayit));
+    if(!duzenleniyor)_sonGonderilen={imza:_imza,t:Date.now()};
   }
   // Rezerv irsaliyeye döndü: stok kontrolündeki "rezerv payı" artık panelde irsaliyenin kendi
   // payı olarak sayılıyor (_duzenlemePanelKayit) - iki kez eklenmesin. id'ler kayıtta kalır.
