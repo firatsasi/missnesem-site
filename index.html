@@ -115,8 +115,13 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500&family=Montserrat:wght@500;600&family=Noto+Sans+Arabic:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@6.6.6/css/flag-icons.min.css" />
+  <!-- Font + bayrak CSS'i render'ı bloklamasın (mobil LCP'de ~3 sn kazanç); font-display: swap. -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500&family=Montserrat:wght@500;600&family=Noto+Sans+Arabic:wght@300;400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@6.6.6/css/flag-icons.min.css" media="print" onload="this.media='all'" />
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500&family=Montserrat:wght@500;600&family=Noto+Sans+Arabic:wght@300;400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@6.6.6/css/flag-icons.min.css" />
+  </noscript>
   <link rel="stylesheet" href="style.css" />
   <!-- Hero poster'ı LCP adayı — video arkadan gelirken ilk boyamada hazır olsun. -->
   <link rel="preload" as="image" href="/catalog/video/ns_8740b_poster.jpg" fetchpriority="high" />
@@ -162,7 +167,7 @@
       })();
     </script>
     <div class="home-hero-shade" aria-hidden="true"></div>
-    <img src="assets/missnesem_logo_white.png" alt="Miss Neşem" class="home-hero-logo" width="650" height="277" />
+    <img src="assets/missnesem_logo_white_520.png" alt="Miss Neşem" class="home-hero-logo" width="520" height="222" />
     <a class="home-hero-tag" href="/catalog/#urun=8740"><b>8740</b> · <span data-i18n="hero_tag">Yeni</span></a>
     <div class="home-hero-text">
       <p class="home-hero-title" data-i18n="hero_title">SONBAHAR 2026 — Merter'de yeni sezon</p>
@@ -187,7 +192,7 @@
     <!-- Header + Logo -->
     <div class="section-hero">
       <header class="site-header">
-        <img src="assets/missnesem_logo_white.png" alt="Miss Neşem" class="site-logo" />
+        <img src="assets/missnesem_logo_white.png" alt="Miss Neşem" class="site-logo" loading="lazy" width="2285" height="975" />
         <p class="slogan" data-i18n="slogan">Kadının Şıklığı, Toptan Adresi</p>
         <p class="location-tag">MERTER &nbsp;•&nbsp; İSTANBUL</p>
       </header>
