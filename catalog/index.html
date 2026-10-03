@@ -1661,9 +1661,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
 <body>
 
 <!-- ===== SONBAHAR GİRİŞ ANİMASYONU — kök sayfayla ortak bileşen, bkz. /assets/fabric-intro.js.
-     <body>'nin hemen başında senkron (overlay ilk boyamadan önce). Oynarsa: masaüstünde perde
-     kalkarken AUTUMN 3 panel intro'su başlar, mobilde eski intro videosu atlanıp doğrudan tek panel
-     hero'ya açılır (bkz. initIntroVideo). ?intro=1 ile gelindiyse / 24 saatte görüldüyse oynamaz. ===== -->
+     <body>'nin hemen başında senkron (overlay ilk boyamadan önce). Oynarsa doğrudan hero'ya açılır:
+     masaüstünde AUTUMN/WINTER/2026 akışı, mobilde eski intro videosu atlanır (bkz. initIntroVideo) —
+     ilk girişte hero'ya ~2.5 sn. ?from=home (kökteki "Kataloğu Gör") / 24 saatte görüldüyse /
+     reduced-motion'da oynamaz; o durumlarda katalog eskisi gibi AUTUMN akışıyla açılır. ===== -->
 <script src="/assets/fabric-intro.js"></script>
 
 <!-- ===== INTRO VİDEO (sadece mobil <900px, bkz. initIntroVideo) ===== -->
@@ -1890,12 +1891,14 @@ html, body { overflow-x: hidden; max-width: 100%; }
 (function () {
   'use strict';
 
-  // ?intro=1 bazı reklam/QR linklerinde kullanılıyor ama sayfa davranışını etkilemiyor —
+  // ?intro=1 (reklam/QR linkleri) ve ?from=home (kökteki "Kataloğu Gör") sadece giriş animasyonu
+  // kararında kullanılır (bkz. /assets/fabric-intro.js — o karar <body> başında zaten verildi);
   // adres çubuğunu temiz tutmak için sessizce (sayfa yeniden yüklenmeden) kaldırılır.
   (function stripIntroParam() {
     var url = new URL(window.location.href);
-    if (url.searchParams.has('intro')) {
+    if (url.searchParams.has('intro') || url.searchParams.has('from')) {
       url.searchParams.delete('intro');
+      url.searchParams.delete('from');
       history.replaceState(null, '', url.pathname + url.search + url.hash);
     }
   })();
@@ -1929,11 +1932,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
 
     if (isDesktop) {
       if (introEl) introEl.remove(); // mobil-özel overlay masaüstünde hiç kullanılmaz
-      // Kumaş intro'su oynuyorsa AUTUMN 3 panel intro'su perde toplanmaya başlarken başlar —
-      // kumaş zemini sönerken (0.8 sn) altından açılır. Hero videoları zaten sayfa açılışında
-      // yükleniyor (initSeasonHero), geçişte bekleme yok.
-      if (fabricIntro) fabricIntro.onLift(initDesktopHeroIntro);
-      else initDesktopHeroIntro();
+      // Kumaş intro'su oynuyorsa AUTUMN/WINTER/2026 akışı ATLANIR — kumaş doğrudan 3 panel hero'ya
+      // açılır (ilk girişte hero'ya ~2.5 sn). Hero videoları zaten sayfa açılışında yükleniyor
+      // (initSeasonHero), geçişte bekleme yok. Kumaş oynamadıysa eskisi gibi AUTUMN akışı.
+      if (!fabricIntro) initDesktopHeroIntro();
       return;
     }
 
@@ -3688,10 +3690,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       bands.forEach(band => { posterObserver.observe(band); catVideoObserver.observe(band); });
     }
     const heroEl = document.getElementById('season-hero');
-    // Kumaş intro'su masaüstünde henüz toplanmadıysa AUTUMN intro'su birazdan başlayacak (hero yine
-    // fixed olacak) — aynı şekilde onun kapanışı beklenir.
-    const desktopIntroPending = isDesktop && fabricIntro && !fabricIntro.lifted;
-    if (heroEl && (heroEl.classList.contains('intro-active') || desktopIntroPending)) {
+    if (heroEl && heroEl.classList.contains('intro-active')) {
       window.addEventListener('mn-intro-closed', () => setTimeout(observeAll, 650), { once: true });
     } else {
       observeAll();
