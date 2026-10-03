@@ -171,8 +171,11 @@
     var path = fabricPath(t);
     // Hafif çapraz eğim: kıvrımlar tam dikey değil, ipek gibi süzülür. Kıvrım başına ~26 durak →
     // ince sırt parlaması her çözünürlükte pürüzsüz (gradient vektörel, piksel büyütme yok).
-    var g = ctx.createLinearGradient(0, 0, W, H * 0.08), n = Math.ceil(FOLDS * 26);
-    for (var i = 0; i <= n; i++) g.addColorStop(i / n, fabricColor(shade(W * i / n, t)));
+    // Eğim genişliğe bağlı (~2°): dar/uzun mobil ekranda aşırı çaprazlaşmasın; gradient iki yandan
+    // %5 taşar ki köşelerde son durağın düz rengi (koyu kama) görünmesin.
+    var gx0 = -0.05 * W, gx1 = 1.05 * W;
+    var g = ctx.createLinearGradient(gx0, 0, gx1, W * 0.04), n = Math.ceil(FOLDS * 26);
+    for (var i = 0; i <= n; i++) g.addColorStop(i / n, fabricColor(shade(gx0 + (gx1 - gx0) * i / n, t)));
     ctx.fillStyle = g;
     ctx.fill(path);
     // Üstten yumuşak ışık, alta doğru hafif gölge (dökümlü kumaş hacmi).
