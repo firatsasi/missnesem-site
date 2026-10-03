@@ -231,7 +231,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 #splash.quick .splash-enter,
 #splash.quick .splash-particle { display: none !important; }
 
-/* ===== INTRO VİDEO — SADECE MOBİL (<900px), intro_mobile.mp4 =====
+/* ===== INTRO VİDEO — SADECE MOBİL (<900px), ns_8740b_720.mp4 =====
    ≥900px'te artık bu overlay hiç kullanılmıyor (JS'te .remove() edilir) — masaüstü
    intro'su #season-hero'nun kendi video panellerinin üstüne biner (bkz. .intro-active
    kuralları, "MASAÜSTÜ INTRO" bölümü). */
@@ -555,6 +555,28 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   transition: var(--transition);
 }
 .season-hero-cta:hover { background: #fff; color: #1a1018; }
+/* Orta paneldeki ürünün (8740) küçük etiketi — tıklayınca ürün modalı açılır (bkz. initSeasonHero). */
+.season-hero-product {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1.4rem;
+  padding: 0.4rem 0.85rem;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(0,0,0,0.28);
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: var(--transition);
+}
+.season-hero-product span { font-weight: 600; letter-spacing: 0.08em; }
+.season-hero-product:hover { background: #fff; color: #1a1018; }
 .season-hero-scroll-hint {
   position: absolute;
   bottom: 1.75rem;
@@ -582,7 +604,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* ===== MASAÜSTÜ INTRO (≥900px) — ayrı video dosyası YOK, #season-hero'nun kendi 3
-   panel videosu (hero_left/center/right) yeniden kullanılır. initSeasonHero() bu
+   panel videosu (ns_8715/ns_8740a/ns_8705 _1080) yeniden kullanılır. initSeasonHero() bu
    videoları zaten sayfa açılışında yüklüyor/oynatıyor — intro sadece üstüne koyu
    katman + AUTUMN/WINTER/2026 metin döngüsü + "Atla" bindiren geçici bir CSS
    durumu (.intro-active). Video hiçbir zaman iki kez indirilmez. */
@@ -1637,7 +1659,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
 
 <!-- ===== INTRO VİDEO (sadece mobil <900px, bkz. initIntroVideo) ===== -->
 <div id="intro-video">
-  <video id="intro-video-el" muted playsinline preload="auto" poster="/catalog/video/intro_mobile_poster.jpg"></video>
+  <video id="intro-video-el" muted playsinline preload="auto" poster="/catalog/video/ns_8740b_poster.jpg"></video>
   <a href="#" id="intro-skip" class="intro-skip"><span>Atla</span> <i class="ti ti-arrow-right"></i></a>
 </div>
 
@@ -1724,19 +1746,19 @@ html, body { overflow-x: hidden; max-width: 100%; }
   <div class="season-hero-panels" id="season-hero-panels">
     <div class="season-hero-panel season-hero-panel-left">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_left_poster.jpg" data-src="/catalog/video/hero_left.mp4?v=4"></video>
+             data-poster="/catalog/video/ns_8715_poster.jpg" data-src="/catalog/video/ns_8715_1080.mp4?v=1"></video>
     </div>
     <div class="season-hero-panel season-hero-panel-center">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_center_poster.jpg" data-src="/catalog/video/hero_center.mp4?v=3"></video>
+             data-poster="/catalog/video/ns_8740a_poster.jpg" data-src="/catalog/video/ns_8740a_1080.mp4?v=1"></video>
     </div>
     <div class="season-hero-panel season-hero-panel-right">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_right_poster.jpg" data-src="/catalog/video/hero_right.mp4?v=3"></video>
+             data-poster="/catalog/video/ns_8705_poster.jpg" data-src="/catalog/video/ns_8705_1080.mp4?v=1"></video>
     </div>
     <div class="season-hero-panel season-hero-panel-mobile">
       <video class="season-hero-video" muted autoplay loop playsinline preload="metadata"
-             poster="/catalog/video/hero_mobile_poster.jpg" data-src="/catalog/video/hero_mobile.mp4?v=4"></video>
+             data-poster="/catalog/video/ns_8740a_poster.jpg" data-src="/catalog/video/ns_8740a_720.mp4?v=1"></video>
     </div>
   </div>
   <div class="season-hero-overlay"></div>
@@ -1748,6 +1770,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
   </div>
   <a href="#" id="intro-skip-desktop" class="intro-skip"><span>Atla</span> <i class="ti ti-arrow-right"></i></a>
   <div class="season-hero-text" id="season-hero-text">
+    <a href="#urun=8740" class="season-hero-product" data-code="8740"><span>8740</span> · Yeni <i class="ti ti-arrow-up-right"></i></a>
     <span class="season-hero-tag">SONBAHAR · KIŞ 2026</span>
     <h1 class="season-hero-title">Yeni Sezon</h1>
     <a href="#yeni-sezon" class="season-hero-cta"><span class="cta-label">KOLEKSİYONU KEŞFET</span> <i class="ti ti-arrow-down"></i></a>
@@ -1880,10 +1903,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
 
   // ===== INTRO VİDEO (her sayfa açılışında oynar) =====
   // 24 saat kuralı yok — intro her girişte oynar, "Atla →" linki her zaman kalır.
-  // ≤900px (MOBİL): kendi ayrı intro_mobile.mp4 dosyasıyla, aşağıdaki eski akış
+  // ≤900px (MOBİL): kendi ayrı ns_8740b_720.mp4 dosyasıyla, aşağıdaki eski akış
   // AYNEN korunur — hiçbir değişiklik yok.
   // ≥900px (MASAÜSTÜ): ayrı bir video dosyası YOK — #season-hero'nun zaten yüklediği
-  // hero_left/center/right videoları (bkz. initSeasonHero) üzerine koyu katman + metin
+  // ns_8715/ns_8740a/ns_8705 _1080 videoları (bkz. initSeasonHero) üzerine koyu katman + metin
   // döngüsü eklenir (bkz. initDesktopHeroIntro). Video tek bir kez, sadece hero için
   // indirilir; intro bunun üstüne CSS ile biner.
   (function initIntroVideo() {
@@ -1911,7 +1934,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       closed = true;
       introEl.classList.add('hidden');
       hideSplash(); // intro kapanınca doğrudan kataloğa geçilsin, eski splash araya girmesin
-      // hero_mobile.mp4'ün indirilmesini burada tetikleriz (bkz. initSeasonHero) - intro_mobile.mp4
+      // ns_8740a_720.mp4'ün indirilmesini burada tetikleriz (bkz. initSeasonHero) - ns_8740b_720.mp4
       // ile AYNI ANDA indirilmeye başlarsa (önceki davranış) ikisi bant genişliği için yarışıp
       // ikisi de takılıyordu (2026-09-14 şikayeti: "video yüklenirken donmalar").
       window.dispatchEvent(new CustomEvent('mn-intro-closed'));
@@ -1921,8 +1944,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
     introEl.addEventListener('click', closeIntro);
     videoEl.addEventListener('playing', () => { started = true; });
     videoEl.addEventListener('ended', closeIntro);
-    videoEl.poster = '/catalog/video/intro_mobile_poster.jpg'; // yüklenirken poster görünsün, siyah ekran olmasın
-    videoEl.src = '/catalog/video/intro_mobile.mp4?v=4';
+    videoEl.poster = '/catalog/video/ns_8740b_poster.jpg'; // yüklenirken poster görünsün, siyah ekran olmasın
+    videoEl.src = '/catalog/video/ns_8740b_720.mp4?v=1';
     videoEl.load();
     // 2026-09-14 düzeltme: play() önceden load() sonrası hemen çağrılıyordu - buffer henüz
     // dolmadan oynatma başlayınca ilk 1-2 saniye takılıp sonra düzeliyordu ("ilk kare" şikayeti).
@@ -1966,6 +1989,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       heroEl.classList.add('intro-closing');
       document.body.style.overflow = '';
       hideSplash();
+      window.dispatchEvent(new CustomEvent('mn-intro-closed'));
       setTimeout(() => { heroEl.classList.remove('intro-active', 'intro-closing'); }, 600);
     }
     skipEl.addEventListener('click', e => { e.preventDefault(); closeIntro(); });
@@ -1987,7 +2011,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       : '.season-hero-panel-mobile .season-hero-video';
     // 2026-09-14 düzeltme ("video yüklenirken donmalar" şikayeti): önceden bu panellerin
     // hepsi (masaüstünde 3, mobilde 1) sayfa açılışında AYNI ANDA src atanıp play() çağrılıyordu.
-    // Mobilde bu, ekranda görünen intro_mobile.mp4 ile (ayrı dosya, bkz. initIntroVideo) tam
+    // Mobilde bu, ekranda görünen ns_8740b_720.mp4 ile (ayrı dosya, bkz. initIntroVideo) tam
     // aynı anda inmeye başlıyor, ikisi bant genişliğini bölüşünce ikisi de kesik kesik oynuyordu -
     // hero_mobile hiç görünmediği (intro overlay'in arkasında) halde boşuna indiriliyordu. Artık
     // mobilde intro kapanana kadar (mn-intro-closed event'i, bkz. closeIntro) hiç başlamıyor.
@@ -1997,6 +2021,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
     // mobil rotasyonunda zaten kullanılıyordu, bkz. bindMobileRotation) - buffer dolmadan
     // oynatmaya çalışıp takılmasın diye.
     const introOverlayActive = !isDesktop && document.getElementById('intro-video');
+    // Poster'lar data-poster'da: masaüstünde mobil panelin, mobilde 3 masaüstü panelinin
+    // (display:none olsa da indirilen) poster'ı boşuna inmesin — sadece görünen panel(ler).
+    document.querySelectorAll(selector).forEach(v => { if (v.dataset.poster) v.poster = v.dataset.poster; });
     document.querySelectorAll(selector).forEach(v => {
       function startLoad() {
         if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); v.load(); }
@@ -2014,6 +2041,16 @@ html, body { overflow-x: hidden; max-width: 100%; }
       } else {
         startLoad();
       }
+    });
+
+    // "8740 · Yeni" etiketi: ürünler yüklendiyse modalı açar (openModal geçmişe kendisi yazar),
+    // henüz yüklenmediyse Yeni Sezon bölümüne kaydırır.
+    const productLink = heroEl.querySelector('.season-hero-product');
+    if (productLink) productLink.addEventListener('click', e => {
+      e.preventDefault();
+      const p = allProducts.find(x => x.code === productLink.dataset.code);
+      if (p) openModal(p);
+      else { const t = document.getElementById('yeni-sezon'); if (t) scrollToWithNavOffset(t); }
     });
 
     // Scroll parallax: video panelleri %20 yavaş kayar, metin fade-out olur.
@@ -3171,17 +3208,17 @@ html, body { overflow-x: hidden; max-width: 100%; }
         return `
             <div class="cat-bg-video-panel">
               <video class="cat-bg-video" muted playsinline loop preload="none"
-                     poster="/catalog/video/${pv}_poster.jpg" data-src="/catalog/video/${pv}.mp4?v=1"
+                     data-poster="/catalog/video/${pv}_poster.jpg" data-src="${bandVideoUrl(pv, false)}"
                      data-focus="${pFocus}"></video>
             </div>`;
       }).join('');
       return `
         <section class="cat-section" id="${cat.id}">
           <div class="section-header-video reveal">
-            <div class="cat-bg-video-panels">${panelsHtml}
+            <div class="cat-bg-video-panels"${panelVideos.length !== 4 ? ` style="grid-template-columns: repeat(${panelVideos.length}, 1fr)"` : ''}>${panelsHtml}
             </div>
             <video class="cat-bg-video cat-bg-video-mobile" muted playsinline autoplay preload="metadata"
-                   poster="/catalog/video/${panelVideos[0]}_poster.jpg" data-src="/catalog/video/${panelVideos[0]}.mp4?v=1"
+                   data-poster="/catalog/video/${panelVideos[0]}_poster.jpg" data-src="${bandVideoUrl(panelVideos[0], true)}"
                    data-panels='${JSON.stringify(panelVideos)}'></video>
             <div class="cat-bg-video-overlay"></div>
             <div class="cat-bg-video-text">
@@ -3329,18 +3366,22 @@ html, body { overflow-x: hidden; max-width: 100%; }
     cat_ceket: 'center 45%',
     cat_takim: 'center 45%',
     cat_diger: 'center 45%',
-    hero_left: 'center 45%',
-    hero_center: 'center 45%',
-    hero_right: 'center 45%',
-    hero_mobile: 'center 45%',
+    ns_8729: 'center 40%',
   };
+  // 2026-10-03: yeni sezon videoları (ns_<kod>) tek boyutlu değil — masaüstünde _1080,
+  // mobilde (<900px) _720 dosyası yüklenir; poster ikisinde ortak (ns_<kod>_poster.jpg).
+  // Eski band_* klipleri tek dosya olarak aynen kalır.
+  function bandVideoUrl(name, mobile) {
+    if (/^ns_/.test(name)) return `/catalog/video/${name}_${mobile ? 720 : 1080}.mp4?v=1`;
+    return `/catalog/video/${name}.mp4?v=1`;
+  }
   // Masaüstü kategori bandındaki 4 panel artık AYNI videoyu farklı zamanda değil, HER BİRİ
   // FARKLI bir dosya oynatıyor — havuz catalog/video/ altındaki tüm temiz videolar (5 kategori
   // + 4 hero). Anahtar CATEGORY_HEADER_VIDEO'daki dosya adından 'cat_' öneki atılarak türetilir
   // (ör. cat_trenckot → 'trenckot'). Bir bantta aynı video iki kez yok, alt alta gelen bantlar
   // aynı sırayı paylaşmıyor — elle değiştirilebilir.
   const BAND_PANELS = {
-    yeni:     ['band_yeni_1', 'band_yeni_2', 'band_yeni_3', 'band_yeni_4'],
+    yeni:     ['ns_8729', 'band_yeni_1', 'band_yeni_2', 'band_yeni_3', 'band_yeni_4'],
     trenckot: ['band_trenckot_1', 'band_trenckot_2', 'band_trenckot_3', 'band_trenckot_4'],
     ceket:    ['band_ceket_1', 'band_ceket_2', 'band_ceket_3', 'band_ceket_4'],
     takim:    ['band_takim_1', 'band_takim_2', 'band_takim_3', 'band_takim_4'],
@@ -3526,14 +3567,17 @@ html, body { overflow-x: hidden; max-width: 100%; }
     if (bands.length === 0) return;
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const saveData = navigator.connection && navigator.connection.saveData;
-    if (prefersReducedMotion || saveData) return;
-
     const isDesktop = window.matchMedia('(min-width: 900px)').matches;
     function activeVideos(band) {
       return isDesktop
         ? band.querySelectorAll('.cat-bg-video-panels .cat-bg-video')
         : [band.querySelector('.cat-bg-video-mobile')].filter(Boolean);
     }
+    function setPosters(band) {
+      activeVideos(band).forEach(v => { if (v.dataset.poster) { v.poster = v.dataset.poster; v.removeAttribute('data-poster'); } });
+    }
+    if (prefersReducedMotion || saveData || !('IntersectionObserver' in window)) bands.forEach(setPosters);
+    if (prefersReducedMotion || saveData) return;
     // Mobil bant tek <video> elemanında 4 paneli SIRAYLA oynatır (data-panels, bkz. markup
     // yorumu). 'ended' olunca bir sonraki panelin poster'ı HEMEN atanır (siyah kare yerine o
     // panelin kendi önizlemesi görünür), src değişir, gerçek oynatma ise 'canplay' beklenip
@@ -3550,7 +3594,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         v._panelIdx = (v._panelIdx + 1) % panels.length;
         const name = panels[v._panelIdx];
         v.poster = `/catalog/video/${name}_poster.jpg`;
-        v.src = `/catalog/video/${name}.mp4?v=1`;
+        v.src = bandVideoUrl(name, true);
         v.load();
         const onReady = function () {
           v.removeEventListener('canplay', onReady);
@@ -3597,13 +3641,33 @@ html, body { overflow-x: hidden; max-width: 100%; }
       return;
     }
 
+    // Poster'lar da data-poster'da: bant ekrana ~400px yaklaşınca atanır (sayfa açılışında
+    // 20+ bant poster'ı birden inmesin).
+    const posterObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        setPosters(entry.target);
+        posterObserver.unobserve(entry.target);
+      });
+    }, { rootMargin: '400px 0px' });
     const catVideoObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         const vids = activeVideos(entry.target);
         if (entry.isIntersecting) playAll(vids); else pauseAll(vids);
       });
     }, { threshold: 0.15 });
-    bands.forEach(band => catVideoObserver.observe(band));
+    // Masaüstü intro sırasında #season-hero position:fixed olur ve akıştan çıkar — Yeni Sezon
+    // bandı ekranın tepesine kayıp "görünür" sayılıyor, videoları intro arkasında boşuna
+    // iniyordu. Gözlem intro kapanınca başlar (mobil intro overlay akışı etkilemez).
+    function observeAll() {
+      bands.forEach(band => { posterObserver.observe(band); catVideoObserver.observe(band); });
+    }
+    const heroEl = document.getElementById('season-hero');
+    if (heroEl && heroEl.classList.contains('intro-active')) {
+      window.addEventListener('mn-intro-closed', () => setTimeout(observeAll, 650), { once: true });
+    } else {
+      observeAll();
+    }
   }
 
   // ===== INTERSECTION OBSERVER (reveal) =====

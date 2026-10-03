@@ -21,8 +21,9 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-dark);
   font-family: 'Inter', sans-serif;
-  height: 100dvh;
-  overflow: hidden;
+  /* 2026-10-03: üstte tam ekran hero video var, iletişim bölümü altında — sayfa artık kaydırılır. */
+  min-height: 100dvh;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -124,7 +125,7 @@ body::before {
   z-index: 1;
   width: 100%;
   max-width: 520px;
-  height: 100dvh;
+  min-height: 100dvh;
   padding: 50px 20px 12px;
   display: flex;
   flex-direction: column;
@@ -195,113 +196,6 @@ body::before {
   margin: 8px auto 0;
 }
 
-/* ── Catalog banner ── */
-.catalog-banner {
-  display: block;
-  position: relative;
-  width: 100%;
-  height: 200px;
-  flex-shrink: 0;
-  border-radius: var(--radius);
-  overflow: hidden;
-  border: 1.5px solid rgba(184,152,94,0.4);
-  text-decoration: none;
-  transition: var(--transition);
-}
-
-.catalog-banner picture { display: block; width: 100%; height: 100%; }
-
-.catalog-banner-img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s cubic-bezier(.4, 0, .2, 1);
-}
-
-.catalog-banner::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top,
-    rgba(10,7,5,0.95) 0%,
-    rgba(10,7,5,0.9) 45%,
-    rgba(10,7,5,0.55) 65%,
-    rgba(10,7,5,0.18) 85%,
-    transparent 100%);
-}
-
-.catalog-banner-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
-  background: var(--wine);
-  color: var(--cream);
-  font-family: 'Montserrat', 'Inter', sans-serif;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 4px 9px;
-  border-radius: 100px;
-}
-
-.catalog-banner-overlay {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 14px 16px;
-}
-
-.catalog-banner-eyebrow {
-  font-family: 'Montserrat', 'Inter', sans-serif;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(240,228,211,0.85);
-}
-
-.catalog-banner-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-weight: 600;
-  font-size: clamp(20px, 5vw, 26px);
-  color: var(--cream);
-}
-
-.catalog-banner-arrow {
-  display: inline-block;
-  transition: transform var(--transition);
-}
-
-@media (hover: hover) {
-  .catalog-banner:hover {
-    transform: translateY(-5px);
-    border-color: var(--accent-pink);
-    box-shadow:
-      0 10px 28px rgba(212,165,165,0.22),
-      0 2px 8px rgba(44,36,25,0.06);
-  }
-  .catalog-banner:hover .catalog-banner-img { transform: scale(1.03); }
-  .catalog-banner:hover .catalog-banner-arrow { transform: translateX(4px); }
-}
-
-.catalog-banner:active { transform: translateY(-2px); }
-
-@media (max-width: 480px) {
-  .catalog-banner { height: 160px; }
-}
-
-[dir="rtl"] .catalog-banner-badge { right: auto; left: 10px; }
-[dir="rtl"] .catalog-banner-eyebrow,
-[dir="rtl"] .catalog-banner-title { font-family: 'Noto Sans Arabic', 'Cormorant Garamond', serif; font-style: normal; }
-[dir="rtl"] .catalog-banner-arrow { transform: scaleX(-1); }
-[dir="rtl"] .catalog-banner:hover .catalog-banner-arrow { transform: scaleX(-1) translateX(4px); }
 
 /* ── Button grid ── */
 .btn-grid {
@@ -427,3 +321,197 @@ body::before {
   .btn-grid { grid-template-columns: 1fr; }
   .btn-grid .btn-full { grid-column: 1; }
 }
+
+/* ══════════ HERO VİDEO (8740) — tam ekran, ilk ekran ══════════
+   9:16 video yatay ekranda KIRPILMASIN diye contain + arkada aynı poster'ın bulanık hali;
+   dikey ekranlarda (telefon) cover — yalnızca yanlardan az bir pay kırpılır, ürün tam görünür. */
+.home-hero {
+  position: relative;
+  z-index: 2;
+  align-self: stretch;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background: #1c140e;
+  color: #fff;
+}
+.home-hero-backdrop {
+  position: absolute;
+  inset: -40px;
+  background: #3a2a1e url('/catalog/video/ns_8740b_poster.jpg') center / cover no-repeat;
+  filter: blur(28px) brightness(0.55) saturate(1.1);
+}
+.home-hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+@media (max-aspect-ratio: 3/4) {
+  .home-hero-backdrop { display: none; }
+  .home-hero-video { object-fit: cover; object-position: center 35%; }
+}
+.home-hero-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgba(0,0,0,0.38) 0%, transparent 22%),
+    linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.35) 28%, transparent 52%);
+  pointer-events: none;
+}
+.home-hero-logo {
+  position: absolute;
+  top: calc(56px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(230px, 52vw);
+  height: auto;
+  filter: drop-shadow(0 2px 10px rgba(0,0,0,0.35));
+}
+.home-hero-tag {
+  position: absolute;
+  left: 50%;
+  bottom: calc(196px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  padding: 5px 12px;
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 999px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: var(--transition);
+}
+.home-hero-tag b { font-weight: 500; letter-spacing: 0.08em; }
+.home-hero-tag:hover { background: #fff; color: var(--text-dark); }
+.home-hero-text {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  padding: 0 20px;
+  text-align: center;
+}
+.home-hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  font-size: clamp(19px, 2.4vw, 26px);
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  text-shadow: 0 1px 14px rgba(0,0,0,0.35);
+}
+.home-hero-sub {
+  margin-top: 6px;
+  font-size: 10.5px;
+  font-weight: 300;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.home-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 11px 24px;
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.7);
+  transition: var(--transition);
+}
+.home-hero-cta:hover { background: #fff; color: var(--text-dark); }
+.home-hero-scroll {
+  position: absolute;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  width: 28px; height: 28px;
+  margin-left: -14px;
+  opacity: 0.75;
+}
+.home-hero-scroll span {
+  position: absolute;
+  left: 9px; top: 6px;
+  width: 10px; height: 10px;
+  border-right: 1px solid #fff;
+  border-bottom: 1px solid #fff;
+  transform: rotate(45deg);
+  animation: homeHeroBounce 1.8s ease-in-out infinite;
+}
+@keyframes homeHeroBounce { 50% { transform: translateY(5px) rotate(45deg); } }
+[dir="rtl"] .home-hero-title { font-family: 'Noto Sans Arabic', 'Cormorant Garamond', serif; }
+
+/* Hero üstündeyken dil çubuğu şeffaf (koyu videonun üstünde krem şerit olmasın). */
+body.on-hero .lang-bar { background: transparent; border-bottom-color: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+body.on-hero .lang-btn { color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.35); }
+body.on-hero .lang-btn.active { color: #fff; border-color: #fff; background: rgba(255,255,255,0.12); }
+
+/* ══════════ SONBAHAR GİRİŞ ANİMASYONU ══════════
+   Sadece html.mn-intro iken (bkz. <head>'deki kapı script'i) görünür; video/poster arkada yüklenir. */
+#home-intro { display: none; }
+html.mn-intro body { overflow: hidden; }
+html.mn-intro #home-intro {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: linear-gradient(160deg, #f3c9a8 0%, #d9a07a 38%, #8a5a3b 78%, #4a2f1f 100%);
+  transition: opacity 0.8s ease, transform 0.8s cubic-bezier(.6, 0, .3, 1);
+}
+#home-intro.out { opacity: 0; transform: translateY(-6%); pointer-events: none; }
+#home-intro-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.home-intro-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fffaf3;
+  pointer-events: none;
+  opacity: 0;
+  animation: homeIntroText 0.9s ease 0.3s forwards;
+}
+.home-intro-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  font-size: clamp(30px, 6vw, 54px);
+  letter-spacing: 0.32em;
+  padding-left: 0.32em;
+  text-shadow: 0 2px 18px rgba(74,47,31,0.35);
+}
+.home-intro-sub {
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+@keyframes homeIntroText { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.home-intro-skip {
+  position: absolute;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  right: 18px;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #fffaf3;
+  text-decoration: none;
+  opacity: 0.85;
+  padding: 6px 4px;
+}
+.home-intro-skip:hover { opacity: 1; }

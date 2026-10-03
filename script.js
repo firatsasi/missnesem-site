@@ -12,6 +12,10 @@ const i18n = {
     cat_badge: 'YENİ',
     cat_eyebrow: 'YENİ SEZON · SONBAHAR KIŞ 2026',
     cat_title: 'Kataloğu Keşfet',
+    hero_tag: 'Yeni',
+    hero_title: "SONBAHAR 2026 — Merter'de yeni sezon",
+    hero_sub: 'Toptan kadın giyim',
+    hero_cta: 'Kataloğu Gör',
   },
   en: {
     lang: 'en', dir: 'ltr',
@@ -26,6 +30,10 @@ const i18n = {
     cat_badge: 'NEW',
     cat_eyebrow: 'NEW SEASON · AUTUMN WINTER 2026',
     cat_title: 'Discover the Catalog',
+    hero_tag: 'New',
+    hero_title: 'AUTUMN 2026 — New season in Merter',
+    hero_sub: "Wholesale women's clothing",
+    hero_cta: 'View Catalog',
   },
   ar: {
     lang: 'ar', dir: 'rtl',
@@ -40,6 +48,10 @@ const i18n = {
     cat_badge: 'جديد',
     cat_eyebrow: 'الموسم الجديد · خريف شتاء 2026',
     cat_title: 'اكتشف الكتالوج',
+    hero_tag: 'جديد',
+    hero_title: 'خريف 2026 — موسم جديد في مرتر',
+    hero_sub: 'ملابس نسائية بالجملة',
+    hero_cta: 'عرض الكتالوج',
   },
   ru: {
     lang: 'ru', dir: 'ltr',
@@ -54,6 +66,10 @@ const i18n = {
     cat_badge: 'НОВОЕ',
     cat_eyebrow: 'НОВЫЙ СЕЗОН · ОСЕНЬ-ЗИМА 2026',
     cat_title: 'Смотреть каталог',
+    hero_tag: 'Новинка',
+    hero_title: 'ОСЕНЬ 2026 — Новый сезон в Мертере',
+    hero_sub: 'Женская одежда оптом',
+    hero_cta: 'Смотреть каталог',
   }
 };
 
