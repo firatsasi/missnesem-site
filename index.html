@@ -142,14 +142,15 @@
 </head>
 <body>
 
-  <!-- ===== SONBAHAR GİRİŞ ANİMASYONU (sadece html.mn-intro iken görünür, ~2.5 sn) ===== -->
-  <div id="home-intro" aria-hidden="true">
-    <canvas id="home-intro-canvas"></canvas>
-    <div class="home-intro-text">
+  <!-- ===== SONBAHAR GİRİŞ ANİMASYONU — kumaş + yaprak (sadece html.mn-intro iken, 2.5 sn) ===== -->
+  <div id="home-intro">
+    <canvas id="home-intro-canvas" aria-hidden="true"></canvas>
+    <div class="home-intro-text" id="home-intro-text" aria-hidden="true">
       <span class="home-intro-title">MISS NEŞEM</span>
-      <span class="home-intro-sub">Sonbahar 2026 · Merter</span>
+      <span class="home-intro-sub">Sonbahar '26 · Merter</span>
     </div>
     <a href="#" class="home-intro-skip" id="home-intro-skip">Atla</a>
+    <button type="button" class="home-intro-sound" id="home-intro-sound" aria-label="Müziği aç" hidden>🔊</button>
   </div>
 
   <!-- ===== HERO VİDEO (8740, ilk ekran — lazy değil) ===== -->
@@ -168,7 +169,6 @@
     </script>
     <div class="home-hero-shade" aria-hidden="true"></div>
     <img src="assets/missnesem_logo_white_520.png" alt="Miss Neşem" class="home-hero-logo" width="520" height="222" />
-    <a class="home-hero-tag" href="/catalog/#urun=8740"><b>8740</b> · <span data-i18n="hero_tag">Yeni</span></a>
     <div class="home-hero-text">
       <p class="home-hero-title" data-i18n="hero_title">SONBAHAR 2026 — Merter'de yeni sezon</p>
       <p class="home-hero-sub" data-i18n="hero_sub">Toptan kadın giyim</p>
@@ -329,20 +329,26 @@
       window.addEventListener('scroll', onScroll, { passive: true });
     })();
 
-    // ===== SONBAHAR GİRİŞ ANİMASYONU (saf JS + canvas, kütüphane yok) =====
+    // ===== SONBAHAR GİRİŞ ANİMASYONU — kumaş + yaprak (saf JS + canvas, kütüphane yok) =====
     // <head>'deki kapı html.mn-intro eklemediyse (24 saat içinde tekrar giriş / reduced-motion)
-    // overlay hemen silinir. 2.5 sn yaprak düşüşü → yapraklar aşağı dağılır + overlay 0.8 sn'de
-    // yukarı kalkarak söner; hero videosu/poster'ı bu sürede arkada zaten yüklenip oynuyor.
+    // overlay hemen silinir. Zaman çizelgesi (sn):
+    //   0–0.8  koyu kahve zemin, ortadan açık bej ipek kumaş açılır (kıvrım gölgesi + ışık yansıması)
+    //   0.8–1.8 kumaşın üstünden 6–8 yaprak süzülür (derinlik: uzak = küçük/bulanık/saydam)
+    //   1.8–2.5 kumaş perde gibi yukarı toplanır; zemin 1.7–2.5 arası söner → hero videosu açılır
+    // Hero poster'ı/videosu bu sürede arkada zaten yüklenip oynuyor.
     (function () {
       var root = document.documentElement;
       var intro = document.getElementById('home-intro');
       if (!root.classList.contains('mn-intro')) { intro.remove(); return; }
       try { localStorage.setItem('mn_home_intro_ts', String(Date.now())); } catch (e) {}
 
-      var DUR = 2500, OUT = 800, MIN_LEAVES = 12;
+      var T_OPEN = 0.8, T_LEAVES = 0.8, T_LIFT = 1.8, T_END = 2.5;
+      var MUSIC = '/assets/intro_music.mp3';
       var cv = document.getElementById('home-intro-canvas');
+      var textEl = document.getElementById('home-intro-text');
+      var soundBtn = document.getElementById('home-intro-sound');
       var ctx = cv.getContext && cv.getContext('2d');
-      var leaving = false, finished = false, leaves = [];
+      var finished = false, shift = 0, lastT = 0;
 
       function finish() {
         if (finished) return;
@@ -352,92 +358,240 @@
         var v = document.getElementById('home-hero-video');
         if (v && v.paused) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
       }
-      function leave() {
-        if (leaving) return;
-        leaving = true;
-        leaves.forEach(function (l) { l.vy = l.vy * 2.4 + 160; l.vx += (Math.random() - 0.5) * 260; });
-        intro.classList.add('out');
-        setTimeout(finish, OUT);
+      // "Atla": zaman çizelgesini perdenin kalktığı ana atlatır (ani kesme yerine 0.7 sn kapanış).
+      document.getElementById('home-intro-skip').addEventListener('click', function (e) {
+        e.preventDefault();
+        if (!ctx) { finish(); return; }
+        if (lastT < T_LIFT) shift += T_LIFT - lastT;
+      });
+      // Müzik: dosya varsa 🔊 görünür (HEAD 200); tıklanınca çalar, intro bitse de sürer.
+      if (window.fetch) {
+        fetch(MUSIC, { method: 'HEAD' }).then(function (r) {
+          if (r.ok && !finished) soundBtn.hidden = false;
+        }).catch(function () {});
       }
-      document.getElementById('home-intro-skip').addEventListener('click', function (e) { e.preventDefault(); leave(); });
-      if (!ctx || typeof Path2D === 'undefined') { setTimeout(leave, DUR); return; }
+      soundBtn.addEventListener('click', function () {
+        try { var a = new Audio(MUSIC); a.volume = 0.6; var p = a.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+        soundBtn.hidden = true;
+      });
+      if (!ctx || typeof Path2D === 'undefined') { setTimeout(finish, T_END * 1000); return; }
 
-      // 24x24 kutuda 4 yaprak şekli (SVG path): akçaağaç, meşe, oval, damla+sap.
-      var SHAPES = [
-        'M12 1l1.8 4.6 3.6-1.8-.9 4.6 4.6.9-3.6 2.7 1.8 2.7-4.5-.9-.9 3.6-1.9-3.6-1.9 3.6-.9-3.6-4.5.9 1.8-2.7-3.6-2.7 4.6-.9-.9-4.6 3.6 1.8z',
-        'M12 1c2 2 .8 3 2.8 3.8s2.8-.8 2.8 1.2-1.8 1.8-.8 3.6 2.8 1 1.8 2.8-2.8 1-2.8 2.8 1 2.8-1 2.8-1.8 1-1.8 2.8h-2c0-1.8 0-1.8-1.8-2.8s-1.8-1-.8-2.8-1.8-1-2.8-2.8 1.8-1.8 1.8-2.8-2.8-.8-1.8-2.8 1.8 1 2.8-.8.8-2 2.8-3.6z',
-        'M12 1C6 6 5 14 12 23 19 14 18 6 12 1z',
-        'M12 2Q20.5 9.5 12 19.5 3.5 9.5 12 2zM11.4 19h1.2v4h-1.2z'
-      ].map(function (d) { return new Path2D(d); });
-      var COLORS = ['#5e3a24', '#7a4a2b', '#9a6238', '#b9814f', '#c99566', '#d8b089'];
-
-      var W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var W = 0, H = 0, S = 1, dpr = Math.min(window.devicePixelRatio || 1, 2);
       function resize() {
         W = window.innerWidth; H = window.innerHeight;
+        S = Math.max(0.6, Math.min(1.3, Math.min(W, H) / 800));
         cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
       resize();
       window.addEventListener('resize', resize);
 
+      function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+      function ease(x) { x = clamp(x, 0, 1); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+      function easeOut(x) { x = clamp(x, 0, 1); return 1 - Math.pow(1 - x, 3); }
       function rnd(a, b) { return a + Math.random() * (b - a); }
-      var count = W < 600 ? 28 : 38;
+
+      // ---------- KUMAŞ ----------
+      // Renk: koyu kıvrım → bej → ışık (s: 0..1).
+      var C_DARK = [128, 94, 68], C_BASE = [222, 198, 168], C_LIGHT = [250, 239, 222];
+      function mix(a, b, k) { return 'rgb(' + ((a[0] + (b[0] - a[0]) * k) | 0) + ',' + ((a[1] + (b[1] - a[1]) * k) | 0) + ',' + ((a[2] + (b[2] - a[2]) * k) | 0) + ')'; }
+      function fabricColor(s) { return s < 0.62 ? mix(C_DARK, C_BASE, s / 0.62) : mix(C_BASE, C_LIGHT, (s - 0.62) / 0.38); }
+      // Dikey ipek kıvrımları + ortadan dışa yayılıp sönen dalga.
+      // Üç farklı frekans üst üste → düzenli "oluk" yerine düzensiz, yumuşak ipek kıvrımları.
+      function shade(x, t) {
+        var k = 6.283 / S;
+        var fold = 0.55 * Math.sin(x / 170 * k + Math.sin(x * 0.0023 + t * 0.9) * 1.6)
+                 + 0.30 * Math.sin(x / 67 * k + t * 0.7 + 1.1)
+                 + 0.15 * Math.sin(x / 310 * k - t * 0.4 + 2.3);
+        var dx = Math.abs(x - W / 2);
+        var ripple = Math.sin(dx / (W * 0.16) * 6.283 - t * 7.5) * Math.exp(-t * 1.4);
+        return clamp(0.6 + 0.3 * fold + 0.14 * ripple, 0, 1);
+      }
+      function fabricPath(t) {
+        var path = new Path2D(), y, x, step;
+        if (t < T_OPEN) {
+          // Ortadan açılış: kenarlar dalgalı.
+          var half = (W / 2 + 80) * ease(t / T_OPEN * 1.05);
+          var amp = 26 * S * (1 - t / T_OPEN * 0.6);
+          step = 24;
+          path.moveTo(W / 2 - half, -20);
+          for (y = -20; y <= H + 20; y += step) path.lineTo(W / 2 + half + amp * Math.sin(y * 0.011 + t * 6), y);
+          for (y = H + 20; y >= -20; y -= step) path.lineTo(W / 2 - half - amp * Math.sin(y * 0.011 + t * 6 + 1.3), y);
+        } else {
+          // Tam kaplama; 1.8'den sonra alt kenar fistolu (perde toplanması) yükselir.
+          var p = ease((t - T_LIFT) / (T_END - T_LIFT));
+          var swag = 70 * S * clamp(p * 3, 0, 1), swagW = 190 * S;
+          var base = (H + 40) * (1 - p) - swag * (1 - p * 0.3) - (p > 0 ? 40 * p : 0);
+          step = 12;
+          path.moveTo(-20, -40);
+          path.lineTo(W + 20, -40);
+          for (x = W + 20; x >= -20; x -= step) {
+            var f = (x / swagW) % 1;
+            path.lineTo(x, base + swag * Math.sin(Math.PI * f) - 4 * S * Math.sin(x * 0.03 + t * 5));
+          }
+        }
+        path.closePath();
+        return path;
+      }
+      function drawFabric(t, sheen) {
+        if (t >= T_END) return;
+        var path = fabricPath(t);
+        // Hafif çapraz eğim: kıvrımlar tam dikey değil, ipek gibi süzülür.
+        var g = ctx.createLinearGradient(0, 0, W, H * 0.16), n = 48;
+        for (var i = 0; i <= n; i++) g.addColorStop(i / n, fabricColor(shade(W * i / n, t)));
+        ctx.fillStyle = g;
+        ctx.fill(path);
+        // Üstten yumuşak ışık, alta doğru hafif gölge (dökümlü kumaş hacmi).
+        var vg = ctx.createLinearGradient(0, 0, 0, H);
+        vg.addColorStop(0, 'rgba(255,248,236,0.20)');
+        vg.addColorStop(0.45, 'rgba(255,248,236,0)');
+        vg.addColorStop(1, 'rgba(60,38,24,0.20)');
+        ctx.fillStyle = vg;
+        ctx.fill(path);
+        // Kayan ışık yansıması (ipek parlaması).
+        if (sheen) {
+          var c = -0.4 * W + clamp(t / 2.2, 0, 1) * 1.9 * W;
+          var sg = ctx.createLinearGradient(c - 260 * S, 0, c + 260 * S, 160 * S);
+          sg.addColorStop(0, 'rgba(255,250,240,0)');
+          sg.addColorStop(0.5, 'rgba(255,250,240,0.34)');
+          sg.addColorStop(1, 'rgba(255,250,240,0)');
+          ctx.fillStyle = sg;
+          ctx.fill(path);
+        }
+        // Toplanma sırasında alt kenarda gölge (kumaş katları).
+        if (t > T_LIFT) {
+          var p = ease((t - T_LIFT) / (T_END - T_LIFT));
+          var by = (H + 40) * (1 - p);
+          var shg = ctx.createLinearGradient(0, by - 200 * S, 0, by + 40 * S);
+          shg.addColorStop(0, 'rgba(70,44,28,0)');
+          shg.addColorStop(1, 'rgba(70,44,28,0.45)');
+          ctx.fillStyle = shg;
+          ctx.fill(path);
+        }
+      }
+
+      // ---------- YAPRAKLAR ----------
+      // 100x100 kutuda, sap altta: akçaağaç, meşe, çınar (+ damarlar).
+      var SHAPES = [
+        { d: 'M50 4L57 21 67 13 65 33 83 25 77 43 97 41 81 57 89 63 67 67 71 79 54 71 52 90 48 90 46 71 29 79 33 67 11 63 19 57 3 41 23 43 17 25 35 33 33 13 43 21Z',
+          veins: [[50, 66, 50, 8], [50, 64, 80, 28], [50, 64, 20, 28], [50, 66, 92, 43], [50, 66, 8, 43]] },
+        { d: 'M50 4C58 6 60 14 56 18 64 16 70 20 66 28 74 28 78 36 70 42 78 44 80 52 72 56 78 60 76 70 66 70 68 78 60 84 52 82L51 94 49 94 48 82C40 84 32 78 34 70 24 70 22 60 28 56 20 52 22 44 30 42 22 36 26 28 34 28 30 20 36 16 44 18 40 14 42 6 50 4Z',
+          veins: [[50, 90, 50, 8], [50, 34, 64, 26], [50, 34, 36, 26], [50, 48, 70, 42], [50, 48, 30, 42], [50, 62, 70, 58], [50, 62, 30, 58]] },
+        { d: 'M50 6L59 26 81 14 75 38 96 40 79 56C75 67 64 75 54 77L51 94 49 94 46 77C36 75 25 67 21 56L4 40 25 38 19 14 41 26Z',
+          veins: [[50, 92, 50, 10], [50, 70, 79, 18], [50, 70, 21, 18], [50, 72, 92, 41], [50, 72, 8, 41]] }
+      ];
+      SHAPES.forEach(function (s) { s.path = new Path2D(s.d); });
+      var PALETTE = [['#c99a3b', '#8a5c1f'], ['#b8683a', '#6e3a1e'], ['#8a5531', '#4e2e1a'], ['#d6935c', '#9a5530'], ['#a8742f', '#6b4320']];
+      var canFilter = 'filter' in ctx;
+
+      // Her yaprak için ön/arka yüz sprite'ı bir kez çizilir (bulanıklık dahil) → karede sadece drawImage.
+      function makeSprite(shape, cols, size, blur, back) {
+        var pad = Math.ceil(blur * 3 + 4);
+        var px = Math.ceil((size + pad * 2) * dpr);
+        var c = document.createElement('canvas');
+        c.width = c.height = px;
+        var x = c.getContext('2d');
+        x.scale(dpr, dpr);
+        x.translate(pad, pad);
+        x.scale(size / 100, size / 100);
+        var g = x.createLinearGradient(20, 0, 80, 100);
+        g.addColorStop(0, back ? cols[1] : cols[0]);
+        g.addColorStop(1, back ? '#3a2214' : cols[1]);
+        x.fillStyle = g;
+        x.fill(shape.path);
+        x.strokeStyle = back ? 'rgba(255,235,210,0.18)' : 'rgba(55,28,12,0.38)';
+        x.lineWidth = 1.7;
+        x.lineCap = 'round';
+        shape.veins.forEach(function (v) { x.beginPath(); x.moveTo(v[0], v[1]); x.lineTo(v[2], v[3]); x.stroke(); });
+        if (blur > 0.3 && canFilter) {
+          var c2 = document.createElement('canvas');
+          c2.width = c2.height = px;
+          var x2 = c2.getContext('2d');
+          x2.filter = 'blur(' + (blur * dpr).toFixed(1) + 'px)';
+          x2.drawImage(c, 0, 0);
+          c = c2;
+        }
+        return { img: c, half: (size + pad * 2) / 2 };
+      }
+
+      var count = W < 600 ? 6 : 8, leaves = [];
       for (var i = 0; i < count; i++) {
+        var z = (i + rnd(0.1, 0.9)) / count;           // 0 = uzak, 1 = yakın
+        var size = (24 + 70 * z) * S;
+        var blur = z < 0.45 ? (0.45 - z) * 6 : 0;
+        var shape = SHAPES[i % SHAPES.length], cols = PALETTE[(Math.random() * PALETTE.length) | 0];
         leaves.push({
-          x: rnd(0, W), y: rnd(-H * 0.35, H * 0.8),
-          vx: rnd(-12, 12), vy: rnd(45, 105),
-          size: rnd(1, 2) * (W < 600 ? 1 : 1.35),
-          rot: rnd(0, Math.PI * 2), vr: rnd(-1.1, 1.1),
-          sway: rnd(14, 38), swaySpeed: rnd(0.9, 1.8), phase: rnd(0, Math.PI * 2),
-          flip: rnd(1.2, 2.6),
-          shape: SHAPES[i % SHAPES.length], color: COLORS[(Math.random() * COLORS.length) | 0],
-          alpha: rnd(0.75, 1)
+          z: z,
+          front: makeSprite(shape, cols, size, blur, false),
+          back: makeSprite(shape, cols, size, blur, true),
+          x0: rnd(0.08, 0.92) * W, y0: rnd(-0.22, 0.28) * H,
+          vy: H * (0.22 + 0.34 * z) * rnd(0.85, 1.15),
+          drift: rnd(-30, 30) * S,
+          sway: rnd(28, 64) * S * (0.6 + z * 0.6), swayW: rnd(1.4, 2.4), ph: rnd(0, 6.28),
+          rot0: rnd(0, 6.28), vr: rnd(0.5, 1.3) * (Math.random() < 0.5 ? -1 : 1),
+          flipW: rnd(1.6, 3), ph2: rnd(0, 6.28),
+          alpha: 0.5 + 0.5 * z
         });
       }
 
-      var t0 = performance.now(), last = t0, winStart = t0 + 300, winFrames = 0;
+      function drawLeaves(t) {
+        if (t < T_LEAVES) return;
+        var lt = t - T_LEAVES;
+        var fadeIn = easeOut(lt / 0.3);
+        var fadeOut = 1 - ease((t - 2.05) / 0.45);
+        for (var i = 0; i < leaves.length; i++) {
+          var l = leaves[i];
+          var y = l.y0 + l.vy * lt;
+          var x = l.x0 + l.drift * lt + l.sway * Math.sin(l.swayW * lt + l.ph);
+          var flip = Math.cos(l.flipW * lt + l.ph2);
+          var spr = flip >= 0 ? l.front : l.back;
+          var sx = flip >= 0 ? Math.max(flip, 0.18) : Math.max(-flip, 0.18);
+          ctx.save();
+          ctx.globalAlpha = l.alpha * fadeIn * clamp(fadeOut, 0, 1);
+          ctx.translate(x, y);
+          ctx.rotate(l.rot0 + l.vr * lt + 0.35 * Math.sin(l.swayW * lt + l.ph));
+          ctx.scale(sx, 0.9 + 0.1 * Math.abs(flip));
+          ctx.drawImage(spr.img, -spr.half, -spr.half, spr.half * 2, spr.half * 2);
+          ctx.restore();
+        }
+      }
+
+      // ---------- DÖNGÜ ----------
+      var t0 = performance.now(), winStart = t0 + 250, winFrames = 0, sheen = true;
+      intro.classList.add('drawing');
       function frame(now) {
         if (finished) return;
-        var dt = Math.min((now - last) / 1000, 0.05);
-        last = now;
-        var t = (now - t0) / 1000;
+        var t = (now - t0) / 1000 + shift;
+        lastT = t;
+        if (t >= T_END) { finish(); return; }
 
-        // FPS bekçisi: 500 ms pencerede ortalama ~50 fps altına düşerse yaprakların %30'u atılır.
+        // FPS bekçisi: 500 ms pencerede ~50 fps altına düşerse önce ışık geçişi kapanır,
+        // sonra en uzak yapraklar atılır (en az 3 kalır).
         if (now > winStart) {
           winFrames++;
           if (now - winStart >= 500) {
-            var fps = winFrames * 1000 / (now - winStart);
-            if (fps < 50 && leaves.length > MIN_LEAVES) leaves.length = Math.max(MIN_LEAVES, Math.floor(leaves.length * 0.7));
+            if (winFrames * 1000 / (now - winStart) < 50) {
+              if (sheen) sheen = false;
+              else if (leaves.length > 3) leaves.splice(0, Math.ceil(leaves.length * 0.3));
+            }
             winStart = now; winFrames = 0;
           }
         }
 
         ctx.clearRect(0, 0, W, H);
-        for (var i = 0; i < leaves.length; i++) {
-          var l = leaves[i];
-          if (leaving) l.vy += 520 * dt;
-          l.y += l.vy * dt;
-          l.x += l.vx * dt + Math.cos(t * l.swaySpeed + l.phase) * l.sway * dt;
-          l.rot += l.vr * dt;
-          if (!leaving && l.y > H + 30) { l.y = -30; l.x = rnd(0, W); }
-          ctx.save();
-          ctx.globalAlpha = l.alpha;
-          ctx.translate(l.x, l.y);
-          ctx.rotate(l.rot);
-          // Hafif 3B çevrilme hissi: x ekseninde kosinüsle daraltılır.
-          var c = Math.cos(t * l.flip + l.phase);
-          ctx.scale(l.size * (c < 0 ? Math.min(c, -0.3) : Math.max(c, 0.3)), l.size);
-          ctx.translate(-12, -12);
-          ctx.fillStyle = l.color;
-          ctx.fill(l.shape);
-          ctx.restore();
-        }
-        if (!leaving && now - t0 >= DUR) leave();
+        var bgA = 1 - ease((t - 1.7) / 0.8);
+        if (bgA > 0) { ctx.globalAlpha = bgA; ctx.fillStyle = '#2a1a11'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+        drawFabric(t, sheen);
+        drawLeaves(t);
+
+        var tin = easeOut((t - 0.45) / 0.6), tout = 1 - ease((t - T_LIFT) / 0.4);
+        textEl.style.opacity = String(Math.max(0, Math.min(tin, tout)));
+        textEl.style.transform = 'translateY(' + ((1 - tin) * 8 - (1 - tout) * 18).toFixed(1) + 'px)';
         requestAnimationFrame(frame);
       }
       requestAnimationFrame(frame);
-      // Sekme arka plandayken rAF durur — güvenlik ağı: overlay asla takılı kalmasın.
-      setTimeout(function () { leave(); }, DUR + 400);
+      // Sekme arka plandayken rAF durur — overlay asla takılı kalmasın.
+      setTimeout(finish, T_END * 1000 + 1200);
     })();
   </script>
   <script src="script.js"></script>
