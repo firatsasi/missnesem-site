@@ -107,8 +107,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   pointer-events: none;
 }
 @keyframes glowPulse {
-  0%, 100% { opacity: 0.4; transform: scale(0.93); }
-  50%       { opacity: 1;   transform: scale(1.07); }
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
 }
 
 /* Logo wrapper */
@@ -477,17 +477,22 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   overflow: hidden;
   background: #000;
 }
+/* 2026-10-03: "yakınlık/balık gözü" düzeltmesi — paneller artık kesitten taşmıyor (eski inset:-8%
+   paralaks payı videoyu ~%16 büyütüyordu) ve panel oranı videoya (9:16) uyduruldu: cover burada
+   birebir oturur, ölçek/kırpma yok. Geniş ekranda paneller ortalanır, yanlarda koyu zemin kalır. */
 .season-hero-panels {
   position: absolute;
-  inset: -8% 0;
+  inset: 0;
   display: flex;
+  justify-content: center;
   gap: 4px;
-  will-change: transform;
 }
 .season-hero-panel {
   position: relative;
-  flex: 1 1 0;
+  flex: 0 1 auto;
   height: 100%;
+  aspect-ratio: 9 / 16;
+  min-width: 0;
   overflow: hidden;
   background: #1a1410;
 }
@@ -598,9 +603,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 @media (max-width: 899px) {
   .season-hero-panel-left, .season-hero-panel-center, .season-hero-panel-right { display: none; }
-  .season-hero-panel-mobile { display: block; flex: 1 1 100%; }
-  .season-hero-panels { gap: 0; }
-  #season-hero { height: 100vh; height: 100svh; }
+  /* Mobil: tek panel tam genişlik ve videonun kendi oranında (9:16) — yanlardan kırpma/büyütme yok. */
+  .season-hero-panel-mobile { display: block; flex: 1 1 100%; width: 100%; height: auto; }
+  .season-hero-panels { position: relative; gap: 0; }
+  #season-hero { height: auto; }
   .season-hero-title { font-size: 2.8rem; }
   .season-hero-tag { letter-spacing: 0.35em; font-size: 0.65rem; }
   .season-hero-cta { font-size: 0.65rem; padding: 0.8rem 1.4rem; }
@@ -734,7 +740,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   justify-content: center;
   flex-direction: column;
   gap: 0.75rem;
-  transition: transform var(--transition);
+  transition: filter var(--transition);
   position: relative;
 }
 .product-img-placeholder .ti {
@@ -749,7 +755,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   color: var(--text);
   opacity: 0.6;
 }
-.product-card:hover .product-img-placeholder { transform: scale(1.03); }
+/* Hover: geometri değişmez (büyütme yok) — sadece hafif parlaklık + gölge. */
+.product-card:hover .product-img-placeholder:not(.sold-out-img),
+.product-card:hover .product-card-img:not(.sold-out-img) { filter: brightness(1.05); }
 .product-card:hover .product-card-visual {
   box-shadow: 0 12px 40px rgba(0,0,0,0.12);
 }
@@ -760,10 +768,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   display: flex; align-items: center; justify-content: center;
   z-index: 5;
   color: var(--text2);
-  transition: color var(--transition), transform var(--transition);
+  transition: color var(--transition), opacity var(--transition);
 }
 .card-fav .ti { font-size: 1rem; }
-.card-fav:hover { color: var(--accent); transform: scale(1.2); }
+.card-fav:hover { color: var(--accent); }
 .card-fav.active { color: var(--accent); }
 .new-badge {
   position: absolute;
@@ -869,7 +877,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   object-position: center;
   background: #ffffff;
   display: block;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, filter var(--transition);
 }
 .modal-photo {
   display: none;
@@ -1016,6 +1024,22 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   }
   .cat-bg-video-panel { position: relative; overflow: hidden; height: 100%; }
   .cat-bg-video-mobile { display: none; }
+}
+/* ===== YENİ SEZON BANDI — 5 panel (NS_BAND, initNsBand) =====
+   Her panel videonun kendi oranında (9:16): cover birebir oturur, ölçek/kırpma yok. Masaüstü 5 sütun,
+   mobil yatay kaydırmalı (scroll-snap, açılışta orta panel 8715 yazının altında). Yazı/karartma
+   katmanı tıklamayı/kaydırmayı panellere geçirir. Hover'da geometri değişmez, hafif parlaklık. */
+.section-header-video.ns-band { display: block; height: auto; min-height: 0; max-height: none; }
+.ns-band-track { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.ns-band-panel { position: relative; display: block; aspect-ratio: 9 / 16; overflow: hidden; background: #1a1018; }
+.ns-band-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: filter 0.3s ease; }
+.ns-band-panel:hover .ns-band-video { filter: brightness(1.08); }
+.ns-band .cat-bg-video-overlay, .ns-band .cat-bg-video-text { pointer-events: none; }
+.ns-band .cat-bg-video-text { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); }
+@media (max-width: 899px) {
+  .ns-band-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .ns-band-track::-webkit-scrollbar { display: none; }
+  .ns-band-panel { flex: 0 0 62vw; scroll-snap-align: center; }
 }
 .cat-bg-video-overlay {
   position: absolute;
@@ -2080,8 +2104,8 @@ html, body { overflow-x: hidden; max-width: 100%; }
       else { const t = document.getElementById('yeni-sezon'); if (t) scrollToWithNavOffset(t); }
     });
 
-    // Scroll parallax: video panelleri %20 yavaş kayar, metin fade-out olur.
-    const panelsEl = document.getElementById('season-hero-panels');
+    // Scroll: metin fade-out olur. Video panelleri artık kaymaz (eski %20 paralaks, panelleri kesitten
+    // taşırıp videoyu büyütmeyi gerektiriyordu — kaldırıldı, görüntü 1:1).
     const textEl = document.getElementById('season-hero-text');
     let ticking = false;
     function update() {
@@ -2089,7 +2113,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
       const heroH = heroEl.offsetHeight || window.innerHeight;
       const scrolled = Math.min(Math.max(-rect.top, 0), heroH);
       const progress = heroH ? scrolled / heroH : 0;
-      if (panelsEl) panelsEl.style.transform = 'translateY(' + (scrolled * 0.2).toFixed(1) + 'px)';
       if (textEl) {
         textEl.style.opacity = String(Math.max(0, 1 - progress * 1.6));
         textEl.style.transform = 'translateY(' + (scrolled * 0.15).toFixed(1) + 'px)';
@@ -3228,6 +3251,39 @@ html, body { overflow-x: hidden; max-width: 100%; }
       // elemanı ama AYNI 4 dosyayı sırayla oynatır (data-panels, bkz. initCategoryVideos'taki
       // bindMobileRotation) — 'ended' olunca bir sonrakine geçer, 4.'den sonra başa döner.
       // İkisi de DOM'da durur, initCategoryVideos sadece viewport'a uyanı yükler.
+      const bandText = `
+            <div class="cat-bg-video-text">
+              ${isNewSection ? `<span class="section-video-badge">NEW SEASON</span>` : ''}
+              <span class="section-tag">${cat.nameEn}</span>
+              <h2 class="section-title${isNewSection ? ' reveal yeni-sezon-title' : ''}">${cat.name}</h2>
+              ${isNewSection ? `<div class="yeni-sezon-marquee" aria-hidden="true">
+                <div class="yeni-sezon-marquee-track">
+                  <span>NEW SEASON &middot; SONBAHAR KIŞ 2026 &middot; NEW SEASON &middot; AUTUMN WINTER 2026 &middot; </span>
+                  <span>NEW SEASON &middot; SONBAHAR KIŞ 2026 &middot; NEW SEASON &middot; AUTUMN WINTER 2026 &middot; </span>
+                </div>
+              </div>` : ''}
+            </div>`;
+
+      // Yeni Sezon bandı: 5 tıklanabilir panel (NS_BAND), her biri videonun kendi oranında (9:16).
+      // Video/poster yüklemesi initNsBand'de (lazy, panel bazında 720/1080 seçimi).
+      if (cat.id === 'yeni-sezon') {
+        const nsPanels = NS_BAND.map(b => `
+              <a class="ns-band-panel" href="#urun=${b.code}" data-code="${b.code}" aria-label="${b.code}">
+                <video class="ns-band-video" muted playsinline loop preload="none"
+                       data-poster="/catalog/video/${b.video}_poster.jpg" data-video="${b.video}"></video>
+              </a>`).join('');
+        return `
+        <section class="cat-section" id="${cat.id}">
+          <div class="section-header-video ns-band reveal">
+            <div class="ns-band-track">${nsPanels}
+            </div>
+            <div class="cat-bg-video-overlay"></div>
+            ${bandText}
+          </div>
+          <div class="section-wrap">${bodyInner}</div>
+        </section>`;
+      }
+
       const bandKey = videoBase.replace(/^band_/, '').replace(/_1$/, '');
       const panelVideos = BAND_PANELS[bandKey] || [videoBase, videoBase, videoBase, videoBase];
       const panelsHtml = panelVideos.map(pv => {
@@ -3248,17 +3304,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
                    data-poster="/catalog/video/${panelVideos[0]}_poster.jpg" data-src="${bandVideoUrl(panelVideos[0], true)}"
                    data-panels='${JSON.stringify(panelVideos)}'></video>
             <div class="cat-bg-video-overlay"></div>
-            <div class="cat-bg-video-text">
-              ${isNewSection ? `<span class="section-video-badge">NEW SEASON</span>` : ''}
-              <span class="section-tag">${cat.nameEn}</span>
-              <h2 class="section-title${isNewSection ? ' reveal yeni-sezon-title' : ''}">${cat.name}</h2>
-              ${isNewSection ? `<div class="yeni-sezon-marquee" aria-hidden="true">
-                <div class="yeni-sezon-marquee-track">
-                  <span>NEW SEASON &middot; SONBAHAR KIŞ 2026 &middot; NEW SEASON &middot; AUTUMN WINTER 2026 &middot; </span>
-                  <span>NEW SEASON &middot; SONBAHAR KIŞ 2026 &middot; NEW SEASON &middot; AUTUMN WINTER 2026 &middot; </span>
-                </div>
-              </div>` : ''}
-            </div>
+            ${bandText}
           </div>
           <div class="section-wrap">${bodyInner}</div>
         </section>`;
@@ -3326,9 +3372,17 @@ html, body { overflow-x: hidden; max-width: 100%; }
     console.log('[MissNesem] DOM güncellendi. Catalog children:', catalog.children.length);
     initLazyImages();
     initCategoryVideos();
+    initNsBand();
 
     // card click
     catalog.addEventListener('click', e => {
+      const nsPanel = e.target.closest('.ns-band-panel');
+      if (nsPanel) {
+        e.preventDefault();
+        const p = allProducts.find(x => x.code === nsPanel.dataset.code);
+        if (p) openModal(p);
+        return;
+      }
       const favBtn = e.target.closest('.card-fav');
       if (favBtn) { e.stopPropagation(); toggleFav(favBtn.dataset.code); return; }
       const card = e.target.closest('.product-card');
@@ -3393,7 +3447,6 @@ html, body { overflow-x: hidden; max-width: 100%; }
     cat_ceket: 'center 45%',
     cat_takim: 'center 45%',
     cat_diger: 'center 45%',
-    ns_8729: 'center 40%',
   };
   // 2026-10-03: yeni sezon videoları (ns_<kod>) tek boyutlu değil — masaüstünde _1080,
   // mobilde (<900px) _720 dosyası yüklenir; poster ikisinde ortak (ns_<kod>_poster.jpg).
@@ -3407,8 +3460,17 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // + 4 hero). Anahtar CATEGORY_HEADER_VIDEO'daki dosya adından 'cat_' öneki atılarak türetilir
   // (ör. cat_trenckot → 'trenckot'). Bir bantta aynı video iki kez yok, alt alta gelen bantlar
   // aynı sırayı paylaşmıyor — elle değiştirilebilir.
+  // Yeni Sezon bandı (2026-10-03): 5 panel, soldan sağa. 8715 ortada — "NEW SEASON / Yeni Sezon"
+  // yazısı bandın ortasında, onun üstüne gelir. Panel tıklanınca ilgili ürün açılır.
+  const NS_BAND = [
+    { video: 'ns_8740b', code: '8740' },  // merdiven
+    { video: 'ns_8705',  code: '8705' },
+    { video: 'ns_8715',  code: '8715' },
+    { video: 'ns_8729',  code: '8729' },
+    { video: 'ns_8740a', code: '8740' },  // oda
+  ];
   const BAND_PANELS = {
-    yeni:     ['ns_8729', 'band_yeni_1', 'band_yeni_2', 'band_yeni_3', 'band_yeni_4'],
+    yeni:     ['band_yeni_1', 'band_yeni_2', 'band_yeni_3', 'band_yeni_4'],  // kullanılmıyor: Yeni Sezon bandı NS_BAND'den kurulur
     trenckot: ['band_trenckot_1', 'band_trenckot_2', 'band_trenckot_3', 'band_trenckot_4'],
     ceket:    ['band_ceket_1', 'band_ceket_2', 'band_ceket_3', 'band_ceket_4'],
     takim:    ['band_takim_1', 'band_takim_2', 'band_takim_3', 'band_takim_4'],
@@ -3589,8 +3651,67 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // bir kez yapılır (bkz. #season-hero'daki aynı desen), resize'da tekrar değerlendirilmez.
   // Gözlem hedefi tek tek videolar değil, .section-header-video bandının kendisi — bant
   // görünür olunca o banttaki tüm aktif videolar (4'ü veya 1'i) birlikte oynar/durur.
+  // ===== YENİ SEZON BANDI (5 panel) =====
+  // Panel bazında lazy: poster panel ~400px yaklaşınca, video panel görünür olunca (mobilde yatay
+  // kaydırmada da — IntersectionObserver kaydırma kabının kırpmasını hesaba katar) yüklenir; görünmeyen
+  // panel durur. Dosya: panelin gerçek piksel genişliği (CSS genişlik x DPR) 720'yi aşıyorsa _1080,
+  // değilse _720 — tarayıcı videoyu büyütmek zorunda kalmaz. reduced-motion / Save-Data: sadece poster.
+  function initNsBand() {
+    const band = document.querySelector('.ns-band');
+    if (!band) return;
+    const track = band.querySelector('.ns-band-track');
+    const vids = Array.from(band.querySelectorAll('.ns-band-video'));
+    // Mobil: orta panel (8715) "Yeni Sezon" yazısının altına gelsin.
+    if (track.scrollWidth > track.clientWidth + 1) {
+      const mid = track.children[Math.floor(track.children.length / 2)];
+      track.scrollLeft = mid.offsetLeft - (track.clientWidth - mid.clientWidth) / 2;
+    }
+    function setPoster(v) {
+      if (v.dataset.poster) { v.poster = v.dataset.poster; v.removeAttribute('data-poster'); }
+    }
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const saveData = navigator.connection && navigator.connection.saveData;
+    if (prefersReducedMotion || saveData || !('IntersectionObserver' in window)) {
+      vids.forEach(setPoster);
+      return;
+    }
+    function play(v) {
+      setPoster(v);
+      if (!v.getAttribute('src')) {
+        const px = v.clientWidth * (window.devicePixelRatio || 1);
+        v.src = `/catalog/video/${v.dataset.video}_${px > 720 ? 1080 : 720}.mp4?v=1`;
+        v.load();
+      }
+      if (v.readyState >= 3) { const p = v.play(); if (p && p.catch) p.catch(() => {}); return; }
+      const onReady = () => {
+        v.removeEventListener('canplay', onReady);
+        if (!v._visible) return;
+        const p = v.play(); if (p && p.catch) p.catch(() => {});
+      };
+      v.addEventListener('canplay', onReady);
+    }
+    const posterObserver = new IntersectionObserver(entries => {
+      entries.forEach(en => { if (en.isIntersecting) { setPoster(en.target); posterObserver.unobserve(en.target); } });
+    }, { rootMargin: '400px' });
+    const playObserver = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        const v = en.target;
+        v._visible = en.isIntersecting;
+        if (en.isIntersecting) play(v); else if (v.getAttribute('src')) v.pause();
+      });
+    }, { threshold: 0.25 });
+    function observeAll() { vids.forEach(v => { posterObserver.observe(v); playObserver.observe(v); }); }
+    // Masaüstü AUTUMN intro'su sırasında hero fixed olur ve bant ekranın tepesine kayar — kapanışı beklenir.
+    const heroEl = document.getElementById('season-hero');
+    if (heroEl && heroEl.classList.contains('intro-active')) {
+      window.addEventListener('mn-intro-closed', () => setTimeout(observeAll, 650), { once: true });
+    } else {
+      observeAll();
+    }
+  }
+
   function initCategoryVideos() {
-    const bands = document.querySelectorAll('.section-header-video');
+    const bands = document.querySelectorAll('.section-header-video:not(.ns-band)');
     if (bands.length === 0) return;
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const saveData = navigator.connection && navigator.connection.saveData;
