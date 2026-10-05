@@ -360,7 +360,7 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
     <div class="opt-grp"><span class="opt-lbl">PARA</span><select class="opt-sel" id="para" onchange="paraDegisti()"><option value="TL">₺ TL</option><option value="USD">$ USD</option><option value="EUR">€ EUR</option></select></div>
     <div class="opt-grp"><span class="opt-lbl">KDV</span><select class="opt-sel" id="kdvOran" onchange="hesapla()"><option value="0">Yok</option><option value="1">%1</option><option value="5">%5</option><option value="10">%10</option><option value="20">%20</option></select></div>
     <div class="opt-grp"><span class="opt-lbl">ÖDEME</span><select class="opt-sel" id="odeme" onchange="bakiyeGoster()"></select></div>
-    <div class="opt-grp"><span class="opt-lbl">TÜR</span><select class="opt-sel" id="tur" onchange="odemeGuncelle()"><option value="Resmi">Resmi</option><option value="Gayri Resmi" selected>Gayri Resmi</option></select></div>
+    <div class="opt-grp"><span class="opt-lbl">TÜR</span><select class="opt-sel" id="tur" onchange="odemeGuncelle();turKdvUygula()"><option value="Resmi">Resmi</option><option value="Gayri Resmi" selected>Gayri Resmi</option></select></div>
   </div>
   <div class="bakiye-box" id="bakiyeBox">
     <div class="bakiye-grid">
@@ -853,6 +853,16 @@ function odemeGuncelle(){
   bakiyeGoster();
 }
 
+/* 2026-10-05: TÜR'e göre KDV - Resmi → %10, Gayri Resmi → Yok. SADECE kullanıcı TÜR'ü değiştirince
+   (select onchange) ve yeni boş formda uygulanır; elle seçilen KDV (yarım fatura %5 gibi) TÜR tekrar
+   değişene kadar ezilmez. Kayıtlı irsaliye açılırken (irsaliyeDuzenle) değerler kodla atandığı için
+   tetiklenmez - kayıtlı KDV aynen gelir. */
+function turKdvOrani(tur){return tur==='Resmi'?'10':'0';}
+function turKdvUygula(){
+  document.getElementById('kdvOran').value=turKdvOrani(document.getElementById('tur').value);
+  hesapla();
+}
+
 /* ====== SON KULLANILAN İRSALİYE AYARLARI (yeni irsaliye açıldığında hatırlanır) ======
    Düzenleme modunda hiç çağrılmaz — irsaliyeDuzenle() kendi kayıtlı değerlerini uygular,
    kaydet() da düzenleme sırasında bu ayarları localStorage'a yazmaz. */
@@ -878,9 +888,8 @@ function sonAyarlariUygula(){
   var odemeSel=document.getElementById('odeme');
   if([].slice.call(odemeSel.options).some(function(o){return o.value===odeme;}))odemeSel.value=odeme;
 
-  var kdv=localStorage.getItem('missnesem_son_kdv')||'0';
-  var kdvSel=document.getElementById('kdvOran');
-  if([].slice.call(kdvSel.options).some(function(o){return o.value===kdv;}))kdvSel.value=kdv;
+  // KDV son kullanılandan değil TÜR'den gelir (bir önceki irsaliyenin elle %5'i yeni forma taşınmasın).
+  document.getElementById('kdvOran').value=turKdvOrani(turSel.value);
 
   bakiyeGoster();
 }
