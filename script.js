@@ -15,6 +15,7 @@ const i18n = {
     hero_title: "SONBAHAR 2026 — Merter'de yeni sezon",
     hero_sub: 'Toptan kadın giyim',
     hero_cta: 'Kataloğu Gör',
+    season: "Sonbahar '26",
   },
   en: {
     lang: 'en', dir: 'ltr',
@@ -32,6 +33,7 @@ const i18n = {
     hero_title: 'AUTUMN 2026 — New season in Merter',
     hero_sub: "Wholesale women's clothing",
     hero_cta: 'View Catalog',
+    season: "Autumn '26",
   },
   ar: {
     lang: 'ar', dir: 'rtl',
@@ -49,6 +51,7 @@ const i18n = {
     hero_title: 'خريف 2026 — موسم جديد في مرتر',
     hero_sub: 'ملابس نسائية بالجملة',
     hero_cta: 'عرض الكتالوج',
+    season: 'خريف 26',
   },
   ru: {
     lang: 'ru', dir: 'ltr',
@@ -66,6 +69,7 @@ const i18n = {
     hero_title: 'ОСЕНЬ 2026 — Новый сезон в Мертере',
     hero_sub: 'Женская одежда оптом',
     hero_cta: 'Смотреть каталог',
+    season: "Осень '26",
   }
 };
 

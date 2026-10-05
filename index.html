@@ -133,46 +133,59 @@
        <body>'nin hemen başında senkron: overlay ilk boyamadan önce DOM'a girer. ===== -->
   <script src="/assets/fabric-intro.js"></script>
 
-  <!-- ===== HERO VİDEO (8740, ilk ekran — lazy değil) ===== -->
-  <section class="home-hero" id="home-hero">
-    <div class="home-hero-backdrop" aria-hidden="true"></div>
-    <video class="home-hero-video" id="home-hero-video" autoplay muted loop playsinline preload="metadata"
-           poster="/catalog/video/ns_8740b_poster.jpg" width="720" height="1280"></video>
-    <script>
-      // Masaüstü 1080p, mobil (<900px) 720p — video elemanının hemen arkasında senkron seçilir
-      // ki indirme HTML parse edilirken başlasın.
-      (function () {
-        var v = document.getElementById('home-hero-video');
-        var big = window.matchMedia('(min-width: 900px)').matches;
-        v.src = '/catalog/video/ns_8740b_' + (big ? 1080 : 720) + '.mp4?v=1';
-      })();
-    </script>
-    <div class="home-hero-shade" aria-hidden="true"></div>
-    <img src="assets/missnesem_logo_white_520.png" alt="Miss Neşem" class="home-hero-logo" width="520" height="222" />
-    <div class="home-hero-text">
-      <p class="home-hero-title" data-i18n="hero_title">SONBAHAR 2026 — Merter'de yeni sezon</p>
-      <p class="home-hero-sub" data-i18n="hero_sub">Toptan kadın giyim</p>
-      <a class="home-hero-cta" href="/catalog/?from=home"><span data-i18n="hero_cta">Kataloğu Gör</span> <span aria-hidden="true">→</span></a>
-    </div>
-    <a class="home-hero-scroll" href="#iletisim" aria-label="İletişim"><span aria-hidden="true"></span></a>
-  </section>
-
-  <!-- Language Bar -->
+  <!-- ===== 2026-10-05 KÖK SAYFA: video + bağlantı kartları AYNI EKRANDA =====
+       Masaüstü (≥900px): sol %40 video (9:16, kırpılmadan) | sağ %60 krem panel (logo, slogan, kartlar).
+       Mobil: video sabit tam ekran arka plan, üstünde logo + "Sonbahar '26" + katalog; kartlar buzlu cam,
+       kaydırılır. Hareket azaltma / veri tasarrufu / yavaş bağlantıda video yerine poster. -->
   <nav class="lang-bar" aria-label="Language selector">
     <div class="lang-buttons">
       <button class="lang-btn active" data-lang="tr" onclick="setLang('tr')"><span class="fi fi-tr"></span> TR</button>
       <button class="lang-btn" data-lang="en" onclick="setLang('en')"><span class="fi fi-gb"></span> EN</button>
-      <button class="lang-btn" data-lang="ar" onclick="setLang('ar')"><span class="fi fi-sa"></span> AR</button>
-      <button class="lang-btn" data-lang="ru" onclick="setLang('ru')"><span class="fi fi-ru"></span> RU</button>
     </div>
   </nav>
 
-  <div class="page" id="iletisim">
+  <div class="home">
+    <section class="home-media" aria-label="Sonbahar 2026">
+      <div class="home-media-backdrop" aria-hidden="true"></div>
+      <img class="home-media-poster" src="/catalog/video/ns_8740b_poster.jpg" alt="" width="720" height="1280" fetchpriority="high" />
+      <video class="home-media-video" id="home-video" autoplay muted loop playsinline preload="auto"
+             poster="/catalog/video/ns_8740b_poster.jpg" width="720" height="1280" aria-hidden="true"></video>
+      <script>
+        // Video hemen (lazy değil) — elemanın arkasında senkron: masaüstü 1080p, mobil 720p. Hareket
+        // azaltma, veri tasarrufu ya da 2G/yavaş bağlantıda video HİÇ indirilmez, poster kalır.
+        (function () {
+          var v = document.getElementById('home-video');
+          var c = navigator.connection || {};
+          var az = (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) ||
+                   c.saveData || /(^|-)2g$/.test(c.effectiveType || '');
+          if (az) { v.remove(); document.documentElement.classList.add('home-poster-only'); return; }
+          v.src = '/catalog/video/ns_8740b_' + (matchMedia('(min-width: 900px)').matches ? 1080 : 720) + '.mp4?v=1';
+        })();
+      </script>
+      <div class="home-media-shade" aria-hidden="true"></div>
+      <div class="home-media-caption">
+        <p class="home-season" data-i18n="season">Sonbahar '26</p>
+        <a class="home-cta" href="/catalog/?from=home"><span data-i18n="hero_cta">Kataloğu Gör</span> <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
 
-    <!-- Header + Logo -->
+    <main class="home-panel" id="iletisim">
+      <!-- Mobil üst: videonun üstünde beyaz logo + sezon + katalog (masaüstünde gizli) -->
+      <div class="home-mobile-top">
+        <img src="assets/missnesem_logo_white_520.png" alt="Miss Neşem" class="home-mobile-logo" width="520" height="222" />
+        <p class="home-mobile-slogan" data-i18n="slogan">Kadının Şıklığı, Toptan Adresi</p>
+        <div class="home-mobile-caption">
+          <p class="home-season" data-i18n="season">Sonbahar '26</p>
+          <a class="home-cta" href="/catalog/?from=home"><span data-i18n="hero_cta">Kataloğu Gör</span> <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+
+      <div class="page">
+
+    <!-- Header + Logo (masaüstü sağ panel) -->
     <div class="section-hero">
       <header class="site-header">
-        <img src="assets/missnesem_logo_white.png" alt="Miss Neşem" class="site-logo" loading="lazy" width="2285" height="975" />
+        <img src="assets/missnesem_logo_white_520.png" srcset="assets/missnesem_logo_white_520.png 520w, assets/missnesem_logo_white.png 2285w" sizes="(min-width: 900px) 340px, 1px" alt="Miss Neşem" class="site-logo" width="520" height="222" />
         <p class="slogan" data-i18n="slogan">Kadının Şıklığı, Toptan Adresi</p>
         <p class="location-tag">MERTER &nbsp;•&nbsp; İSTANBUL</p>
       </header>
@@ -298,20 +311,14 @@
       Made with ❤️ in Merter, İstanbul
     </footer>
 
-  </div><!-- /page -->
+      </div><!-- /page -->
+    </main>
+  </div><!-- /home -->
 
   <script>
-    // ===== HERO: dil çubuğu hero üstündeyken şeffaf =====
-    (function () {
-      var hero = document.getElementById('home-hero');
-      function onScroll() { document.body.classList.toggle('on-hero', window.scrollY < hero.offsetHeight - 60); }
-      onScroll();
-      window.addEventListener('scroll', onScroll, { passive: true });
-    })();
-
-    // Giriş animasyonu bittiğinde hero videosu bir şekilde durmuşsa (ör. arka plan sekme) oynat.
+    // Giriş animasyonu bittiğinde video bir şekilde durmuşsa (ör. arka plan sekme) oynat.
     if (window.MNFabricIntro) window.MNFabricIntro.onDone(function () {
-      var v = document.getElementById('home-hero-video');
+      var v = document.getElementById('home-video');
       if (v && v.paused) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
     });
   </script>
