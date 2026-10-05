@@ -94,7 +94,9 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .total-val{font-size:20px;font-weight:700;color:#f0e4d3}
 .foot-note{margin-top:1.5rem;text-align:center;font-size:10px;color:#a64d3e;letter-spacing:1px}
 .btns{margin-top:1.2rem;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
-.yeni-irs-bar{display:flex;justify-content:flex-end;margin-bottom:10px}
+.yeni-irs-bar{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:10px}
+.btn-rapor-don{margin-right:auto;font-size:13px;padding:9px 16px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:8px;background:#fff;font-weight:700}
+.btn-rapor-don:hover{background:#f0e4d3}
 .btn-yeni-irs{font-size:14px;padding:10px 22px;cursor:pointer;color:#fff;border:none;border-radius:8px;background:#2f7a3d;font-weight:700;letter-spacing:.5px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
 .btn-yeni-irs:hover{background:#276633}
 .btn-sec{font-size:13px;padding:10px 18px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:transparent;font-weight:600}
@@ -322,7 +324,7 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
 <!-- TAB 1: İRSALİYE -->
 <div id="tabIrs">
 <!-- 2026-10-05: kayıttan sonra ekran temizlenmez; yeni irsaliye SADECE buradan açılır (bkz. yeniIrsaliye) -->
-<div class="yeni-irs-bar"><button type="button" class="btn-yeni-irs" onclick="yeniIrsaliye()">+ Yeni İrsaliye</button></div>
+<div class="yeni-irs-bar"><button type="button" class="btn-rapor-don" id="raporDonBtn" onclick="raporaDon()" style="display:none">← Günlük Rapor'a dön</button><button type="button" class="btn-yeni-irs" onclick="yeniIrsaliye()">+ Yeni İrsaliye</button></div>
 <div class="card" id="irsaliye">
   <div class="brand">
     <div class="bn">MISS NEŞEM</div>
@@ -1608,6 +1610,7 @@ function kargoGoster(){
 }
 
 function temizle(){
+  _raporDonusKapat();
   _duzenlemeId=null;
   _aktifKayitId=null;
   _kayitliImza=null;
@@ -2066,6 +2069,64 @@ function yeniIrsaliye(){
   }
   temizle();
 }
+
+/* ====== GÜNLÜK RAPOR'A DÖNÜŞ (2026-10-05) ======
+   Rapor'dan "Düzenle" ile açılan irsaliyede: üstte "← Günlük Rapor'a dön" + tarayıcı geri tuşu
+   (history.pushState ile eklenen adım) aynı yere döner - aynı tarih filtresi ve kaydırma konumu.
+   Kaydedilmemiş değişiklik varsa önce sorar; vazgeçilirse irsaliyede kalınır. */
+var _raporDonus=null;          // {bas,bit,filtre,scrollY} - rapordan düzenleme modu
+var _geriYoksay=false;         // butonla dönüşte kendi history.back()'imizi popstate'te yok say
+function _raporDonusAc(durum){
+  var gecmisteVar=!!_raporDonus; // rapordan art arda düzenle (zaten adım eklendi)
+  _raporDonus=durum;
+  document.getElementById('raporDonBtn').style.display='';
+  if(!gecmisteVar){try{history.pushState({x7k2:'rapordanDuzenle'},'');}catch(e){}}
+}
+function _raporDonusKapat(){
+  _raporDonus=null;
+  var b=document.getElementById('raporDonBtn');
+  if(b)b.style.display='none';
+}
+// gecmistenMi: geri tuşuyla geldiyse (adım zaten tüketildi). Butonla geldiyse adımı biz tüketiriz.
+function raporaDon(gecmistenMi){
+  if(!_raporDonus)return;
+  var durum=_raporDonus;
+  function don(){
+    _raporDonusKapat();
+    temizle();
+    document.getElementById('raporBaslangic').value=durum.bas;
+    document.getElementById('raporBitis').value=durum.bit;
+    raporFiltre=durum.filtre;
+    tabGoster('rap'); // raporGuncelle() aynı filtreyle
+    // Liste panelden gelince eski kaydırma konumuna dön (en çok ~4 sn bekler).
+    var deneme=0;
+    (function kaydir(){
+      var liste=document.getElementById('raporListe');
+      var yukleniyor=liste&&/Yükleniyor/.test(liste.textContent||'');
+      if(yukleniyor&&deneme++<40){setTimeout(kaydir,100);return;}
+      window.scrollTo(0,durum.scrollY);
+    })();
+    if(!gecmistenMi){_geriYoksay=true;try{history.back();}catch(e){_geriYoksay=false;}}
+  }
+  function kal(){
+    // geri tuşu adımı tüketti ama kullanıcı vazgeçti: adımı geri koy ki bir sonraki geri de buraya gelsin
+    if(gecmistenMi){try{history.pushState({x7k2:'rapordanDuzenle'},'');}catch(e){}}
+  }
+  if(_kaydedilmemisVar()){
+    if(confirm('Kaydedilmemiş değişiklikler var. Kaydedilsin mi?\n\nTamam = kaydet ve Günlük Rapor\'a dön\nİptal = kaydetmeden devam')){
+      kal(); // kayıt bitene kadar burada; başarıyla kaydedilince döner
+      if(gecmistenMi){gecmistenMi=false;} // kal() adımı geri koydu → don() onu tüketsin
+      if(!kaydet(false,false,don)){} // doğrulama/stok hatasında kaydet uyarır, irsaliyede kalınır
+      return;
+    }
+    if(!confirm('Değişiklikler kaydedilmeden Günlük Rapor\'a dönülsün mü?')){kal();return;}
+  }
+  don();
+}
+window.addEventListener('popstate',function(){
+  if(_geriYoksay){_geriYoksay=false;return;}
+  if(_raporDonus)raporaDon(true);
+});
 
 /* ====== RAPOR ====== */
 var raporFiltre='gun';
@@ -2599,8 +2660,14 @@ function irsaliyeDuzenle(id){
   var kayit=v.find(function(k){return k.id===id;});
   if(!kayit)kayit=_uzaktanKayitKur(id);
   if(!kayit){alert('Bu irsaliyenin ayrıntıları bulunamadı.');return;}
+  // Günlük Rapor'dan açıldıysa dönüş için filtre + kaydırma saklanır (bkz. raporaDon). temizle()
+  // aşağıda dolaylı çağrılmıyor ama sırayla: önce durum, sonra form.
+  var _rapordanMi=document.getElementById('tabRap').style.display==='block';
+  var _raporDurum=_rapordanMi?{bas:document.getElementById('raporBaslangic').value,bit:document.getElementById('raporBitis').value,
+    filtre:raporFiltre,scrollY:window.scrollY||window.pageYOffset||0}:null;
   kapatPop();
   tabGoster('irs');
+  if(_raporDurum)_raporDonusAc(_raporDurum);
 
   // Bu irsaliyenin PANELDE kayıtlı halini hemen çekmeye başla — hem eski bakiye (aşağıda)
   // hem kayıt öncesi stok kontrolü (_panelKayitliAdet) bunu referans alır. Yerel kayıt
