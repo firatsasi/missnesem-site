@@ -447,3 +447,12 @@ body::before {
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   @media (max-width: 899.98px) { .contact-btn { background: rgba(245,241,234,0.95); } }
 }
+
+/* 2026-10-05 erişilebilirlik (Lighthouse color-contrast): küçük altın yazılar koyulaştırıldı,
+   mobilde videonun üstündeki alt bilgi koyu zemin aldı. */
+.location-tag { color: #85683a; }
+.lang-btn.active { color: #7a5f33; border-color: #a8884f; }
+@media (max-width: 899.98px) {
+  .lang-btn.active { color: #fff; border-color: #fff; }
+  .site-footer { align-self: center; margin: 6px auto 0; padding: 4px 12px; border-radius: 12px; background: rgba(0,0,0,0.55); }
+}
