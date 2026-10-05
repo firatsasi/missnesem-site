@@ -3124,16 +3124,16 @@ function _whatsappSiparisGovde(){
   var kargoKod=document.getElementById('kargoChk').checked?document.getElementById('kargoKod').value.trim():'';
   var buId=_duzenlemeId!=null?_duzenlemeId:_aktifKayitId;
   var dosyaAdi=_dosyaAdiUret('Irsaliye',musteri,tarihVal,buId,'png');
-  _musteriBilgiGetir(musteri).then(function(b){
-    var el=siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,kargoFirma,kargoKod,seriToplam,kalanToplam,_musteriBilgiSatirlari(b));
-    document.body.appendChild(el);
-    return html2canvas(el,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
-      var link=document.createElement('a');
-      link.download=dosyaAdi;
-      link.href=canvas.toDataURL('image/png');
-      link.click();
-      el.remove();
-    });
+  // 2026-10-05: SİPARİŞ çıktısı depo grubuna gider - müşteri adres/il-ilçe/VKN/vergi dairesi bloğu
+  // GÖSTERİLMEZ (sadece müşteri adı + tarih + kalemler + toplam). İrsaliye PDF/PNG'de blok duruyor.
+  var el=siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,kargoFirma,kargoKod,seriToplam,kalanToplam);
+  document.body.appendChild(el);
+  html2canvas(el,{scale:2,backgroundColor:'#f0e4d3'}).then(function(canvas){
+    var link=document.createElement('a');
+    link.download=dosyaAdi;
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    el.remove();
   });
 }
 function raporPdf(){
