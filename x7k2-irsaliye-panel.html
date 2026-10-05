@@ -533,6 +533,9 @@ function login(){
   })
   .then(function(r){
     if(r.status===429){throw new Error('Çok fazla deneme yapıldı, biraz sonra tekrar deneyin.');}
+    // 2026-10-05: pasif hesap (panel Ayarlar → Kullanıcılar) sunucudan 403 {error:'pasif'} döner.
+    if(r.status===403){return r.json().catch(function(){return {};}).then(function(d){
+      throw new Error(d&&d.error==='pasif'?'Hesap pasif - yöneticinize başvurun.':'Bu hesapla irsaliye paneline giriş yapılamaz.');});}
     if(!r.ok){throw new Error('Hatalı kullanıcı adı veya şifre');}
     return r.json();
   })
