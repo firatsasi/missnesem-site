@@ -94,6 +94,9 @@ select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:
 .total-val{font-size:20px;font-weight:700;color:#f0e4d3}
 .foot-note{margin-top:1.5rem;text-align:center;font-size:10px;color:#a64d3e;letter-spacing:1px}
 .btns{margin-top:1.2rem;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.yeni-irs-bar{display:flex;justify-content:flex-end;margin-bottom:10px}
+.btn-yeni-irs{font-size:14px;padding:10px 22px;cursor:pointer;color:#fff;border:none;border-radius:8px;background:#2f7a3d;font-weight:700;letter-spacing:.5px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.btn-yeni-irs:hover{background:#276633}
 .btn-sec{font-size:13px;padding:10px 18px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:transparent;font-weight:600}
 .btn-pri{font-size:13px;padding:10px 20px;cursor:pointer;color:#f0e4d3;border:none;border-radius:6px;background:#a64d3e;font-weight:700}
 .btn-drk{font-size:13px;padding:10px 20px;cursor:pointer;color:#f0e4d3;border:none;border-radius:6px;background:#2c2419;font-weight:700}
@@ -238,7 +241,7 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
     margin: 0 !important;
     padding: 0 !important;
   }
-  #loginOverlay, .tabs, .date-pick, .kullanici-bar { display: none !important; }
+  #loginOverlay, .tabs, .date-pick, .kullanici-bar, .yeni-irs-bar { display: none !important; }
 
   /* ── İRSALİYE PRINT ── doğal CSS'iyle basılır, override gerekmez ── */
   body[data-print-mode="irs"] .btns,
@@ -318,6 +321,8 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
 
 <!-- TAB 1: İRSALİYE -->
 <div id="tabIrs">
+<!-- 2026-10-05: kayıttan sonra ekran temizlenmez; yeni irsaliye SADECE buradan açılır (bkz. yeniIrsaliye) -->
+<div class="yeni-irs-bar"><button type="button" class="btn-yeni-irs" onclick="yeniIrsaliye()">+ Yeni İrsaliye</button></div>
 <div class="card" id="irsaliye">
   <div class="brand">
     <div class="bn">MISS NEŞEM</div>
@@ -326,8 +331,7 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
     <div class="bd">İRSALİYE</div>
   </div>
   <div id="duzenlemeBanner" style="display:none;align-items:center;justify-content:center;gap:14px;background:#a64d3e;color:#fff;text-align:center;font-weight:700;font-size:13px;letter-spacing:0.5px;padding:10px 14px;border-radius:8px;margin-bottom:14px">
-    <span>✏️ İRSALİYE DÜZENLEME<span id="duzenlemeNo"></span></span>
-    <button type="button" onclick="duzenlemeIptal()" style="background:#fff;color:#a64d3e;border:none;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:0.5px">İPTAL</button>
+    <span id="duzenlemeMetin">✅ KAYDEDİLDİ</span>
   </div>
   <!-- 2026-09-25: panelde "İrsaliyeye çevir" ile gelen rezerv (bkz. _rezervOnDolumBaslat) -->
   <div id="rezervBanner" style="display:none;align-items:center;justify-content:center;gap:14px;background:#C4A55A;color:#2c2419;text-align:center;font-weight:700;font-size:13px;letter-spacing:0.3px;padding:10px 14px;border-radius:8px;margin-bottom:14px">
@@ -406,7 +410,7 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
   </div>
 </div>
 <div class="btns">
-  <button class="btn-sec" onclick="temizle()">Temizle</button>
+  <button class="btn-sec" onclick="yeniIrsaliye()">Temizle</button>
   <button class="btn-gld" onclick="kaydet()">Kaydet</button>
   <button class="btn-drk" onclick="pngIndir()">PNG indir</button>
   <button class="btn-pri" onclick="pdfIndir()">PDF indir</button>
@@ -1054,7 +1058,7 @@ function _panelKayitliGetir(id){
         var anahtar=k.kod.trim()+'|'+_renkAnahtar(k.renk);
         satisAdet[anahtar]=(satisAdet[anahtar]||0)+(k.adet||0);
       });
-      return {tutar:d.tutar||0,satisAdet:satisAdet};
+      return {tutar:d.tutar||0,satisAdet:satisAdet,panelId:d.panelId||null};
     })
     .catch(function(){return null;});
 }
@@ -1301,6 +1305,12 @@ function satirKalemDoldur(tr,u){
 var sc=0;
 var _duzenlemeId=null; // düzenlenmekte olan kaydın id'si (null = yeni kayıt modu)
 var _aktifKayitId=null; // formun şu an temsil ettiği kaydedilmiş kaydın id'si (sipariş no bağlamak için)
+// 2026-10-05 KAYDEDİLDİ MODU: Kaydet'ten sonra form temizlenmez, _duzenlemeId = kaydedilen id olur;
+// bundan sonraki her Kaydet AYNI id ile güncelleme gönderir (sunucu SyncId ile upsert eder) - yeni
+// irsaliye ancak "+ Yeni İrsaliye" (temizle) sonrası açılır. _kayitliImza: son kaydedilen hal
+// (kaydedilmemiş değişiklik tespiti), _panelNo: paneldeki İrsaliye #.
+var _kayitliImza=null;
+var _panelNo=null;
 var sym={TL:'₺',USD:'$',EUR:'€'};
 function birim(){var el=document.getElementById('para');var v=el?el.value:'TL';return (sym&&sym[v])||'₺';}
 function fmt(n){var el=document.getElementById('para');var p=el?el.value:'TL';if(p==='TL')return n.toLocaleString('tr-TR')+' ₺';return ((sym&&sym[p])||'')+' '+n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -1521,6 +1531,8 @@ function kargoGoster(){
 function temizle(){
   _duzenlemeId=null;
   _aktifKayitId=null;
+  _kayitliImza=null;
+  _panelNo=null;
   document.getElementById('tb').innerHTML='';
   document.getElementById('musteri').value='';
   var bugun=new Date().toISOString().split('T')[0];
@@ -1744,7 +1756,10 @@ function _kaydetKilitle(k){
     else if(b.dataset.metin){b.textContent=b.dataset.metin;}
   });
 }
-function kaydet(sessiz,skipSync){
+// sonra: kayıt BAŞARIYLA yazılınca çağrılır (PDF/WhatsApp/Yeni İrsaliye "önce kaydet" akışı);
+// verilirse "Kaydedildi" alert'i gösterilmez (sync toast'ı yeterli).
+var _basariAlertiYok=false;
+function kaydet(sessiz,skipSync,sonra){
   var musteri=document.getElementById('musteri').value.trim();
   if(!musteri){if(!sessiz)alert('Müşteri adı boş olamaz');return false;}
   var tarih=document.getElementById('tarih').value;
@@ -1762,7 +1777,10 @@ function kaydet(sessiz,skipSync){
         alert('Stok yetersiz: '+sonuc.kod+' '+sonuc.renk+' — '+sonuc.istenenAdet+' adet isteniyor, stokta '+sonuc.mevcutStok+' adet var.'+ek+'\nKaydetme durduruldu, lütfen adedi düzeltin.');
         return;
       }
-      _kaydetGovde(sessiz,skipSync);
+      _basariAlertiYok=!!sonra;
+      var ok=_kaydetGovde(sessiz,skipSync);
+      _basariAlertiYok=false;
+      if(ok&&sonra)sonra();
       }finally{_kilidiAc();}
     });
     return true;
@@ -1886,14 +1904,22 @@ function _kaydetGovde(sessiz,skipSync){
   if(kayit.odeme==='AcikHesap'){
     cariBorc(musteri,genel,kayit.id,tarih,kayit.para);
   }
-  if(!sessiz)alert((duzenleniyor?'✅ Güncellendi!':'✅ Kaydedildi!')+'\n\n'+musteri+' · '+fmtPara(genel,kayit.para)+'\n'+kayit.odeme+' · '+kayit.tur+bakiyeMsg);
+  if(!sessiz&&!_basariAlertiYok)alert((duzenleniyor?'✅ Güncellendi!':'✅ Kaydedildi!')+'\n\n'+musteri+' · '+fmtPara(genel,kayit.para)+'\n'+kayit.odeme+' · '+kayit.tur+bakiyeMsg);
 
   if(!skipSync){
     // Not: eskiden düzenlemede önce "irsaliye_sil" sonra "irsaliye_kaydet" gönderiliyordu.
     // İki istek de await edilmeden art arda fırlatıldığı için sırası garanti değildi; "sil"
     // sunucuya "kaydet"ten sonra ulaşırsa az önce güncellenmiş kayıt tamamen siliniyordu.
     // Artık sunucu tarafı aynı id (CreatedAt) için doğrudan upsert yapıyor, ayrı bir sil gerekmiyor.
-    syncSunucuKaydetVeBildir(Object.assign({tip:'irsaliye_kaydet'},kayit));
+    syncSunucuKaydetVeBildir(Object.assign({tip:'irsaliye_kaydet'},kayit),function(ok){
+      if(!ok)return;
+      _panelKayitliGetir(kayit.id).then(function(pk){
+        if(!pk||_duzenlemeId!==kayit.id)return;
+        _duzenlemePanelKayit=pk;
+        _panelNo=pk.panelId;
+        _duzenlemeBanneriGuncelle();
+      });
+    });
     if(!duzenleniyor)_sonGonderilen={imza:_imza,t:Date.now()};
   }
   // Rezerv irsaliyeye döndü: stok kontrolündeki "rezerv payı" artık panelde irsaliyenin kendi
@@ -1901,12 +1927,65 @@ function _kaydetGovde(sessiz,skipSync){
   if(_rezervKaynak){_rezervKaynak.adet={};}
   raporGuncelle();
 
-  if(!sessiz&&duzenleniyor){
-    temizle(); // formu temizle, düzenleme modunu kapat
+  // 2026-10-05: form temizlenmez - "Kaydedildi · İrsaliye #NO" moduna geçilir, bundan sonraki
+  // Kaydet aynı id ile GÜNCELLEME olur (tarih değişikliği dahil). Panel sync'i bitene kadar
+  // stok kontrolündeki "kendi payı" gönderilen kalemlerden tahmin edilir (aksi halde hemen
+  // ardından yapılan bir güncelleme kendi düşülmüş adedi yüzünden "stok yetersiz" alabilirdi).
+  if(!skipSync){
+    _duzenlemeId=kayit.id;
+    _aktifKayitId=kayit.id;
+    _kayitliImza=_formImza();
+    var tahmini={};
+    kayit.urunler.forEach(function(u){
+      if(u.iade||!u.kod||!u.renk)return;
+      var a=u.kod.trim()+'|'+_renkAnahtar(u.renk);
+      tahmini[a]=(tahmini[a]||0)+(u.adet||0);
+    });
+    _duzenlemePanelKayit={tutar:genel,satisAdet:tahmini,panelId:_panelNo};
+    _duzenlemeBanneriGuncelle();
   }else if(!duzenleniyor){
-    _aktifKayitId=kayit.id; // WhatsApp/sipariş no bu kayda bağlansın
+    _aktifKayitId=kayit.id;
   }
   return true;
+}
+
+// Formun kayda giden içeriğinin imzası - kaydedilen halden farklıysa "kaydedilmemiş değişiklik var".
+function _formImza(){
+  var satirlar=[];
+  document.querySelectorAll('#tb tr').forEach(function(tr){
+    var k=satirKalemleri(tr);
+    if(!k.length)return;
+    var chk=tr.querySelector('.iade-chk');
+    var fi=tr.querySelector('.fiyat-wrap input');
+    satirlar.push([k.map(function(x){return [x.kod,x.urun,x.renk,x.adet,x.seri];}),fi?fi.value:'',!!(chk&&chk.checked),gercekAdet(tr)]);
+  });
+  function d(id){var e=document.getElementById(id);return e?(e.type==='checkbox'?e.checked:e.value):'';}
+  return JSON.stringify([d('musteri').trim(),d('tarih'),d('para'),d('odeme'),d('tur'),d('kdvOran'),
+    d('kargoChk'),d('kargoFirma'),d('kargoKod'),d('kargoUcret'),satirlar]);
+}
+function _kaydedilmemisVar(){
+  if(_duzenlemeId!=null)return _kayitliImza!==null&&_formImza()!==_kayitliImza;
+  // Yeni (hiç kaydedilmemiş) form: müşteri ya da en az bir kalem varsa
+  if(document.getElementById('musteri').value.trim())return true;
+  return Array.prototype.some.call(document.querySelectorAll('#tb tr'),function(tr){return satirKalemleri(tr).length>0;});
+}
+// PDF / PNG / WhatsApp: kaydedilmemişse önce kaydet, değişiklik varsa önce güncelle, yoksa direkt.
+function _kaydedipCalistir(fn){
+  if(_kaydetKilit){alert('Kayıt sürüyor, birkaç saniye sonra tekrar deneyin.');return;}
+  if(_duzenlemeId!=null&&!_kaydedilmemisVar()){fn();return;}
+  kaydet(false,false,fn);
+}
+// "+ Yeni İrsaliye": formu temizler - kaydedilmemiş değişiklik varsa önce sorar.
+function yeniIrsaliye(){
+  if(_kaydetKilit)return;
+  if(_kaydedilmemisVar()){
+    if(confirm('Kaydedilmemiş değişiklikler var. Kaydedilsin mi?\n\nTamam = kaydet, sonra yeni irsaliye\nİptal = kaydetmeden devam')){
+      kaydet(false,false,function(){temizle();});
+      return;
+    }
+    if(!confirm('Değişiklikler kaydedilmeden silinecek. Yeni irsaliye açılsın mı?'))return;
+  }
+  temizle();
 }
 
 /* ====== RAPOR ====== */
@@ -2400,11 +2479,20 @@ function kayitSil(id){
 function _duzenlemeBanneriGuncelle(){
   var banner=document.getElementById('duzenlemeBanner');
   if(!_duzenlemeId){banner.style.display='none';return;}
-  var v=veriCek();
-  var kayit=v.find(function(k){return k.id===_duzenlemeId;});
-  document.getElementById('duzenlemeNo').textContent=(kayit&&kayit.siparisNo)?(' - #'+kayit.siparisNo):'';
+  var no=_panelNo?(' · İRSALİYE #'+_panelNo):' · İRSALİYE #…';
+  var degisti=_kaydedilmemisVar();
+  document.getElementById('duzenlemeMetin').textContent=degisti
+    ?('✏️ KAYDEDİLMEMİŞ DEĞİŞİKLİK VAR'+no+' — Kaydet ile güncellenir')
+    :('✅ KAYDEDİLDİ'+no);
+  banner.style.background=degisti?'#a64d3e':'#2f7a3d';
   banner.style.display='flex';
 }
+// Kaydedildi modunda her değişiklikte başlık "kaydedilmemiş değişiklik" durumuna döner.
+(function(){
+  var t=null;
+  function iz(){if(!_duzenlemeId)return;clearTimeout(t);t=setTimeout(_duzenlemeBanneriGuncelle,150);}
+  ['input','change','click'].forEach(function(ev){document.getElementById('tabIrs').addEventListener(ev,iz,true);});
+})();
 function duzenlemeIptal(){
   temizle();
 }
@@ -2439,7 +2527,12 @@ function irsaliyeDuzenle(id){
   // hem kayıt öncesi stok kontrolü (_panelKayitliAdet) bunu referans alır. Yerel kayıt
   // düzenleme sırasında değiştiği için referans olarak kullanılamaz (bkz. _duzenlemePanelKayit).
   _duzenlemePanelKayit=null;
-  var _panelKayitliBekle=_panelKayitliGetir(id).then(function(pk){_duzenlemePanelKayit=pk;return pk;});
+  _panelNo=null;
+  var _panelKayitliBekle=_panelKayitliGetir(id).then(function(pk){
+    _duzenlemePanelKayit=pk;
+    if(pk&&_duzenlemeId===id){_panelNo=pk.panelId;_duzenlemeBanneriGuncelle();}
+    return pk;
+  });
 
   document.getElementById('musteri').value=kayit.musteri;
   document.getElementById('tarih').value=kayit.tarih;
@@ -2544,8 +2637,9 @@ function irsaliyeDuzenle(id){
 
   _duzenlemeId=id;
   _aktifKayitId=id;
-  _duzenlemeBanneriGuncelle();
   hesapla();
+  _kayitliImza=_formImza();
+  _duzenlemeBanneriGuncelle();
 
   var el=document.getElementById('irsaliye');
   if(el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'start'});
@@ -2730,9 +2824,11 @@ function _irsaliyeGosterimVerisi(){
   };
 }
 function pdfIndir(){
-  var musteri=_pdfUrunKontrol();
-  if(!musteri)return;
-  kaydet(true,true);
+  if(!_pdfUrunKontrol())return;
+  _kaydedipCalistir(_pdfIndirGovde);
+}
+function _pdfIndirGovde(){
+  var musteri=document.getElementById('musteri').value.trim();
   var veri=_irsaliyeGosterimVerisi();
   var tarihIso=document.getElementById('tarih').value;
   var buId=_duzenlemeId!=null?_duzenlemeId:_aktifKayitId;
@@ -2747,9 +2843,11 @@ function pdfIndir(){
   });
 }
 function pngIndir(){
-  var musteri=_pdfUrunKontrol();
-  if(!musteri)return;
-  kaydet(true,true);
+  if(!_pdfUrunKontrol())return;
+  _kaydedipCalistir(_pngIndirGovde);
+}
+function _pngIndirGovde(){
+  var musteri=document.getElementById('musteri').value.trim();
   var s=hazirla();
   var tarihIso=document.getElementById('tarih').value;
   var buId=_duzenlemeId!=null?_duzenlemeId:_aktifKayitId;
@@ -2839,6 +2937,10 @@ function siparisHtmlOlustur(no,musteri,tarihStr,urunler,parca,kargoFirma,kargoKo
   return el;
 }
 function whatsappSiparis(){
+  if(!_pdfUrunKontrol())return;
+  _kaydedipCalistir(_whatsappSiparisGovde);
+}
+function _whatsappSiparisGovde(){
   var musteri=document.getElementById('musteri').value.trim();
   if(!musteri){alert('Müşteri adı boş olamaz');return;}
   // Aynı KOD/ÜRÜN'e sahip kalemler tek satırda birleştirilir; her rengin yanına kendi seri
