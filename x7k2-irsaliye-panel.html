@@ -955,7 +955,10 @@ function _musteriBilgiGoster(){
     var sat=_musteriBilgiSatirlari(b);
     el.textContent='';
     sat.forEach(function(t){var d=document.createElement('div');d.textContent=t;el.appendChild(d);});
-    el.style.display=sat.length?'block':'none';
+    // 2026-10-05: formda GÖSTERİLMEZ - sadece PNG çıktısında görünür (bkz. hazirla/geriAl). PDF zaten
+    // veriden çiziliyor (_irsaliyePdfCiz → veri.musteriBilgi).
+    el.style.display='none';
+    el.dataset.dolu=sat.length?'1':'';
   });
 }
 function musteriBakiyeYukle(){
@@ -1027,11 +1030,52 @@ var MN_URUN_KATALOG=[];
 var MN_URUN_KATALOG_YUKLENDI=false;
 function urunKatalogYukle(){
   if(MN_URUN_KATALOG_YUKLENDI)return Promise.resolve(MN_URUN_KATALOG);
-  return fetch('https://panel.missnesem.com/api/products/search',{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
+  return fetch('https://panel.missnesem.com/api/products/search',{cache:'no-store',headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
     .then(function(r){if(r.status===401||r.status===403){_oturumGecersizce();_anahtarGecersizce();}return r.ok?r.json():[];})
     .then(function(list){MN_URUN_KATALOG=list||[];MN_URUN_KATALOG_YUKLENDI=true;return MN_URUN_KATALOG;})
     .catch(function(){MN_URUN_KATALOG=[];MN_URUN_KATALOG_YUKLENDI=true;return [];});
 }
+// 2026-10-05 TAZE STOK: katalog sayfa açılışında bir kez çekildiği için panelden sonradan eklenen
+// stok sayfa yenilenmeden görünmüyordu. Kod seçilince, RENK alanına girilince, "↻ Yenile"de ve
+// sekmeye geri dönülünce stok panelden ÖNBELLEKSİZ yeniden çekilir; açık satırların _urunSecim'i
+// güncellenir. Formdaki stok bilgi amaçlıdır - son kontrol Kaydet'te (_stokTazeKontrolEt + sunucu).
+var _katalogTazeleSon=0,_katalogTazeleIstek=null;
+function urunKatalogTazele(zorla){
+  if(_katalogTazeleIstek)return _katalogTazeleIstek;
+  if(!zorla&&Date.now()-_katalogTazeleSon<4000)return Promise.resolve(MN_URUN_KATALOG);
+  _katalogTazeleIstek=fetch('https://panel.missnesem.com/api/products/search',{cache:'no-store',headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(list){
+      if(list&&list.length){
+        MN_URUN_KATALOG=list;MN_URUN_KATALOG_YUKLENDI=true;
+        var harita={};list.forEach(function(p){harita[p.code]=p;});
+        document.querySelectorAll('#tb tr').forEach(function(tr){
+          if(tr._urunSecim&&harita[tr._urunSecim.code])tr._urunSecim=harita[tr._urunSecim.code];
+        });
+      }
+      _katalogTazeleSon=Date.now();
+      return MN_URUN_KATALOG;
+    })
+    .catch(function(){return MN_URUN_KATALOG;})
+    .then(function(x){_katalogTazeleIstek=null;return x;});
+  return _katalogTazeleIstek;
+}
+// Tazeleme bitince, o an açık bir RENK listesi varsa yeni stokla yeniden çizilir.
+function _acikRenkListesiniYenile(){
+  var a=document.activeElement;
+  if(a&&a.classList&&a.classList.contains('ri-renk')){
+    var tr=a.closest('tr');
+    if(tr&&tr._urunSecim)renkDropdownFiltrele(tr,a.value);
+  }
+}
+function _stokTazeleVeCiz(zorla){return urunKatalogTazele(zorla).then(_acikRenkListesiniYenile);}
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible'&&document.querySelector('#tb tr')&&Array.prototype.some.call(document.querySelectorAll('#tb tr'),function(tr){return !!tr._urunSecim;}))
+    _stokTazeleVeCiz(false);
+});
+window.addEventListener('focus',function(){
+  if(Array.prototype.some.call(document.querySelectorAll('#tb tr'),function(tr){return !!tr._urunSecim;}))_stokTazeleVeCiz(false);
+});
 // syh→SİYAH gibi kısaltmalar — RENK alanına yazılınca (tam eşleşme) o ürünün stoktaki
 // renklerinden birine karşılık geliyorsa öneri/otomatik tamamlama olarak kullanılır.
 var MN_RENK_KISALTMA={SYH:'SİYAH',PMB:'PEMBE',KHV:'KAHVE',BYZ:'BEYAZ',BRD:'BORDO',LCI:'LACİVERT',GRI:'GRİ',SRI:'SARI'};
@@ -1084,6 +1128,7 @@ function _kodSec(tr,p){
   }
   _riDropdownGizle(tr.querySelector('.ri-kod-dd'));
   iRenk.focus();
+  _stokTazeleVeCiz(true); // seçilen ürünün stoğu o anda panelden
 }
 // Renk adlarını karşılaştırmak için tek bir anahtar: baştaki/sondaki boşluklar atılır, iç
 // boşluklar teke indirilir ("EKOSE /  BEYAZ" → "EKOSE / BEYAZ") ve tr-TR büyük harfe çevrilir.
@@ -1176,6 +1221,29 @@ function renkDropdownFiltrele(tr,q){
       var cUpper=c.toLocaleUpperCase('tr-TR');
       return cUpper.indexOf(query)!==-1||(kisaltmaHedef&&cUpper===kisaltmaHedef);
     });
+  }
+  if(!list.length){
+    // Stoklu renk yok: liste sessizce kapanmasın - "Stok yok" + panelden tekrar çeken "↻ Yenile".
+    dd.innerHTML='';
+    var satir=document.createElement('div');
+    satir.className='ri-dd-item';
+    satir.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:default;color:#a64d3e';
+    var yazi=document.createElement('span');
+    yazi.textContent=query?'Eşleşen stoklu renk yok':'Stok yok';
+    var btn=document.createElement('button');
+    btn.type='button';
+    btn.className='ri-stok-yenile';
+    btn.textContent='↻ Yenile';
+    btn.style.cssText='border:1px solid #c8a87a;background:#fff;color:#2c2419;border-radius:5px;padding:2px 8px;font-size:11px;cursor:pointer';
+    btn.onmousedown=function(e){
+      e.preventDefault(); // RENK alanı odağı kaybetmesin (blur listeyi kapatır)
+      btn.textContent='…';btn.disabled=true;
+      _stokTazeleVeCiz(true);
+    };
+    satir.appendChild(yazi);satir.appendChild(btn);
+    dd.appendChild(satir);
+    dd.style.display='block';
+    return;
   }
   _riDropdownDoldur(dd,list,function(el,c){el.textContent=c;},function(c){_renkSecildi(tr,c);});
 }
@@ -1464,7 +1532,7 @@ function _satirOlustur(){
       trUpperInplace(iRenk);
     }
   });
-  iRenk.addEventListener('focus',function(){if(_renkEslesmisUrun())renkDropdownFiltrele(tr,'');});
+  iRenk.addEventListener('focus',function(){if(_renkEslesmisUrun()){renkDropdownFiltrele(tr,'');_stokTazeleVeCiz(false);}});
   iRenk.addEventListener('blur',function(){
     setTimeout(function(){
       _riDropdownGizle(renkDd);
@@ -2739,6 +2807,8 @@ function inputlariGeriYukle(saved){
   saved.forEach(function(inp){inp.style.display='';});
 }
 function hazirla(){
+  var mBilgi=document.getElementById('musteriBilgi');
+  if(mBilgi&&mBilgi.dataset.dolu)mBilgi.style.display='block'; // PNG'de görünsün, geriAl() gizler
   var addBtn=document.getElementById('addBtn');
   var optsRow=document.getElementById('optsRow');
   var bakBox=document.getElementById('bakiyeBox');
@@ -2798,6 +2868,8 @@ function hazirla(){
   return {addBtn:addBtn,optsRow:optsRow,bakBox:bakBox,bakAktif:bakAktif,delCells:delCells,delCols:delCols,iadeCells:iadeCells,iadeCols:iadeCols,kargoUcretRow:kargoUcretRow,kargoUcretGizli:kargoUcretGizli,renkChipRows:renkChipRows,saved:saved,kargoBoxEl:kargoBoxEl,kargoBoxDisplay:kargoBoxDisplay};
 }
 function geriAl(s){
+  var mBilgi=document.getElementById('musteriBilgi');
+  if(mBilgi)mBilgi.style.display='none';
   s.addBtn.style.display='';
   s.optsRow.style.display='flex';
   document.getElementById('kargoToggle').style.display='flex';
@@ -2907,6 +2979,13 @@ function pngIndir(){
 }
 function _pngIndirGovde(){
   var musteri=document.getElementById('musteri').value.trim();
+  var el0=document.getElementById('musteriBilgi');
+  if(el0&&musteri&&!el0.dataset.dolu&&!el0._denendi){
+    // müşteri bilgisi henüz çekilmediyse önce çek (en çok 4 sn), sonra PNG
+    el0._denendi=true;
+    _musteriBilgiGetir(musteri).then(function(){_musteriBilgiGoster();setTimeout(function(){_pngIndirGovde();el0._denendi=false;},50);});
+    return;
+  }
   var s=hazirla();
   var tarihIso=document.getElementById('tarih').value;
   var buId=_duzenlemeId!=null?_duzenlemeId:_aktifKayitId;
