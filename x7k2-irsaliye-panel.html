@@ -625,10 +625,12 @@ function _musteriDropdownGoster(list){
     var name=m.name;
     var kod=m.cariKod||'';
     var bak=parseFloat(m.bakiye)||0;
-    // Serbest Fatura'dan açılan cariler panelde gerçek müşterilerin arkasında gelir, rozetle ayrılır.
+    // 2026-10-05: eşleştirme panelin ortak kuralıyla (Services/MusteriArama.cs): ö/o, sıra bağımsız,
+    // cari kod/telefon/VKN. Serbest Fatura'dan açılan cariler gerçek müşterilerin arkasında, rozetle.
     var faturaRozet=m.faturaCarisi?' <span style="display:inline-block;padding:0 7px;border-radius:10px;font-size:10px;font-weight:600;background:rgba(120,120,120,.12);color:#6b6b6b;border:1px solid rgba(120,120,120,.3)">Fatura carisi</span>':'';
     el.innerHTML='<div style="font-weight:600;color:#2c2419">'+name+(kod?' <span style="color:#a64d3e;font-weight:700">['+kod+']</span>':'')+faturaRozet+'</div>'
-      +(bak!==0?'<div style="font-size:11px;color:#a64d3e;margin-top:1px">'+fmtTL(bak)+'</div>':'');
+      +((bak!==0||m.sonIrsaliye)?'<div style="font-size:11px;color:#a64d3e;margin-top:1px">'+(bak!==0?fmtTL(bak):'')
+        +(m.sonIrsaliye?'<span style="color:#8a7a66">'+(bak!==0?' · ':'')+'son irsaliye '+m.sonIrsaliye+'</span>':'')+'</div>':'');
     el.onmousedown=function(e){e.preventDefault();_musteriSec(name,bak,m);};
     dd.appendChild(el);
   });
