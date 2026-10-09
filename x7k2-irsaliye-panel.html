@@ -339,6 +339,10 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
   <div id="rezervBanner" style="display:none;align-items:center;justify-content:center;gap:14px;background:#C4A55A;color:#2c2419;text-align:center;font-weight:700;font-size:13px;letter-spacing:0.3px;padding:10px 14px;border-radius:8px;margin-bottom:14px">
     <span id="rezervBannerMetin"></span>
   </div>
+  <!-- 2026-10-09: panel Ön Siparişler "İrsaliyeye Aktar" ile gelen sipariş (bkz. _onSiparisOnDolumBaslat) -->
+  <div id="onSiparisBanner" style="display:none;align-items:center;justify-content:center;gap:14px;background:#2F4F3E;color:#F7F1E8;text-align:center;font-weight:700;font-size:13px;letter-spacing:0.3px;padding:10px 14px;border-radius:8px;margin-bottom:14px">
+    <span id="onSiparisBannerMetin"></span>
+  </div>
   <div class="fields">
     <div style="position:relative">
         <label class="flbl">MÜŞTERİ</label>
@@ -763,6 +767,7 @@ function goster(){
   kullaniciBarGuncelle();
   urunKatalogYukle(); // KOD/RENK autocomplete için ürün kataloğunu bir kez çek
   _rezervOnDolumBaslat(); // panel "İrsaliyeye çevir" → ?rezerv=1,2,3
+  _onSiparisOnDolumBaslat(); // panel Ön Siparişler "İrsaliyeye Aktar" → ?onsiparis=54
 }
 
 /* ====== REZERVASYON → İRSALİYE (2026-09-25) ======
@@ -829,6 +834,66 @@ function _rezervOnDolumBaslat(){
       _rezervBanneriGuncelle();
     })
     .catch(function(){alert('Rezerv bilgisi panelden alınamadı - bağlantıyı kontrol edip linki tekrar açın.');});
+}
+
+/* ====== ÖN SİPARİŞ → İRSALİYE (2026-10-09) ======
+   Panelde Ön Siparişler "İrsaliyeye Aktar" bu sayfayı ?onsiparis={id} ile açar. Siparişin açık renk
+   satırları panelden (/api/onsiparis/{id}/irsaliye-taslak) çekilip form ön doldurulur (rezerv
+   akışıyla aynı doldurma; birim fiyat katalogdan gelir). Kaydedilince onSiparisId payload'a eklenir;
+   panel irsaliyeyle aynı commit'te siparişi Teslim Edildi yapar (eksik sevkte kısmi sevk notu). */
+var _onSiparisKaynak=null; // {id, no, musteri}
+function _onSiparisBanneriGuncelle(){
+  var b=document.getElementById('onSiparisBanner');
+  if(!b)return;
+  if(!_onSiparisKaynak){b.style.display='none';return;}
+  document.getElementById('onSiparisBannerMetin').textContent=_onSiparisKaynak.no+"'ten aktarıldı — "+_onSiparisKaynak.musteri+' (kaydedince ön sipariş Teslim Edildi olur)';
+  b.style.display='flex';
+}
+function _onSiparisOnDolumBaslat(){
+  var q=new URLSearchParams(location.search).get('onsiparis');
+  if(!q||!/^\d+$/.test(q))return;
+  fetch('https://panel.missnesem.com/api/onsiparis/'+q+'/irsaliye-taslak',{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
+    .then(function(r){if(r.status===401||r.status===403){_oturumGecersizce();_anahtarGecersizce();}return r.json().catch(function(){return null;});})
+    .then(function(d){
+      // Link tekrar açılırsa (sayfa yenilenirse) aynı sipariş ikinci kez doldurulmasın.
+      try{history.replaceState(null,'',location.pathname);}catch(e){}
+      if(!d||!d.ok||!d.kalemler||!d.kalemler.length){
+        alert((d&&d.error)||'Ön sipariş bulunamadı.');
+        return;
+      }
+      temizle();
+      _onSiparisKaynak={id:d.id,no:d.siparisNo,musteri:d.musteri||''};
+      document.getElementById('musteri').value=d.musteri||'';
+      var gruplar=[],gMap={};
+      d.kalemler.forEach(function(k){
+        var g=gMap[k.kod];
+        if(!g){g={kod:k.kod,urun:k.urun,renkler:[]};gMap[k.kod]=g;gruplar.push(g);}
+        var mevcut=g.renkler.find(function(x){return _renkAnahtar(x.renk)===_renkAnahtar(k.renk);});
+        if(mevcut)mevcut.seri+=k.seri;else g.renkler.push({renk:_renkAnahtar(k.renk),seri:k.seri});
+      });
+      var rows=document.querySelectorAll('#tb tr');
+      while(rows.length<gruplar.length){ekle(true);rows=document.querySelectorAll('#tb tr');}
+      urunKatalogYukle().then(function(katalog){
+        gruplar.forEach(function(g,i){
+          var tr=rows[i];
+          var eslesen=katalog.find(function(p){return p.code===g.kod;});
+          if(eslesen)_kodSec(tr,eslesen);else tr.querySelector('.ri-kod').value=g.kod;
+          if(!eslesen)tr.querySelector('.ri-urun').value=(g.urun||'').toLocaleUpperCase('tr-TR');
+          tr._renkKalemleri=g.renkler.slice();
+          _renkChipleriRender(tr);
+          _seriToplamGuncelle(tr);
+          // Birim fiyat katalogdan (normalde kutuya odaklanınca dolar - burada hemen; boş/elle
+          // girilmemiş kutuya yazar, bkz. _fiyatKatalogDoldur).
+          var fiyatKutu=tr.querySelector('.fiyat-wrap input'),fiyatHint=tr.querySelector('.ri-fiyat-hint');
+          if(fiyatKutu&&fiyatHint)_fiyatKatalogDoldur(tr,fiyatKutu,fiyatHint);
+        });
+        if(typeof hesapla==='function')hesapla();
+      });
+      bakiyeGoster();
+      musteriBakiyeYukle();
+      _onSiparisBanneriGuncelle();
+    })
+    .catch(function(){alert('Ön sipariş bilgisi panelden alınamadı - bağlantıyı kontrol edip linki tekrar açın.');});
 }
 
 /* ====== KULLANICI (kesen kişi) — girişten belirlenir, elle seçilmez ====== */
@@ -1640,6 +1705,8 @@ ekle(true);ekle(true);ekle(true);
   _duzenlemePanelKayit=null; // düzenleme modundan çıkıldı - "panelde kayıtlı kendi payı" artık yok
   _rezervKaynak=null; // rezervden çevirme modundan da çıkıldı
   _rezervBanneriGuncelle();
+  _onSiparisKaynak=null; // ön siparişten aktarma modundan da çıkıldı
+  _onSiparisBanneriGuncelle();
   _duzenlemeBanneriGuncelle();
 }
 
@@ -1953,6 +2020,8 @@ function _kaydetGovde(sessiz,skipSync){
   if(eskiKayit&&eskiKayit.siparisNo)kayit.siparisNo=eskiKayit.siparisNo;
   if(_rezervKaynak&&_rezervKaynak.ids.length)kayit.rezervIds=_rezervKaynak.ids.slice();
   else if(eskiKayit&&eskiKayit.rezervIds)kayit.rezervIds=eskiKayit.rezervIds;
+  if(_onSiparisKaynak)kayit.onSiparisId=_onSiparisKaynak.id;
+  else if(eskiKayit&&eskiKayit.onSiparisId)kayit.onSiparisId=eskiKayit.onSiparisId;
 
   // Düzenleme modunda son-kullanılan-ayarlar localStorage'ına dokunulmaz — sadece yeni kayıtta yazılır.
   if(!duzenleniyor)sonAyarlariKaydet();
