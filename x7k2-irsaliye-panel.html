@@ -366,7 +366,7 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
     <div class="opt-grp"><span class="opt-lbl">PARA</span><select class="opt-sel" id="para" onchange="paraDegisti()"><option value="TL">₺ TL</option><option value="USD">$ USD</option><option value="EUR">€ EUR</option></select></div>
     <div class="opt-grp"><span class="opt-lbl">KDV</span><select class="opt-sel" id="kdvOran" onchange="hesapla()"><option value="0">Yok</option><option value="1">%1</option><option value="5">%5</option><option value="10">%10</option><option value="20">%20</option></select></div>
     <div class="opt-grp"><span class="opt-lbl">ÖDEME</span><select class="opt-sel" id="odeme" onchange="bakiyeGoster()"></select></div>
-    <div class="opt-grp"><span class="opt-lbl">TÜR</span><select class="opt-sel" id="tur" onchange="odemeGuncelle();turKdvUygula()"><option value="Resmi">Resmi</option><option value="Gayri Resmi" selected>Gayri Resmi</option></select></div>
+    <div class="opt-grp"><span class="opt-lbl">TÜR</span><select class="opt-sel" id="tur" onchange="odemeGuncelle();turKdvUygula()"><option value="Resmi" selected>Resmi</option><option value="Gayri Resmi">Gayri Resmi</option></select></div>
   </div>
   <div class="bakiye-box" id="bakiyeBox">
     <div class="bakiye-grid">
@@ -665,11 +665,8 @@ function _musteriSonIrsaliyeDefaultlariniUygula(isim){
     .then(function(d){
       if(!d||!d.found)return;
       if(document.getElementById('musteri').value!==isim)return; // bu sırada başka bir müşteri seçilmiş olabilir
-      var turSel=document.getElementById('tur');
-      if(d.tur&&[].slice.call(turSel.options).some(function(o){return o.value===d.tur;})){
-        turSel.value=d.tur;
-        odemeGuncelle(); // ödeme seçeneklerini türe göre yeniden oluşturur
-      }
+      // 2026-10-26: TÜR/KDV müşterinin son irsaliyesinden ALINMAZ - yeni irsaliye her zaman
+      // Resmi + %10 başlar (fark edilmeden gayri resmi kayıt vakaları). Sadece PARA/ÖDEME uygulanır.
       var odemeSel=document.getElementById('odeme');
       if(d.odeme&&[].slice.call(odemeSel.options).some(function(o){return o.value===d.odeme;})){
         odemeSel.value=d.odeme;
@@ -677,10 +674,6 @@ function _musteriSonIrsaliyeDefaultlariniUygula(isim){
       var paraSel=document.getElementById('para');
       if(d.para&&[].slice.call(paraSel.options).some(function(o){return o.value===d.para;})){
         paraSel.value=d.para;
-      }
-      var kdvSel=document.getElementById('kdvOran');
-      if(d.kdvOran!==undefined&&d.kdvOran!==null&&[].slice.call(kdvSel.options).some(function(o){return o.value===String(d.kdvOran);})){
-        kdvSel.value=String(d.kdvOran);
       }
       _musteriBakiyeKutusunaYaz(isim);
       bakiyeGoster(); // odeme AcikHesap olarak değiştiyse bakiye kutusunu göster (hesapla() da içinde çağrılıyor)
@@ -725,14 +718,7 @@ function paraDegisti(){
 }
 function _musteriDefaultlariUygula(m){
   if(!m)return;
-  if(m.defaultTur){
-    var turSel=document.getElementById('tur');
-    var turVal=m.defaultTur==='GayriResmi'?'Gayri Resmi':m.defaultTur;
-    if([].slice.call(turSel.options).some(function(o){return o.value===turVal;})){
-      turSel.value=turVal;
-      odemeGuncelle(); // ödeme seçeneklerini türe göre yeniden oluşturur
-    }
-  }
+  // 2026-10-26: müşterinin defaultTur/defaultKdv'si uygulanmaz - TÜR/KDV yalnızca elle değişir.
   if(m.defaultOdeme){
     var odemeSel=document.getElementById('odeme');
     if([].slice.call(odemeSel.options).some(function(o){return o.value===m.defaultOdeme;})){
@@ -743,12 +729,6 @@ function _musteriDefaultlariUygula(m){
     var paraSel=document.getElementById('para');
     if([].slice.call(paraSel.options).some(function(o){return o.value===m.defaultPara;})){
       paraSel.value=m.defaultPara;
-    }
-  }
-  if(m.defaultKdv!==undefined&&m.defaultKdv!==null&&m.defaultKdv!==''){
-    var kdvSel=document.getElementById('kdvOran');
-    if([].slice.call(kdvSel.options).some(function(o){return o.value===String(m.defaultKdv);})){
-      kdvSel.value=String(m.defaultKdv);
     }
   }
   bakiyeGoster(); // ödeme Açık Hesap ise bakiye kutusunu göster + hesapla
@@ -942,7 +922,7 @@ function sonAyarlariKaydet(){
   localStorage.setItem('missnesem_son_para',document.getElementById('para').value);
   localStorage.setItem('missnesem_son_kdv',document.getElementById('kdvOran').value);
   localStorage.setItem('missnesem_son_odeme',document.getElementById('odeme').value);
-  localStorage.setItem('missnesem_son_tur',document.getElementById('tur').value);
+  localStorage.removeItem('missnesem_son_tur'); // 2026-10-26: TÜR artık hatırlanmıyor (eski kaydı da sil)
 }
 function sonAyarlariUygula(){
   // localStorage'da hiç kayıt yoksa (ilk kullanım) devreye giren varsayılanlar.
@@ -950,9 +930,10 @@ function sonAyarlariUygula(){
   var paraSel=document.getElementById('para');
   if([].slice.call(paraSel.options).some(function(o){return o.value===para;}))paraSel.value=para;
 
-  var tur=localStorage.getItem('missnesem_son_tur')||'Gayri Resmi';
+  // 2026-10-26: yeni irsaliyede TÜR HER ZAMAN Resmi (KDV %10 aşağıda TÜR'den gelir) - hiçbir yerden
+  // hatırlanmaz. Eskiden son kullanılan TÜR localStorage'dan (yoksa 'Gayri Resmi') geliyordu.
   var turSel=document.getElementById('tur');
-  if([].slice.call(turSel.options).some(function(o){return o.value===tur;}))turSel.value=tur;
+  turSel.value='Resmi';
 
   odemeGuncelle(); // tür'e göre ödeme seçeneklerini kurar, altta kayıtlı ödeme varsa uygulanır
 
@@ -1908,6 +1889,30 @@ function _kaydetKilitle(k){
     else if(b.dataset.metin){b.textContent=b.dataset.metin;}
   });
 }
+// 2026-10-26: TÜR Gayri Resmi iken kayıttan önce Evet/Vazgeç onayı (fark edilmeden faturasız kayıt
+// vakaları). Resmi'de doğrudan true döner. Promise<boolean>.
+function _gayriResmiOnay(){
+  if(document.getElementById('tur').value!=='Gayri Resmi')return Promise.resolve(true);
+  return new Promise(function(coz){
+    var bg=document.createElement('div');
+    bg.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+    bg.innerHTML='<div style="background:#fff;border-radius:12px;max-width:380px;width:100%;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-family:inherit">'
+      +'<div style="font-size:15px;color:#2c2419;line-height:1.5;margin-bottom:18px">Bu irsaliye <b style="color:#a64d3e">GAYRİ RESMİ (faturasız)</b> kaydedilecek. Emin misin?</div>'
+      +'<div style="display:flex;gap:10px;justify-content:flex-end">'
+      +'<button type="button" data-c="0" style="padding:9px 18px;border:1px solid #c9b99a;background:#fff;color:#2c2419;border-radius:8px;font-weight:600;cursor:pointer">Vazgeç</button>'
+      +'<button type="button" data-c="1" style="padding:9px 18px;border:none;background:#a64d3e;color:#fff;border-radius:8px;font-weight:700;cursor:pointer">Evet</button>'
+      +'</div></div>';
+    var bitir=function(v){document.removeEventListener('keydown',tus,true);bg.remove();coz(v);};
+    var tus=function(e){if(e.key==='Escape'){e.preventDefault();bitir(false);}};
+    bg.addEventListener('click',function(e){
+      var c=e.target.getAttribute&&e.target.getAttribute('data-c');
+      if(c!=null)bitir(c==='1');else if(e.target===bg)bitir(false);
+    });
+    document.addEventListener('keydown',tus,true);
+    document.body.appendChild(bg);
+    bg.querySelector('[data-c="0"]').focus(); // Enter'a yanlışlıkla basılırsa Vazgeç
+  });
+}
 // sonra: kayıt BAŞARIYLA yazılınca çağrılır (PDF/WhatsApp/Yeni İrsaliye "önce kaydet" akışı);
 // verilirse "Kaydedildi" alert'i gösterilmez (sync toast'ı yeterli).
 var _basariAlertiYok=false;
@@ -1920,7 +1925,9 @@ function kaydet(sessiz,skipSync,sonra){
     if(_kaydetKilit)return false;
     _kaydetKilitle(true);
     var _kilidiAc=function(){setTimeout(function(){_kaydetKilitle(false);},1500);};
-    _stokTazeKontrolEt().catch(function(){return true;}).then(function(sonuc){
+    _gayriResmiOnay().then(function(onay){
+    if(!onay){_kaydetKilitle(false);return;}
+    return _stokTazeKontrolEt().catch(function(){return true;}).then(function(sonuc){
       try{
       if(sonuc!==true){
         var ek=sonuc.kayitliAdet>0
@@ -1934,6 +1941,7 @@ function kaydet(sessiz,skipSync,sonra){
       _basariAlertiYok=false;
       if(ok&&sonra)sonra();
       }finally{_kilidiAc();}
+    });
     });
     return true;
   }
