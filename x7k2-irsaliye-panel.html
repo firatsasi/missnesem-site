@@ -86,12 +86,8 @@ tr.iade-row .td-top{color:#c0392b}
 select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:1px solid #c8a87a;border-radius:6px;padding:6px 8px;font-size:13px;cursor:pointer;font-family:Arial,sans-serif;height:32px}
 .add-btn{margin-top:10px;font-size:13px;padding:8px 16px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:rgba(184,152,94,0.2);font-weight:600}
 .totals{margin-top:1.5rem;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
-/* 2026-10-27: TÜR rozeti (ekranda her zaman) + müşteri seçiminde TÜR otomatik değişince sarı uyarı */
-.tur-rozet{display:inline-block;padding:7px 18px;border-radius:8px;font-size:15px;font-weight:800;letter-spacing:1.5px;margin-bottom:4px;border:2px solid}
-.tur-rozet.resmi{background:#e3f4e6;color:#1e6b2e;border-color:#2f7a3d}
-.tur-rozet.gayri{background:#fde4df;color:#a12d1c;border-color:#c0392b}
+/* 2026-10-27: müşteri seçiminde TÜR otomatik değişince sarı uyarı */
 .tur-uyari{display:none;background:#fff3cd;border:1px solid #e0b84c;color:#7a5a00;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:600;line-height:1.35}
-body.export-compact #turRozet{display:none !important}
 .ara-row{display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px}
 .ara-lbl{color:#a64d3e;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right}
 .ara-val{color:#2c2419;font-weight:700;min-width:100px;text-align:right}
@@ -255,7 +251,6 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
   body[data-print-mode="irs"] .btns,
   body[data-print-mode="irs"] #addBtn,
   body[data-print-mode="irs"] #optsRow,
-  body[data-print-mode="irs"] #turRozet,
   body[data-print-mode="irs"] .kargo-toggle,
   body[data-print-mode="irs"] #duzenlemeBanner,
   body[data-print-mode="irs"] .td-del,
@@ -393,7 +388,6 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
     <div class="bakiye-info" id="bakiyeInfo"></div>
   </div>
   <div class="totals">
-    <div class="tur-rozet resmi" id="turRozet">RESMİ</div>
     <div class="ara-row" id="araRow" style="display:none"><span class="ara-lbl">ARA TOPLAM</span><span class="ara-val" id="araToplam">-</span></div>
     <div class="ara-row" id="kdvRow" style="display:none"><span class="ara-lbl" id="kdvLbl">KDV</span><span class="ara-val" id="kdvTutar">-</span></div>
     <div class="ara-row" id="iadeRow" style="display:none"><span class="ara-lbl" style="color:#c0392b">İADE</span><span class="ara-val" id="iadeTutar" style="color:#c0392b">-</span></div>
@@ -730,12 +724,7 @@ function _turUyariGizle(otoKalsin){
   document.getElementById('turUyari').style.display='none';
   if(!otoKalsin)_turOtoAyarli=false;
 }
-function _turRozetGuncelle(){
-  var r=document.getElementById('turRozet');
-  var resmi=document.getElementById('tur').value==='Resmi';
-  r.className='tur-rozet '+(resmi?'resmi':'gayri');
-  r.textContent=resmi?'RESMİ':'GAYRİ RESMİ';
-}
+
 function _paraApiAnahtari(para){return para==='TL'?'TRY':para;}
 // Panel API'sinden GERÇEK güncel bakiyeyi çeker (müşteri autocomplete'te kullanılan AYNI
 // /api/customers/search uç noktası - bkz. musteriAutocomplete). Yerel cari hareketlerden ASLA
@@ -1649,7 +1638,6 @@ function toggleIadeRow(tr,checked){
   hesapla();
 }
 function hesapla(){
-  _turRozetGuncelle();
   document.querySelectorAll('.fiyat-sym').forEach(function(s){s.textContent=birim();});
   var ara=0; // sadece normal satış satırları
   var iadeTutar=0; // iade satırları toplamı (pozitif)
