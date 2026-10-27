@@ -55,6 +55,7 @@ input.ri-urun{flex:1 1 140px;min-width:120px}
 .ri-dd-item{padding:7px 10px;cursor:pointer;font-size:13px;line-height:1.35;color:#2c2419;border-bottom:1px solid #f0e4d3}
 .ri-dd-item:last-child{border-bottom:none}
 .ri-dd-item:hover{background:#fdf5e6}
+.lk-vurgu{background:#f5e3c4 !important} /* klavyeyle vurgulanan öğe (ListeKlavye) */
 .ri-dd-item b{color:#a64d3e}
 .ri-seri-popup{position:absolute;top:100%;left:0;z-index:1001;background:#fff;border:1.5px solid #a64d3e;border-radius:6px;box-shadow:0 4px 12px rgba(44,36,25,0.2);padding:8px;min-width:150px;display:flex;flex-direction:column;gap:6px}
 .ri-seri-lbl{font-size:11px;font-weight:700;color:#a64d3e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -643,6 +644,7 @@ function _musteriDropdownGoster(list){
       +((bak!==0||m.sonIrsaliye)?'<div style="font-size:11px;color:#a64d3e;margin-top:1px">'+(bak!==0?fmtTL(bak):'')
         +(m.sonIrsaliye?'<span style="color:#8a7a66">'+(bak!==0?' · ':'')+'son irsaliye '+m.sonIrsaliye+'</span>':'')+'</div>':'');
     el.onmousedown=function(e){e.preventDefault();_musteriSec(name,bak,m);};
+    el.className='lk-oge';
     dd.appendChild(el);
   });
   dd.style.display='block';
@@ -1142,15 +1144,91 @@ function trUpperInplace(el){
   if(upper!==v){el.value=upper;try{el.setSelectionRange(pos,pos);}catch(e){}}
 }
 
+/* ====== AÇILIR LİSTELERDE KLAVYE (2026-10-27) ======
+   Müşteri / KOD / RENK listelerinin ortak klavye davranışı (panelde de aynısı: wwwroot/js/arama-dropdown.js):
+   - liste açılınca/yeniden çizilince ilk öğe vurgulu; ↑/↓ gezdirir, vurgulu öğe listede görünür alana kayar
+   - Tab: vurguluyu seçer + sonraki alana geçer - SADECE bu odakta yazıldıysa ya da ok tuşu kullanıldıysa
+     (odaklanınca kendiliğinden açılan RENK/KOD listesinde Tab normal geçer). Shift+Tab seçmez.
+   - Enter: vurguluyu seçer + sonraki alana geçer; liste kapalıyken hiçbir şey göndermez/kaydetmez
+   - Esc: listeyi kapatır, seçim yapmaz
+   Seçilebilir öğeler .lk-oge sınıflıdır; el._lkSec(mod) varsa seçim onunla ('enter'/'tab'), yoksa
+   öğenin kendi mousedown'ı tetiklenir. Seçim kodu odağı başka alana taşıdıysa (KOD → RENK, RENK → seri
+   popup'ı) ona dokunulmaz. */
+function _lkGorunur(el){return !!el&&el.isConnected&&getComputedStyle(el).display!=='none';}
+function _lkSonrakiAlan(el){
+  var hepsi=[].filter.call(document.querySelectorAll('input,select,textarea,button,a[href],[tabindex]'),function(x){
+    return !x.disabled&&!x.readOnly&&x.tabIndex>=0&&x.type!=='hidden'&&!!(x.offsetWidth||x.offsetHeight||x.getClientRects().length);
+  });
+  var i=hepsi.indexOf(el);
+  return i>=0?hepsi[i+1]||null:null;
+}
+function listeKlavyeBagla(inp,liste){
+  var aktif=-1,etkilesim=false;
+  if(!liste.hasAttribute('tabindex'))liste.tabIndex=-1; // kaydırılabilir liste Tab'la odak almasın
+  function ogeler(){return [].slice.call(liste.querySelectorAll('.lk-oge'));}
+  function acik(){return _lkGorunur(liste)&&ogeler().length>0;}
+  function vurgula(i,kaydir){
+    var o=ogeler();
+    o.forEach(function(el,j){el.classList.toggle('lk-vurgu',j===i);});
+    aktif=(i>=0&&i<o.length)?i:-1;
+    if(kaydir&&aktif>=0){ // sadece liste kayar, sayfa kaymaz
+      var r=o[aktif].getBoundingClientRect(),lr=liste.getBoundingClientRect();
+      if(r.top<lr.top)liste.scrollTop-=(lr.top-r.top);
+      else if(r.bottom>lr.bottom)liste.scrollTop+=(r.bottom-lr.bottom);
+    }
+  }
+  new MutationObserver(function(){
+    if(!_lkGorunur(liste)){aktif=-1;return;}
+    var o=ogeler();
+    if(aktif<0||!o[aktif]||!o[aktif].classList.contains('lk-vurgu'))vurgula(o.length?0:-1,false);
+  }).observe(liste,{childList:true,attributes:true,attributeFilter:['style','class']});
+  function sec(mod){
+    var el=ogeler()[aktif];
+    if(!el)return;
+    if(el._lkSec)el._lkSec(mod);
+    else el.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true,view:window}));
+    etkilesim=false;
+    if(document.activeElement!==inp&&document.activeElement!==document.body)return;
+    var hedef=_lkSonrakiAlan(inp);
+    if(hedef){hedef.focus();if(hedef.tagName==='INPUT'&&hedef.select){try{hedef.select();}catch(x){}}}
+  }
+  inp.addEventListener('focus',function(){etkilesim=false;});
+  inp.addEventListener('input',function(){etkilesim=true;});
+  inp.addEventListener('keydown',function(e){
+    if(e.isComposing)return;
+    var k=e.key;
+    if(!acik()){if(k==='Enter')e.preventDefault();return;}
+    var n=ogeler().length;
+    if(k==='ArrowDown'||k==='ArrowUp'){
+      e.preventDefault();
+      etkilesim=true;
+      vurgula(aktif<0?(k==='ArrowDown'?0:n-1):(aktif+(k==='ArrowDown'?1:-1)+n)%n,true);
+    }else if(k==='Enter'){
+      e.preventDefault();e.stopPropagation();
+      if(aktif<0)vurgula(0,false);
+      sec('enter');
+    }else if(k==='Tab'&&!e.shiftKey){
+      if(!etkilesim||aktif<0)return; // normal Tab
+      e.preventDefault();
+      sec('tab');
+    }else if(k==='Escape'){
+      e.preventDefault();e.stopPropagation();
+      liste.style.display='none';
+      aktif=-1;
+    }
+  });
+}
+
 function _riDropdownGizle(dd){dd.style.display='none';}
 function _riDropdownDoldur(dd,list,renderItem,onPick){
   if(!list||!list.length){_riDropdownGizle(dd);return;}
   dd.innerHTML='';
   list.forEach(function(item){
     var el=document.createElement('div');
-    el.className='ri-dd-item';
+    el.className='ri-dd-item lk-oge';
     renderItem(el,item);
     el.onmousedown=function(e){e.preventDefault();onPick(item);};
+    el._lkSec=function(mod){onPick(item,mod);}; // klavyeyle seçim (bkz. listeKlavyeBagla)
     dd.appendChild(el);
   });
   dd.style.display='block';
@@ -1299,14 +1377,16 @@ function renkDropdownFiltrele(tr,q){
     dd.style.display='block';
     return;
   }
-  _riDropdownDoldur(dd,list,function(el,c){el.textContent=c;},function(c){_renkSecildi(tr,c);});
+  _riDropdownDoldur(dd,list,function(el,c){el.textContent=c;},function(c,mod){_renkSecildi(tr,c,mod==='enter');});
 }
 
 // Dropdown'dan bir renk tıklandığında çağrılır. "Kaç seri?" popup'ı açılır; onaylanınca renk+seri
 // çifti satırın renk listesine (tr._renkKalemleri) eklenir — YENİ SATIR AÇILMAZ, aynı satırda
 // çip olarak birikir (ör. "BEYAZ (3) / SİYAH (2)"). SERİ (eski ADET) alanı toplam seri sayısına
 // güncellenir (bkz. _seriToplamGuncelle). Arama kutusu bir sonraki renk için temizlenir.
-function _renkSecildi(tr,renk){
+// renkteKal: klavyede Enter ile seçildi - seri onaylanınca odak BİRİM FİYAT yerine RENK'e döner ve liste
+// tekrar açılır (peş peşe renk eklemek için, 2026-10-27).
+function _renkSecildi(tr,renk,renkteKal){
   _riDropdownGizle(tr.querySelector('.ri-renk-dd'));
   _seriPopupGoster(tr,renk,function(seri){
     var mevcutStok=_renkKullanilabilirStok(tr,renk);
@@ -1320,6 +1400,7 @@ function _renkSecildi(tr,renk){
     _seriToplamGuncelle(tr);
     tr.querySelector('.ri-renk').value='';
     hesapla();
+    if(renkteKal){var renkInp=tr.querySelector('.ri-renk');setTimeout(function(){renkInp.focus();},0);return;}
     var fiyatInp=tr.querySelector('.fiyat-wrap input');
     if(fiyatInp){setTimeout(function(){fiyatInp.focus();fiyatInp.select();},0);}
   });
@@ -1569,6 +1650,7 @@ function _satirOlustur(){
   });
 
   iUrun.addEventListener('input',function(){trUpperInplace(iUrun);});
+  listeKlavyeBagla(iKod,kodDd);
 
   // RENK alanı, KOD'u katalogda eşleşen bir ürün için SADECE renk eklemek üzere bir arama/filtre
   // kutusu — seçilen renkler satırın üstünde çip olarak birikir (bkz. tr._renkKalemleri/
@@ -1601,6 +1683,7 @@ function _satirOlustur(){
       iRenk.value=(tr._renkKalemleri&&tr._renkKalemleri.length)?'':(tr._renkKomitli||'');
     },150);
   });
+  listeKlavyeBagla(iRenk,renkDd);
   var td3=document.createElement('td');
   var fw=document.createElement('div');fw.className='fiyat-wrap';
   var sspan=document.createElement('span');sspan.className='fiyat-sym';sspan.textContent=birim();fw.appendChild(sspan);
@@ -4001,6 +4084,7 @@ window.addEventListener('afterprint',function(){
   var card=document.querySelector('.rapor-card');
   if(card)card.style.zoom='';
 });
+listeKlavyeBagla(document.getElementById('musteri'),document.getElementById('musteriDropdown'));
 document.addEventListener('click',function(e){
   if(!e.target.closest('#musteri')&&!e.target.closest('#musteriDropdown')){
     var dd=document.getElementById('musteriDropdown');
