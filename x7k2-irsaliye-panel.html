@@ -86,6 +86,12 @@ tr.iade-row .td-top{color:#c0392b}
 select.opt-sel{background-color:#fff !important;color:#2c2419 !important;border:1px solid #c8a87a;border-radius:6px;padding:6px 8px;font-size:13px;cursor:pointer;font-family:Arial,sans-serif;height:32px}
 .add-btn{margin-top:10px;font-size:13px;padding:8px 16px;cursor:pointer;color:#2c2419;border:1px solid #b8985e;border-radius:6px;background:rgba(184,152,94,0.2);font-weight:600}
 .totals{margin-top:1.5rem;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+/* 2026-10-27: TÜR rozeti (ekranda her zaman) + müşteri seçiminde TÜR otomatik değişince sarı uyarı */
+.tur-rozet{display:inline-block;padding:7px 18px;border-radius:8px;font-size:15px;font-weight:800;letter-spacing:1.5px;margin-bottom:4px;border:2px solid}
+.tur-rozet.resmi{background:#e3f4e6;color:#1e6b2e;border-color:#2f7a3d}
+.tur-rozet.gayri{background:#fde4df;color:#a12d1c;border-color:#c0392b}
+.tur-uyari{display:none;background:#fff3cd;border:1px solid #e0b84c;color:#7a5a00;border-radius:6px;padding:5px 9px;font-size:12px;font-weight:600;line-height:1.35}
+body.export-compact #turRozet{display:none !important}
 .ara-row{display:flex;gap:14px;align-items:center;padding:4px 0;font-size:14px}
 .ara-lbl{color:#a64d3e;font-size:11px;letter-spacing:1px;font-weight:700;min-width:100px;text-align:right}
 .ara-val{color:#2c2419;font-weight:700;min-width:100px;text-align:right}
@@ -249,6 +255,7 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
   body[data-print-mode="irs"] .btns,
   body[data-print-mode="irs"] #addBtn,
   body[data-print-mode="irs"] #optsRow,
+  body[data-print-mode="irs"] #turRozet,
   body[data-print-mode="irs"] .kargo-toggle,
   body[data-print-mode="irs"] #duzenlemeBanner,
   body[data-print-mode="irs"] .td-del,
@@ -366,7 +373,7 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
     <div class="opt-grp"><span class="opt-lbl">PARA</span><select class="opt-sel" id="para" onchange="paraDegisti()"><option value="TL">₺ TL</option><option value="USD">$ USD</option><option value="EUR">€ EUR</option></select></div>
     <div class="opt-grp"><span class="opt-lbl">KDV</span><select class="opt-sel" id="kdvOran" onchange="hesapla()"><option value="0">Yok</option><option value="1">%1</option><option value="5">%5</option><option value="10">%10</option><option value="20">%20</option></select></div>
     <div class="opt-grp"><span class="opt-lbl">ÖDEME</span><select class="opt-sel" id="odeme" onchange="bakiyeGoster()"></select></div>
-    <div class="opt-grp"><span class="opt-lbl">TÜR</span><select class="opt-sel" id="tur" onchange="odemeGuncelle();turKdvUygula()"><option value="Resmi" selected>Resmi</option><option value="Gayri Resmi">Gayri Resmi</option></select></div>
+    <div class="opt-grp"><span class="opt-lbl">TÜR</span><select class="opt-sel" id="tur" onchange="_turUyariGizle();odemeGuncelle();turKdvUygula()"><option value="Resmi" selected>Resmi</option><option value="Gayri Resmi">Gayri Resmi</option></select><span class="tur-uyari" id="turUyari"></span></div>
   </div>
   <div class="bakiye-box" id="bakiyeBox">
     <div class="bakiye-grid">
@@ -386,6 +393,7 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
     <div class="bakiye-info" id="bakiyeInfo"></div>
   </div>
   <div class="totals">
+    <div class="tur-rozet resmi" id="turRozet">RESMİ</div>
     <div class="ara-row" id="araRow" style="display:none"><span class="ara-lbl">ARA TOPLAM</span><span class="ara-val" id="araToplam">-</span></div>
     <div class="ara-row" id="kdvRow" style="display:none"><span class="ara-lbl" id="kdvLbl">KDV</span><span class="ara-val" id="kdvTutar">-</span></div>
     <div class="ara-row" id="iadeRow" style="display:none"><span class="ara-lbl" style="color:#c0392b">İADE</span><span class="ara-val" id="iadeTutar" style="color:#c0392b">-</span></div>
@@ -663,10 +671,12 @@ function _musteriSonIrsaliyeDefaultlariniUygula(isim){
   fetch('https://panel.missnesem.com/api/customers/'+encodeURIComponent(isim)+'/defaults',{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
     .then(function(r){if(r.status===401||r.status===403){_oturumGecersizce();_anahtarGecersizce();}if(!r.ok)throw new Error('son irsaliye bilgisi alınamadı');return r.json();})
     .then(function(d){
-      if(!d||!d.found)return;
       if(document.getElementById('musteri').value!==isim)return; // bu sırada başka bir müşteri seçilmiş olabilir
-      // 2026-10-26: TÜR/KDV müşterinin son irsaliyesinden ALINMAZ - yeni irsaliye her zaman
-      // Resmi + %10 başlar (fark edilmeden gayri resmi kayıt vakaları). Sadece PARA/ÖDEME uygulanır.
+      if(!d||!d.found){_turVarsayilanaDon();return;}
+      // 2026-10-27: TÜR/KDV yine müşterinin SON irsaliyesinden gelir (350c974'te kapatılmıştı, gayri resmi
+      // müşterilerde fazladan KDV biniyordu). TÜR değiştiyse sarı uyarı çıkar; ödeme seçenekleri
+      // TÜR'e göre yeniden kurulduğu için TÜR, ÖDEME'den ÖNCE uygulanır.
+      _turSonIrsaliyedenUygula(d.tur,d.kdvOran);
       var odemeSel=document.getElementById('odeme');
       if(d.odeme&&[].slice.call(odemeSel.options).some(function(o){return o.value===d.odeme;})){
         odemeSel.value=d.odeme;
@@ -678,7 +688,53 @@ function _musteriSonIrsaliyeDefaultlariniUygula(isim){
       _musteriBakiyeKutusunaYaz(isim);
       bakiyeGoster(); // odeme AcikHesap olarak değiştiyse bakiye kutusunu göster (hesapla() da içinde çağrılıyor)
     })
-    .catch(function(){}); // sessizce yoksay — statik varsayılanlar zaten uygulanmış durumda
+    .catch(function(){ // sessizce yoksay — statik varsayılanlar zaten uygulanmış durumda
+      if(document.getElementById('musteri').value===isim)_turVarsayilanaDon();
+    });
+}
+// TÜR/KDV yalnızca YENİ irsaliyede müşteriye göre değişir; düzenlenen/kaydedilmiş irsaliyede kayıtlı
+// TÜR/KDV korunur.
+var _turOtoAyarli=false; // TÜR/KDV en son müşteri seçimiyle mi kondu (elle değiştirilince false)
+function _turOtomatikSerbest(){return _duzenlemeId==null&&_aktifKayitId==null;}
+function _turSonIrsaliyedenUygula(tur,kdvOran){
+  if(!_turOtomatikSerbest())return;
+  if(tur==='GayriResmi')tur='Gayri Resmi';
+  var turSel=document.getElementById('tur');
+  if(!tur||![].slice.call(turSel.options).some(function(o){return o.value===tur;}))return;
+  var degisti=turSel.value!==tur;
+  if(degisti){turSel.value=tur;odemeGuncelle();} // ödeme seçeneklerini türe göre yeniden oluşturur
+  var kdvSel=document.getElementById('kdvOran');
+  var kdv=(kdvOran!==undefined&&kdvOran!==null)?String(kdvOran):'';
+  kdvSel.value=[].slice.call(kdvSel.options).some(function(o){return o.value===kdv;})?kdv:turKdvOrani(tur);
+  _turOtoAyarli=true;
+  if(degisti)_turUyariGoster(tur);else _turUyariGizle(true);
+  hesapla();
+}
+// Müşterinin hiç irsaliyesi yok (ya da bilgi alınamadı): önceki müşteriden otomatik gelmiş TÜR/KDV
+// varsa Resmi + %10'a döner; kullanıcının elle seçtiği TÜR'e dokunulmaz.
+function _turVarsayilanaDon(){
+  if(!_turOtomatikSerbest()||!_turOtoAyarli)return;
+  var turSel=document.getElementById('tur');
+  if(turSel.value!=='Resmi'){turSel.value='Resmi';odemeGuncelle();}
+  document.getElementById('kdvOran').value=turKdvOrani('Resmi');
+  _turUyariGizle();
+  hesapla();
+}
+function _turUyariGoster(tur){
+  var u=document.getElementById('turUyari');
+  u.textContent='Tür bu müşterinin son irsaliyesine göre ayarlandı: '+(tur==='Resmi'?'RESMİ':'GAYRİ RESMİ');
+  u.style.display='inline-block';
+}
+// otoKalsin: uyarı gizlenir ama TÜR hâlâ müşteriden gelmiş sayılır
+function _turUyariGizle(otoKalsin){
+  document.getElementById('turUyari').style.display='none';
+  if(!otoKalsin)_turOtoAyarli=false;
+}
+function _turRozetGuncelle(){
+  var r=document.getElementById('turRozet');
+  var resmi=document.getElementById('tur').value==='Resmi';
+  r.className='tur-rozet '+(resmi?'resmi':'gayri');
+  r.textContent=resmi?'RESMİ':'GAYRİ RESMİ';
 }
 function _paraApiAnahtari(para){return para==='TL'?'TRY':para;}
 // Panel API'sinden GERÇEK güncel bakiyeyi çeker (müşteri autocomplete'te kullanılan AYNI
@@ -718,7 +774,8 @@ function paraDegisti(){
 }
 function _musteriDefaultlariUygula(m){
   if(!m)return;
-  // 2026-10-26: müşterinin defaultTur/defaultKdv'si uygulanmaz - TÜR/KDV yalnızca elle değişir.
+  // 2026-10-26: müşterinin sabit defaultTur/defaultKdv'si uygulanmaz - TÜR/KDV müşterinin SON
+  // irsaliyesinden gelir (_musteriSonIrsaliyeDefaultlariniUygula).
   if(m.defaultOdeme){
     var odemeSel=document.getElementById('odeme');
     if([].slice.call(odemeSel.options).some(function(o){return o.value===m.defaultOdeme;})){
@@ -934,6 +991,7 @@ function sonAyarlariUygula(){
   // hatırlanmaz. Eskiden son kullanılan TÜR localStorage'dan (yoksa 'Gayri Resmi') geliyordu.
   var turSel=document.getElementById('tur');
   turSel.value='Resmi';
+  _turUyariGizle();
 
   odemeGuncelle(); // tür'e göre ödeme seçeneklerini kurar, altta kayıtlı ödeme varsa uygulanır
 
@@ -1591,6 +1649,7 @@ function toggleIadeRow(tr,checked){
   hesapla();
 }
 function hesapla(){
+  _turRozetGuncelle();
   document.querySelectorAll('.fiyat-sym').forEach(function(s){s.textContent=birim();});
   var ara=0; // sadece normal satış satırları
   var iadeTutar=0; // iade satırları toplamı (pozitif)
@@ -2764,6 +2823,7 @@ function irsaliyeDuzenle(id){
   document.getElementById('tarih').value=kayit.tarih;
   document.getElementById('para').value=kayit.para||'TL';
   document.getElementById('tur').value=kayit.tur||'Resmi';
+  _turUyariGizle(); // kayıtlı TÜR aynen gelir, otomatik ayar uyarısı yok
   odemeGuncelle(); // tür'e göre ödeme seçeneklerini kurar
   document.getElementById('odeme').value=kayit.odeme;
   document.getElementById('kdvOran').value=String(kayit.kdvOran||0);
