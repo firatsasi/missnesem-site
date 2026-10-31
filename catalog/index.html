@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+<meta charset="UTF-8" />
 <!-- © 2026 Miss Neşem. Tüm hakları saklıdır. -->
 <!-- Meta Pixel Code — PIXEL_ID'yi Meta Ads Manager'daki gerçek Pixel ID ile değiştirin
      (bu dosyada 2 yerde geçiyor: aşağıdaki fbq('init',...) çağrısı ve noscript <img> src'si). -->
@@ -24,7 +25,6 @@
 <noscript><img height="1" width="1" style="display:none"
   src="https://www.facebook.com/tr?id=PIXEL_ID&ev=PageView&noscript=1" alt="" /></noscript>
 <!-- End Meta Pixel Code -->
-<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Miss Neşem · Sonbahar '26 Yeni Sezon Kataloğu | Toptan Kadın Giyim</title>
 <meta name="description" content="Geyik desenli kürk kollu ceket, leopar takım, şal desenli elbise ve tüm yeni sezon. Merter'den toptan kadın giyim — kataloğu hemen inceleyin." />
@@ -986,6 +986,69 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .cat-section.revealed { opacity: 1; transform: translateY(0); }
 
+/* ===== KATALOG YÜKLENİYOR / HATA (2026-10-31) ===== */
+.catalog-status {
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--text2);
+}
+.catalog-status-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+.catalog-status-line {
+  width: 120px;
+  height: 1px;
+  background: rgba(181,137,90,0.25);
+  position: relative;
+  overflow: hidden;
+}
+.catalog-status-line::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -40%;
+  width: 40%;
+  height: 100%;
+  background: var(--accent);
+  animation: catalogLoadingLine 1.4s ease-in-out infinite;
+}
+@keyframes catalogLoadingLine { to { left: 100%; } }
+.catalog-status-msg {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.catalog-status-detail {
+  font-size: 0.65rem;
+  opacity: 0.6;
+  letter-spacing: 0.1em;
+}
+.catalog-retry-btn {
+  margin-top: 0.5rem;
+  padding: 1.1rem 2.75rem;
+  min-width: 220px;
+  background: var(--text);
+  color: #fff;
+  font-size: 0.8rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition: background var(--transition);
+}
+.catalog-retry-btn:hover, .catalog-retry-btn:focus-visible { background: var(--accent); }
+@media (prefers-reduced-motion: reduce) {
+  .catalog-status-line::after { animation: none; left: 30%; }
+}
+
 /* ===== KATEGORİ VİDEO BAŞLIK BANDI ===== */
 .section-header-video {
   position: relative;
@@ -1813,7 +1876,13 @@ html, body { overflow-x: hidden; max-width: 100%; }
 </section>
 
 <!-- ===== CATALOG SECTIONS (JS render) ===== -->
-<main id="catalog"></main>
+<main id="catalog">
+  <div class="catalog-status" role="status" aria-live="polite">
+    <div class="catalog-status-title">Miss Neşem</div>
+    <div class="catalog-status-line"></div>
+    <div class="catalog-status-msg" id="catalog-loading-msg">Koleksiyon yükleniyor…</div>
+  </div>
+</main>
 
 <!-- ===== FOOTER ===== -->
 <footer>
@@ -2353,7 +2422,16 @@ html, body { overflow-x: hidden; max-width: 100%; }
     }
   });
 
+  // Veri henüz render edilmediyse (yavaş/takılan bağlantı) kategori tıklaması kaybolmasın:
+  // istek kuyruğa alınır, ilk render bitince (bkz. KATALOG YÜKLEME) o kategoriye gidilir.
+  let catalogReady = false;
+  let pendingCategory; // undefined = kuyruk boş; null = "Tüm Ürünler"
   function goToCategory(catId) {
+    if (!catalogReady) {
+      pendingCategory = catId;
+      scrollToWithNavOffset(document.getElementById('catalog'));
+      return;
+    }
     // Bölüm DOM'da yoksa (ör. "Yeni Sezon" ürünü henüz işaretlenmemişse) tüm kataloğa düş.
     const effectiveCatId = (catId && document.getElementById(catId)) ? catId : null;
     const sameCategory = currentCategoryFilter === effectiveCatId;
@@ -3589,32 +3667,252 @@ html, body { overflow-x: hidden; max-width: 100%; }
     return raw;
   }
 
-  async function loadProducts() {
+  // ===== KATALOG YÜKLEME (2026-10-31) =====
+  // iPhone (WebKit) ve uygulama içi tarayıcılarda panel API isteği bazen hiç dönmeden
+  // takılıyordu; zaman aşımı olmadığından products.json'a hiç geçilmiyor, #catalog boş
+  // kalıyordu. Sıra: Cache Storage'daki son başarılı API cevabı (varsa hemen render) →
+  // panel API (6 sn) → products.json (8 sn, 1 kez yeniden deneme). Önbellekten açıldıysa
+  // API arkada tazelenir; veri değiştiyse sessizce yeniden render edilir.
+  const CATALOG_API_URL = 'https://panel.missnesem.com/api/catalog/products';
+  const CATALOG_CACHE_NAME = 'mn-catalog';
+  const API_TIMEOUT_MS = 6000;
+  const FALLBACK_TIMEOUT_MS = 8000;
+
+  // Gövde okuması da sürenin içinde: AbortController (varsa) isteği gerçekten keser,
+  // Promise.race ise AbortController'ı olmayan/desteklemeyen tarayıcılarda da süreyi garanti eder.
+  function fetchTextWithTimeout(url, ms) {
+    const ctrl = (typeof AbortController === 'function') ? new AbortController() : null;
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        if (ctrl) ctrl.abort();
+        reject(new Error('zaman aşımı (' + (ms / 1000) + ' sn): ' + url));
+      }, ms);
+    });
+    const request = fetch(url, ctrl ? { signal: ctrl.signal } : undefined).then(res => {
+      if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + url);
+      return res.text();
+    });
+    return Promise.race([request, timeout]).finally(() => clearTimeout(timer));
+  }
+
+  // Cache Storage sadece güvenli bağlamda (https/localhost) var; bazı uygulama içi
+  // tarayıcılarda ve gizli modda hata verebilir — her durumda sessizce atlanır.
+  async function readCatalogCache() {
     try {
-      const res = await fetch('https://panel.missnesem.com/api/catalog/products');
-      if (!res.ok) throw new Error('API error ' + res.status);
-      return await res.json();
+      if (!('caches' in window)) return null;
+      const cache = await caches.open(CATALOG_CACHE_NAME);
+      const res = await cache.match(CATALOG_API_URL);
+      return res ? await res.text() : null;
     } catch (e) {
-      console.warn('Panel API bağlantısı yok, products.json fallback:', e.message);
-      const res = await fetch('/catalog/products.json');
-      return await res.json();
+      return null;
+    }
+  }
+  async function writeCatalogCache(text) {
+    try {
+      if (!('caches' in window)) return;
+      const cache = await caches.open(CATALOG_CACHE_NAME);
+      await cache.put(CATALOG_API_URL, new Response(text, { headers: { 'Content-Type': 'application/json' } }));
+    } catch (e) { /* sessizce atla */ }
+  }
+
+  async function fetchFallbackText() {
+    try {
+      return await fetchTextWithTimeout('/catalog/products.json', FALLBACK_TIMEOUT_MS);
+    } catch (e) {
+      console.warn('[MissNesem] products.json 1. deneme başarısız, yeniden deneniyor:', e.message);
+      return await fetchTextWithTimeout('/catalog/products.json', FALLBACK_TIMEOUT_MS);
     }
   }
 
-  Promise.all([detectWebpSupport(), loadProducts()])
-    .then(([supported, raw]) => {
-      webpSupported = supported;
-      console.log('[MissNesem] Veri alındı, normalize ediliyor. WebP destekleniyor mu:', supported);
-      renderCatalog(normalizeCatalogData(raw));
-    })
-    .catch(err => {
-      console.error('[MissNesem] FETCH/RENDER HATASI:', err);
-      document.getElementById('catalog').innerHTML =
-        '<div style="text-align:center;padding:4rem 2rem;color:var(--text2);font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;">'
-        + 'Katalog yüklenemedi. Lütfen sayfayı yenileyin.<br>'
-        + '<span style="font-size:0.65rem;opacity:0.6;letter-spacing:0.1em;text-transform:none;display:block;margin-top:1rem">' + err.message + '</span>'
-        + '</div>';
-    });
+  function setCatalogLoadingMessage() {
+    const el = document.getElementById('catalog-loading-msg');
+    if (!el) return;
+    const lang = localStorage.getItem('mn_lang') || 'tr';
+    el.textContent = { en: 'Loading collection…', ar: 'جارٍ تحميل المجموعة…' }[lang] || 'Koleksiyon yükleniyor…';
+  }
+
+  function showCatalogError(err) {
+    const catalog = document.getElementById('catalog');
+    catalog.innerHTML =
+      '<div class="catalog-status" role="alert">'
+      + '<div class="catalog-status-msg">Katalog yüklenemedi.</div>'
+      + '<div class="catalog-status-detail"></div>'
+      + '<button type="button" class="catalog-retry-btn">Yeniden Dene</button>'
+      + '</div>';
+    catalog.querySelector('.catalog-status-detail').textContent = err && err.message ? err.message : '';
+    catalog.querySelector('.catalog-retry-btn').addEventListener('click', () => loadCatalog());
+  }
+
+  // renderCatalog her çağrıda #catalog'a yeni click/keydown dinleyicisi ekliyor; ikinci render'da
+  // ürün iki kez açılmasın diye eleman (dinleyicileriyle birlikte) boş bir kopyasıyla değiştirilir.
+  function freshCatalogElement() {
+    const old = document.getElementById('catalog');
+    const fresh = old.cloneNode(false);
+    old.replaceWith(fresh);
+  }
+
+  let lastRenderedText = null;
+  let pendingRefreshText = null;
+  let refreshWaitTimer = null;
+
+  function renderFromText(text) {
+    const data = normalizeCatalogData(JSON.parse(text));
+    freshCatalogElement();
+    renderCatalog(data);
+    lastRenderedText = text;
+  }
+
+  function firstRender(text) {
+    renderFromText(text);
+    catalogReady = true;
+    if (pendingCategory !== undefined) {
+      const cat = pendingCategory;
+      pendingCategory = undefined;
+      goToCategory(cat);
+    }
+  }
+
+  // Açık ürün/galeri/favori paneli varken DOM değiştirilmez — kapanınca uygulanır.
+  function catalogOverlayOpen() {
+    return overlay.classList.contains('open')
+      || fullscreenOverlay.classList.contains('open')
+      || favPanel.classList.contains('open');
+  }
+
+  function scheduleSilentRefresh(text) {
+    pendingRefreshText = text;
+    if (refreshWaitTimer) return;
+    const tryApply = () => {
+      if (catalogOverlayOpen()) return;
+      clearInterval(refreshWaitTimer);
+      refreshWaitTimer = null;
+      const t = pendingRefreshText;
+      pendingRefreshText = null;
+      if (t && t !== lastRenderedText) silentRerender(t);
+    };
+    refreshWaitTimer = setInterval(tryApply, 800);
+    tryApply();
+  }
+
+  // Filtre, arama ve görünürdeki ürünün ekrandaki konumu korunarak yeniden render.
+  function silentRerender(text) {
+    const nav = document.getElementById('nav');
+    const navH = nav ? nav.offsetHeight : 0;
+    let anchor = null;
+    for (const card of document.querySelectorAll('#catalog .product-card')) {
+      const r = card.getBoundingClientRect();
+      if (r.height && r.bottom > navH) {
+        const section = card.closest('.cat-section');
+        anchor = { code: card.dataset.code, sectionId: section ? section.id : null, top: r.top };
+        break;
+      }
+    }
+    const savedY = window.pageYOffset;
+    const savedCat = currentCategoryFilter;
+
+    try {
+      renderFromText(text);
+    } catch (e) {
+      console.error('[MissNesem] Arka plan yenileme render hatası:', e);
+      return;
+    }
+    // Yeni bölümler görünür başlasın (initReveal'in kayma/fade animasyonu tekrar oynamasın).
+    document.querySelectorAll('#catalog .cat-section, #catalog .reveal').forEach(el => el.classList.add('visible', 'revealed'));
+    filterByCategory(savedCat);
+    if (searchInput.value || hideSoldoutToggle.checked) filterProducts(searchInput.value);
+
+    const restoreScroll = () => {
+      let y = savedY;
+      if (anchor) {
+        const sel = (anchor.sectionId ? '#' + CSS.escape(anchor.sectionId) + ' ' : '#catalog ')
+          + '.product-card[data-code="' + CSS.escape(anchor.code) + '"]';
+        const card = document.querySelector(sel);
+        if (card) y = window.pageYOffset + card.getBoundingClientRect().top - anchor.top;
+      }
+      const html = document.documentElement;
+      const prev = html.style.scrollBehavior;
+      html.style.scrollBehavior = 'auto';
+      window.scrollTo(0, Math.max(0, y));
+      html.style.scrollBehavior = prev;
+    };
+    restoreScroll();
+    // initHistoryState kategori varsa rAF'te kaydırıyor — ondan sonra konumu tekrar sabitle.
+    requestAnimationFrame(() => requestAnimationFrame(restoreScroll));
+  }
+
+  let catalogLoadRun = 0;
+  async function loadCatalog() {
+    const run = ++catalogLoadRun;
+    const t0 = performance.now();
+    const ms = () => Math.round(performance.now() - t0);
+    if (!catalogReady) {
+      const catalog = document.getElementById('catalog');
+      if (!catalog.querySelector('.catalog-status-line')) {
+        catalog.innerHTML = '<div class="catalog-status" role="status" aria-live="polite">'
+          + '<div class="catalog-status-title">Miss Neşem</div><div class="catalog-status-line"></div>'
+          + '<div class="catalog-status-msg" id="catalog-loading-msg"></div></div>';
+      }
+      setCatalogLoadingMessage();
+    }
+
+    const [supported, cachedText] = await Promise.all([detectWebpSupport(), readCatalogCache()]);
+    webpSupported = supported;
+    if (run !== catalogLoadRun) return;
+
+    let shownFromCache = false;
+    if (cachedText && !catalogReady) {
+      try {
+        firstRender(cachedText);
+        shownFromCache = true;
+        console.log('[MissNesem] Katalog yüklendi — kaynak: cache, ' + ms() + ' ms');
+      } catch (e) {
+        console.warn('[MissNesem] Önbellekteki katalog bozuk, atlanıyor:', e.message);
+      }
+    }
+
+    let apiText = null;
+    try {
+      apiText = await fetchTextWithTimeout(CATALOG_API_URL, API_TIMEOUT_MS);
+      JSON.parse(apiText); // bozuk/yarım cevap önbelleğe yazılmasın
+    } catch (e) {
+      apiText = null;
+      console.warn('[MissNesem] Panel API başarısız (' + ms() + ' ms):', e.message);
+    }
+    if (run !== catalogLoadRun) return;
+
+    if (apiText) {
+      writeCatalogCache(apiText);
+      if (!catalogReady) {
+        try {
+          firstRender(apiText);
+          console.log('[MissNesem] Katalog yüklendi — kaynak: api, ' + ms() + ' ms');
+          return;
+        } catch (e) {
+          console.error('[MissNesem] API verisi render edilemedi:', e);
+        }
+      } else if (shownFromCache) {
+        const changed = apiText !== lastRenderedText;
+        console.log('[MissNesem] Arka plan tazeleme — kaynak: api, ' + ms() + ' ms, ' + (changed ? 'veri değişti, yeniden render' : 'veri aynı'));
+        if (changed) scheduleSilentRefresh(apiText);
+        return;
+      }
+    }
+    if (catalogReady) return; // önbellekten zaten gösterildi, API arkada başarısız oldu
+
+    try {
+      const fbText = await fetchFallbackText();
+      if (run !== catalogLoadRun) return;
+      firstRender(fbText);
+      console.log('[MissNesem] Katalog yüklendi — kaynak: products.json, ' + ms() + ' ms');
+    } catch (err) {
+      if (run !== catalogLoadRun) return;
+      console.error('[MissNesem] FETCH/RENDER HATASI (' + ms() + ' ms):', err);
+      showCatalogError(err);
+    }
+  }
+
+  loadCatalog();
 
   // ===== LAZY LOAD (ürün görselleri) =====
   // data-src taşıyan kartlar viewport'a ~200px kala gerçek src'ye kavuşur; loading="lazy"
