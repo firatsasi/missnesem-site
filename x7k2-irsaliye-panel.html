@@ -869,13 +869,72 @@ function _rezervOnDolumBaslat(){
    satırları panelden (/api/onsiparis/{id}/irsaliye-taslak) çekilip form ön doldurulur (rezerv
    akışıyla aynı doldurma; birim fiyat katalogdan gelir). Kaydedilince onSiparisId payload'a eklenir;
    panel irsaliyeyle aynı commit'te siparişi Teslim Edildi yapar (eksik sevkte kısmi sevk notu). */
-var _onSiparisKaynak=null; // {id, no, musteri}
+var _onSiparisKaynak=null; // {id, no, musteri, musteriId?, cariAd?, cariKod?}
 function _onSiparisBanneriGuncelle(){
   var b=document.getElementById('onSiparisBanner');
   if(!b)return;
   if(!_onSiparisKaynak){b.style.display='none';return;}
-  document.getElementById('onSiparisBannerMetin').textContent=_onSiparisKaynak.no+"'ten aktarıldı — "+_onSiparisKaynak.musteri+' (kaydedince ön sipariş Teslim Edildi olur)';
+  var k=_onSiparisKaynak;
+  var kim=k.musteriId?(k.cariAd+(k.cariKod?' ['+k.cariKod+']':'')+' carisine bağlı'):k.musteri;
+  document.getElementById('onSiparisBannerMetin').textContent=k.no+"'ten aktarıldı — "+kim+' (kaydedince ön sipariş Teslim Edildi olur)';
   b.style.display='flex';
+}
+// 2026-10-31: ön sipariş kayıtlı bir cariye bağlanır - normal müşteri seçimiyle AYNI akış (_musteriSec:
+// müşterinin ödeme/para varsayılanları + son irsaliyesinin TÜR/KDV/ÖDEME/PARA'sı + bakiye). Kaydedilen
+// irsaliye isim eşleştirmesine bırakılmadan musteriId ile doğrudan bu cariye yazılır (Api/SyncApi.cs).
+function _onSiparisCariBagla(c){
+  if(!_onSiparisKaynak||!c)return;
+  _onSiparisKaynak.musteriId=c.id;
+  _onSiparisKaynak.cariAd=c.name;
+  _onSiparisKaynak.cariKod=c.cariKod||'';
+  _musteriSec(c.name,parseFloat(c.bakiye)||0,c);
+  _onSiparisBanneriGuncelle();
+}
+// Basit Evet/Hayır modalı (_gayriResmiOnay ile aynı görünüm). hayir verilmezse tek "Tamam" butonu. Promise<boolean>.
+function _x7Onay(html,evet,hayir){
+  return new Promise(function(coz){
+    var bg=document.createElement('div');
+    bg.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px';
+    bg.innerHTML='<div style="background:#fff;border-radius:12px;max-width:400px;width:100%;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-family:inherit">'
+      +'<div style="font-size:15px;color:#2c2419;line-height:1.5;margin-bottom:18px">'+html+'</div>'
+      +'<div style="display:flex;gap:10px;justify-content:flex-end">'
+      +(hayir?'<button type="button" data-c="0" style="padding:9px 18px;border:1px solid #c9b99a;background:#fff;color:#2c2419;border-radius:8px;font-weight:600;cursor:pointer">'+hayir+'</button>':'')
+      +'<button type="button" data-c="1" style="padding:9px 18px;border:none;background:#2F4F3E;color:#fff;border-radius:8px;font-weight:700;cursor:pointer">'+evet+'</button>'
+      +'</div></div>';
+    var bitir=function(v){document.removeEventListener('keydown',tus,true);bg.remove();coz(v);};
+    var tus=function(e){if(e.key==='Escape'){e.preventDefault();bitir(false);}};
+    bg.addEventListener('click',function(e){
+      var c=e.target.getAttribute&&e.target.getAttribute('data-c');
+      if(c!=null)bitir(c==='1');else if(e.target===bg)bitir(false);
+    });
+    document.addEventListener('keydown',tus,true);
+    document.body.appendChild(bg);
+    bg.querySelector('[data-c]').focus();
+  });
+}
+function _htmlKacis(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+// 2026-10-31: ön siparişten YENİ irsaliye kaydedilmeden önce sipariş bu arada (başka sekme/cihazdan)
+// aktarılmış mı bakılır - x7k2 önce yerele kaydedip sonra panele gönderdiği için, aksi halde önce
+// "Kaydedildi" deyip ardından sunucu reddini (409) gösterirdi. Panele ulaşılamazsa engellemez (asıl
+// garanti sunucuda). Promise<boolean>: true = kayıt durdurulmalı.
+function _onSiparisAktarimOnKontrol(){
+  if(!_onSiparisKaynak||_duzenlemeId!=null)return Promise.resolve(false);
+  var ctrl=('AbortController' in window)?new AbortController():null;
+  var t=ctrl?setTimeout(function(){ctrl.abort();},5000):null;
+  return fetch('https://panel.missnesem.com/api/onsiparis/'+_onSiparisKaynak.id+'/irsaliye-taslak',{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN},signal:ctrl?ctrl.signal:undefined})
+    .then(function(r){if(t)clearTimeout(t);return r.json();})
+    .then(function(d){
+      if(!d||d.kod!=='onsiparis_aktarildi')return false;
+      temizle();
+      _onSiparisAktarildiGoster(d.error,d.irsaliyeId);
+      return true;
+    })
+    .catch(function(){if(t)clearTimeout(t);return false;});
+}
+// Ön sipariş başka bir irsaliyeye zaten aktarılmış (taslak API ya da /api/sync 409).
+function _onSiparisAktarildiGoster(mesaj,irsaliyeId){
+  var link=irsaliyeId?'<br><a href="https://panel.missnesem.com/Invoices/Detail?id='+encodeURIComponent(irsaliyeId)+'" target="_blank" rel="noopener" style="color:#2F4F3E;font-weight:700">İrsaliye #'+_htmlKacis(irsaliyeId)+' → panelde aç</a>':'';
+  return _x7Onay('⚠️ '+_htmlKacis(mesaj||'Bu ön sipariş zaten aktarıldı.')+link,'Tamam',null);
 }
 function _onSiparisOnDolumBaslat(){
   var q=new URLSearchParams(location.search).get('onsiparis');
@@ -885,6 +944,7 @@ function _onSiparisOnDolumBaslat(){
     .then(function(d){
       // Link tekrar açılırsa (sayfa yenilenirse) aynı sipariş ikinci kez doldurulmasın.
       try{history.replaceState(null,'',location.pathname);}catch(e){}
+      if(d&&d.kod==='onsiparis_aktarildi'){_onSiparisAktarildiGoster(d.error,d.irsaliyeId);return;}
       if(!d||!d.ok||!d.kalemler||!d.kalemler.length){
         alert((d&&d.error)||'Ön sipariş bulunamadı.');
         return;
@@ -892,6 +952,19 @@ function _onSiparisOnDolumBaslat(){
       temizle();
       _onSiparisKaynak={id:d.id,no:d.siparisNo,musteri:d.musteri||''};
       document.getElementById('musteri').value=d.musteri||'';
+      // 2026-10-31: eskiden müşteri adı kutuya sadece yazılıyordu - müşteri seçim akışı (ödeme/para/TÜR/KDV
+      // varsayılanları) hiç çalışmadığı için açık hesap carisinin irsaliyesi varsayılan ödemeyle kesilip
+      // cariye borç yazılmıyordu. Artık: siparişe bağlı cari → doğrudan ona bağlanır; yoksa ad kayıtlı bir
+      // cariyle eşleşiyorsa sorulur; eşleşme yoksa eski davranış (sadece ad).
+      if(d.cari){_onSiparisCariBagla(d.cari);}
+      else if(d.adayCari){
+        var a=d.adayCari;
+        _x7Onay('Bu müşteri kayıtlı cari: <b>'+_htmlKacis(a.name)+'</b>'+(a.cariKod?' <span style="color:#a64d3e;font-weight:700">['+_htmlKacis(a.cariKod)+']</span>':'')
+          +(a.acikHesap?' · Açık Hesap':'')+'<br>Buna bağlansın mı?','Evet, bağla','Hayır')
+          .then(function(evet){
+            if(evet&&_onSiparisKaynak&&_onSiparisKaynak.id===d.id)_onSiparisCariBagla(a);
+          });
+      }
       var gruplar=[],gMap={};
       d.kalemler.forEach(function(k){
         var g=gMap[k.kod];
@@ -1885,16 +1958,37 @@ function _syncTekDene(payload){
     var controller=new AbortController();
     var timer=setTimeout(function(){controller.abort();},SYNC_TIMEOUT_MS);
     fetch('https://panel.missnesem.com/api/sync',{method:'POST',headers:{'Content-Type':'application/json','X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN},body:JSON.stringify(payload),signal:controller.signal})
-      .then(function(r){clearTimeout(timer);if(r.status===401||r.status===403){_oturumGecersizce();_anahtarGecersizce();}resolve(!!r.ok);})
+      .then(function(r){
+        clearTimeout(timer);
+        if(r.status===401||r.status===403){_oturumGecersizce();_anahtarGecersizce();}
+        // 2026-10-31: 409 = sunucu kaydı KALICI olarak reddetti (ön sipariş başka irsaliyeye aktarılmış) -
+        // geçici hata gibi kuyruğa alınıp tekrar tekrar gönderilmez.
+        if(r.status===409){r.json().catch(function(){return {};}).then(function(d){resolve({red:true,veri:d||{}});});return;}
+        resolve(!!r.ok);
+      })
       .catch(function(){clearTimeout(timer);resolve(false);});
   });
+}
+// Kalıcı ret: yerel kayıt ve yerel cari etkisi geri alınır, form bu kayıttaysa temizlenir, kullanıcıya
+// hangi irsaliyeye aktarıldığı gösterilir.
+function _syncRedIsle(payload,veri){
+  var v=veriCek();
+  var kayit=v.find(function(k){return k.id===payload.id;});
+  if(kayit){
+    if(kayit.odeme==='AcikHesap')_cariHareketGeriAl(kayit);
+    veriYaz(v.filter(function(k){return k.id!==payload.id;}));
+  }
+  if(_duzenlemeId===payload.id||_aktifKayitId===payload.id)temizle();
+  raporGuncelle();
+  _onSiparisAktarildiGoster(veri&&veri.mesaj,veri&&veri.irsaliyeId);
 }
 
 // Sessiz (arkaplan) sync: toast/retry döngüsü yok — bekleyen kuyruğu ve düzenleme öncesi
 // eski kaydı silme gibi "Kaydet" tuşuna bağlı olmayan işlemler için kullanılır.
 function syncSunucu(payload){
   _syncTekDene(payload).then(function(ok){
-    if(ok)_syncKuyruktanCikar(payload);else _syncKuyrukEkle(payload);
+    if(ok&&ok.red){_syncKuyruktanCikar(payload);_syncRedIsle(payload,ok.veri);}
+    else if(ok)_syncKuyruktanCikar(payload);else _syncKuyrukEkle(payload);
   });
 }
 
@@ -1908,7 +2002,11 @@ function syncSunucuKaydetVeBildir(payload,onTamamlandi,mesajlar){
   function dene(){
     deneme++;
     _syncTekDene(payload).then(function(ok){
-      if(ok){
+      if(ok&&ok.red){
+        _syncKuyruktanCikar(payload);
+        _syncRedIsle(payload,ok.veri);
+        if(onTamamlandi)onTamamlandi(false);
+      }else if(ok){
         _syncKuyruktanCikar(payload);
         _syncToastGoster(true,mesajlar);
         if(onTamamlandi)onTamamlandi(true);
@@ -2015,7 +2113,8 @@ function _kaydetKilitle(k){
   _kaydetKilit=k;
   document.querySelectorAll('button[onclick="kaydet()"]').forEach(function(b){
     b.disabled=k;b.style.opacity=k?'.6':'';
-    if(k){b.dataset.metin=b.textContent;b.textContent='Kaydediliyor...';}
+    // 2026-10-31: ön siparişten aktarılan YENİ irsaliyede "Aktarılıyor…" (sonraki kayıtlar güncelleme).
+    if(k){b.dataset.metin=b.textContent;b.textContent=(_onSiparisKaynak&&_duzenlemeId==null)?'Aktarılıyor…':'Kaydediliyor...';}
     else if(b.dataset.metin){b.textContent=b.dataset.metin;}
   });
 }
@@ -2055,7 +2154,7 @@ function kaydet(sessiz,skipSync,sonra){
     if(_kaydetKilit)return false;
     _kaydetKilitle(true);
     var _kilidiAc=function(){setTimeout(function(){_kaydetKilitle(false);},1500);};
-    _gayriResmiOnay().then(function(onay){
+    _onSiparisAktarimOnKontrol().then(function(engel){return engel?false:_gayriResmiOnay();}).then(function(onay){
     if(!onay){_kaydetKilitle(false);return;}
     return _stokTazeKontrolEt().catch(function(){return true;}).then(function(sonuc){
       try{
@@ -2160,6 +2259,9 @@ function _kaydetGovde(sessiz,skipSync){
   else if(eskiKayit&&eskiKayit.rezervIds)kayit.rezervIds=eskiKayit.rezervIds;
   if(_onSiparisKaynak)kayit.onSiparisId=_onSiparisKaynak.id;
   else if(eskiKayit&&eskiKayit.onSiparisId)kayit.onSiparisId=eskiKayit.onSiparisId;
+  // 2026-10-31: bağlanan cari - müşteri adı elle başka birine değiştirildiyse gönderilmez (isimle eşleşir).
+  if(_onSiparisKaynak&&_onSiparisKaynak.musteriId){if(musteri===_onSiparisKaynak.cariAd)kayit.musteriId=_onSiparisKaynak.musteriId;}
+  else if(eskiKayit&&eskiKayit.musteriId&&eskiKayit.musteri===musteri)kayit.musteriId=eskiKayit.musteriId;
 
   // Düzenleme modunda son-kullanılan-ayarlar localStorage'ına dokunulmaz — sadece yeni kayıtta yazılır.
   if(!duzenleniyor)sonAyarlariKaydet();
