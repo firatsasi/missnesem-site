@@ -181,6 +181,7 @@ body.export-compact #tblKalemler col:nth-child(4){width:110px !important}
 .rapor-cell.dark{background:#2c2419}
 .rapor-cell.dark .lbl{color:#b8985e}
 .rapor-cell.dark .val{color:#f0e4d3}
+.rapor-card.rapor-yukleniyor .rapor-grid{opacity:.4;transition:opacity .15s}
 .rapor-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:1rem;table-layout:fixed}
 .rapor-tbl th{padding:8px 10px;font-size:10px;letter-spacing:1px;color:#f0e4d3;background:#2c2419;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rapor-tbl th.r,.rapor-tbl td.r{text-align:right}
@@ -788,8 +789,9 @@ function goster(){
   document.body.dataset.printMode='irs';
   var bugun=new Date().toISOString().split('T')[0];
   document.getElementById('tarih').value=bugun;
-  document.getElementById('raporBaslangic').value=bugun;
-  document.getElementById('raporBitis').value=bugun;
+  document.getElementById('raporBaslangic').value=_raporYerelBugun();
+  document.getElementById('raporBitis').value=_raporYerelBugun();
+  raporFiltre='gun';
   raporGuncelle();
   sonAyarlariUygula(); // PARA/KDV/ÖDEME/TÜR son kullanılan değerlere döner
   kullaniciBarGuncelle();
@@ -2449,9 +2451,14 @@ function raporTumu(){
   document.getElementById('raporBitis').value='';
   raporGuncelle();
 }
+// Yerel (İstanbul) tarih — toISOString UTC'dir, gece 00-03 arası dünü verirdi.
+function _raporYerelBugun(){
+  var d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 function raporBugün(){
   raporFiltre='gun';
-  var bugun=new Date().toISOString().split('T')[0];
+  var bugun=_raporYerelBugun();
   document.getElementById('raporBaslangic').value=bugun;
   document.getElementById('raporBitis').value=bugun;
   raporGuncelle();
@@ -2461,9 +2468,19 @@ function raporBugün(){
 // kullanıcının kestiği irsaliyeler görünür (kullanici parametresi ile filtrelenir). Düzenle
 // butonu kendi listesindeki her satırda çalışır — API artık urunler/iade bilgisini de
 // döndürdüğü için, o irsaliyeyi bu cihazda ilk kez görüyor olsa bile açılabilir (bkz. irsaliyeDuzenle).
+// Race koruması (2026-11-03): "Tümü" → hemen "Bugün" basınca geç dönen tarihsiz (tüm zamanlar)
+// cevap, sonra gelip kartları eziyordu. Her istek artan bir no alır; cevap geldiğinde en son istek
+// değilse tamamen atılır (ne karta ne listeye yazılır). Ayrıca önceki istek AbortController ile iptal
+// edilir. Sayfa açılışı / sekme geçişi / Kaydet / silme hepsi bu fonksiyondan geçer ve her zaman o
+// anki tarih kutularındaki aralığı gönderir — tarih kutuları boşsa (yalnız "Tümü") tarihsiz istenir.
+var _raporIstekNo=0;
+var _raporAbort=null;
 function raporGuncelle(){
   var bas=document.getElementById('raporBaslangic').value;
   var bit=document.getElementById('raporBitis').value;
+  // Tarih elle girildiyse filtre artık "gün aralığı"dır ("Tümü"den sonra tarih seçilince
+  // eskiden raporFiltre='hepsi' kaldığı için tarih hiç gönderilmiyordu).
+  if(bas||bit)raporFiltre='gun';
   var params=new URLSearchParams();
   if(raporFiltre==='gun'){
     if(bas)params.set('baslangic',bas);
@@ -2471,13 +2488,33 @@ function raporGuncelle(){
   }
   if(aktifKullanici)params.set('kullanici',aktifKullanici);
 
-  var liste=document.getElementById('raporListe');
-  liste.innerHTML='<div class="bos">Yükleniyor...</div>';
+  if(_raporAbort){try{_raporAbort.abort();}catch(e){}}
+  var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+  _raporAbort=ctrl;
+  var benimNo=++_raporIstekNo;
 
-  fetch('https://panel.missnesem.com/api/gunluk-rapor?'+params.toString(),{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN}})
-    .then(function(r){if(r.status===401||r.status===403){_oturumGecersizce();_anahtarGecersizce();}if(!r.ok)throw new Error('Sunucu hatası: '+r.status);return r.json();})
-    .then(function(res){_raporDoldur(res);})
+  var liste=document.getElementById('raporListe');
+  var kart=document.querySelector('#tabRap .rapor-card');
+  liste.innerHTML='<div class="bos">Yükleniyor...</div>';
+  if(kart)kart.classList.add('rapor-yukleniyor');
+  function sonMu(){return benimNo===_raporIstekNo;}
+  function bitir(){if(sonMu()){_raporAbort=null;if(kart)kart.classList.remove('rapor-yukleniyor');}}
+
+  fetch('https://panel.missnesem.com/api/gunluk-rapor?'+params.toString(),{headers:{'X-Api-Key':MN_API_KEY,'Authorization':'Bearer '+AUTH_TOKEN},signal:ctrl?ctrl.signal:undefined})
+    .then(function(r){
+      if(!sonMu())return null;
+      if(r.status===401||r.status===403){_oturumGecersizce();_anahtarGecersizce();}
+      if(!r.ok)throw new Error('Sunucu hatası: '+r.status);
+      return r.json();
+    })
+    .then(function(res){
+      if(!res||!sonMu())return; // eski istek: yeni filtrenin sonucunu ezmesin
+      _raporDoldur(res);
+      bitir();
+    })
     .catch(function(err){
+      if(!sonMu()||(err&&err.name==='AbortError'))return; // iptal edilen eski istek — sessiz
+      bitir();
       liste.innerHTML='<div class="bos">Rapor yüklenemedi — internet bağlantınızı kontrol edin.<br>('+err.message+')</div>';
     });
 }
