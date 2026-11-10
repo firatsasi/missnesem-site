@@ -2144,16 +2144,23 @@ html, body { overflow-x: hidden; max-width: 100%; }
     // Poster'lar data-poster'da: masaüstünde mobil panelin, mobilde 3 masaüstü panelinin
     // (display:none olsa da indirilen) poster'ı boşuna inmesin — sadece görünen panel(ler).
     document.querySelectorAll(selector).forEach(v => { if (v.dataset.poster) v.poster = v.dataset.poster; });
+    // 2026-11-10: hero ekrandan çıkınca videoları durur (önceden sayfanın en altında da
+    // oynamaya/inmeye devam ediyordu); tam inmemiş olanın indirmesi de kesilir (mnVideoSuspend),
+    // geri dönünce aynı dosya yeniden yüklenip oynar.
+    let heroVisible = true;
     document.querySelectorAll(selector).forEach(v => {
+      v.addEventListener('play', () => { if (!heroVisible) v.pause(); });
       function startLoad() {
         if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); v.load(); }
         const onReady = function () {
           v.removeEventListener('canplay', onReady);
+          if (!heroVisible) return;
           const p = v.play();
           if (p && p.catch) p.catch(() => {});
         };
         v.addEventListener('canplay', onReady);
       }
+      v._mnStartLoad = startLoad;
       if (introOverlayActive) {
         window.addEventListener('mn-intro-closed', startLoad, { once: true });
       } else if (isDesktop && !v.closest('.season-hero-panel-center')) {
@@ -2162,6 +2169,16 @@ html, body { overflow-x: hidden; max-width: 100%; }
         startLoad();
       }
     });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(entries => {
+        heroVisible = entries[entries.length - 1].isIntersecting;
+        document.querySelectorAll(selector).forEach(v => {
+          if (!heroVisible) { if (v.getAttribute('src')) mnVideoSuspend(v); return; }
+          if (v.dataset.src && v.dataset.mnSuspended) { v.removeAttribute('data-mn-suspended'); v._mnStartLoad(); }
+          else if (v.getAttribute('src') && v.readyState >= 3) { const p = v.play(); if (p && p.catch) p.catch(() => {}); }
+        });
+      }).observe(heroEl);
+    }
 
     // "8740 · Yeni" etiketi: ürünler yüklendiyse modalı açar (openModal geçmişe kendisi yazar),
     // henüz yüklenmediyse Yeni Sezon bölümüne kaydırır.
@@ -3264,14 +3281,14 @@ html, body { overflow-x: hidden; max-width: 100%; }
     const favActive = isFav(p.code);
     const colorsWithPhoto = (p.colors || []).filter(c => c.kapakFoto && !c.kapakFoto.includes('undefined'));
     const colorDots = colorsWithPhoto.length > 1
-      ? colorsWithPhoto.map(c => `<div class="color-dot${isUnknownColor(c) ? ' color-dot-unknown' : ''}" style="${swatchStyle(c)}" title="${c.name}"></div>`).join('')
+      ? colorsWithPhoto.map(c => `<div class="color-dot${isUnknownColor(c) ? ' color-dot-unknown' : ''}" ${cardSwatchAttrs(c)} title="${c.name}"></div>`).join('')
       : '';
     const coverPhoto = p.colors && p.colors[0] && p.colors[0].kapakFoto;
     const isEager = cardImgCounter < EAGER_IMAGE_COUNT;
     cardImgCounter++;
     const imgSrcAttrs = isEager
-      ? `src="${coverPhoto}" loading="eager" fetchpriority="high"`
-      : `data-src="${coverPhoto}" loading="lazy"`;
+      ? `src="${coverPhoto}" loading="eager" fetchpriority="high" decoding="async"`
+      : `data-src="${coverPhoto}" loading="lazy" decoding="async"`;
     const soldOutClass = p.isSoldOut ? ' sold-out-img' : '';
     const visualInner = coverPhoto
       ? `<img class="product-card-img${soldOutClass}" ${imgSrcAttrs} alt="${p.name}">`
@@ -3598,6 +3615,14 @@ html, body { overflow-x: hidden; max-width: 100%; }
     if (c.swatchImageUrl) return `background-image:url('${c.swatchImageUrl}');background-size:cover;background-position:center;`;
     return c.hex ? `background:${c.hex};` : '';
   }
+  // 2026-11-10: kart üstündeki renk noktalarının swatch fotoğrafı (panelde ~90 KB PNG) artık kart
+  // görseliyle birlikte, kart ekrana yaklaşınca atanır (bkz. initLazyImages). Önceden 40+ swatch
+  // sayfa açılışında hepsi birden inip panel sunucusunun bağlantılarını kart görselleriyle
+  // paylaşıyordu. Görünüm aynı (aynı stil, sadece atanma zamanı değişti).
+  function cardSwatchAttrs(c) {
+    if (c.swatchImageUrl) return `data-swatch-style="${swatchStyle(c).replace(/"/g, '&quot;')}"`;
+    return `style="${swatchStyle(c)}"`;
+  }
   function isUnknownColor(c) {
     return !c.swatchImageUrl && !c.hex;
   }
@@ -3918,6 +3943,17 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // data-src taşıyan kartlar viewport'a ~200px kala gerçek src'ye kavuşur; loading="lazy"
   // ayrıca tarayıcının kendi native lazy-load mekanizmasını da devrede tutar.
   function initLazyImages() {
+    // Kart renk noktalarının swatch fotoğrafları (bkz. cardSwatchAttrs) aynı mesafede atanır.
+    const dots = document.querySelectorAll('.color-dot[data-swatch-style]');
+    const applySwatch = d => { d.setAttribute('style', d.dataset.swatchStyle); d.removeAttribute('data-swatch-style'); };
+    if (!('IntersectionObserver' in window)) dots.forEach(applySwatch);
+    else if (dots.length) {
+      const dotObserver = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => { if (entry.isIntersecting) { applySwatch(entry.target); obs.unobserve(entry.target); } });
+      }, { rootMargin: '200px 0px' });
+      dots.forEach(d => dotObserver.observe(d));
+    }
+
     const images = document.querySelectorAll('.product-card-img[data-src]');
     if (images.length === 0) return;
 
@@ -3954,6 +3990,22 @@ html, body { overflow-x: hidden; max-width: 100%; }
   // kaydırmada da — IntersectionObserver kaydırma kabının kırpmasını hesaba katar) yüklenir; görünmeyen
   // panel durur. Dosya: panelin gerçek piksel genişliği (CSS genişlik x DPR) 720'yi aşıyorsa _1080,
   // değilse _720 — tarayıcı videoyu büyütmek zorunda kalmaz. reduced-motion / Save-Data: sadece poster.
+  // 2026-11-10: ekran dışına çıkan videoyu durdurur; hâlâ iniyorsa (networkState LOADING) indirmeyi de
+  // keser — src data-src'ye geri alınır, poster görünür kalır, görünür olunca kaldığı dosya yeniden
+  // yüklenir. Önceden masaüstünde sayfa sonunda 20 bant videosu aynı anda inmeye devam ediyor,
+  // mobilde ekran dışı 3-4 video oynuyordu (bant genişliğini kart görselleriyle paylaşıp takılma).
+  function mnVideoSuspend(v) {
+    v.pause();
+    if (v.networkState === 2 && v.getAttribute('src')) {
+      v.dataset.src = v.getAttribute('src');
+      v.dataset.mnSuspended = '1';
+      v.removeAttribute('src');
+      v.load();
+      return true;
+    }
+    return false;
+  }
+
   function initNsBand() {
     const band = document.querySelector('.ns-band');
     if (!band) return;
@@ -3977,6 +4029,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       setPoster(v);
       if (!v.getAttribute('src')) {
         const px = v.clientWidth * (window.devicePixelRatio || 1);
+        v.removeAttribute('data-src'); v.removeAttribute('data-mn-suspended');
         v.src = `/catalog/video/${v.dataset.video}_${px > 720 ? 1080 : 720}.mp4?v=1`;
         v.load();
       }
@@ -3995,7 +4048,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       entries.forEach(en => {
         const v = en.target;
         v._visible = en.isIntersecting;
-        if (en.isIntersecting) play(v); else if (v.getAttribute('src')) v.pause();
+        if (en.isIntersecting) play(v); else if (v.getAttribute('src')) mnVideoSuspend(v);
       });
     }, { threshold: 0.25 });
     function observeAll() { vids.forEach(v => { posterObserver.observe(v); playObserver.observe(v); }); }
@@ -4044,17 +4097,27 @@ html, body { overflow-x: hidden; max-width: 100%; }
         v.load();
         const onReady = function () {
           v.removeEventListener('canplay', onReady);
+          if (!bandVisible(v)) return; // bant bu arada ekrandan çıktıysa ekran dışında oynamasın
           const p = v.play();
           if (p && p.catch) p.catch(() => {});
         };
         v.addEventListener('canplay', onReady);
       });
     }
+    // 2026-11-10: bant görünürlüğü bandın üzerinde tutulur (_mnVisible). Önceden bant ekrandan
+    // çıkarken video henüz 'canplay' bekliyorsa, pause()'dan SONRA gelen canplay onu ekran dışında
+    // oynatıyordu; mobil autoplay ve rotasyondaki sonraki klip de aynı şekilde. 'play' bekçisi
+    // hepsini kapatır.
+    function bandVisible(v) {
+      const band = v.closest('.section-header-video');
+      return !band || band._mnVisible !== false;
+    }
     function loadVideo(v) {
       if (!v || v.dataset.loaded) return;
       v.dataset.loaded = '1';
+      if (!v._mnGuard) { v._mnGuard = true; v.addEventListener('play', () => { if (!bandVisible(v)) v.pause(); }); }
       if (v.dataset.focus) v.style.objectPosition = v.dataset.focus;
-      if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); }
+      if (v.dataset.src) { v.src = v.dataset.src; v.removeAttribute('data-src'); v.removeAttribute('data-mn-suspended'); }
       v.load();
       if (!isDesktop && v.dataset.panels) bindMobileRotation(v);
     }
@@ -4071,6 +4134,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         } else {
           const onReady = function () {
             v.removeEventListener('canplay', onReady);
+            if (!bandVisible(v)) return;
             const p = v.play();
             if (p && p.catch) p.catch(() => {});
           };
@@ -4079,7 +4143,10 @@ html, body { overflow-x: hidden; max-width: 100%; }
       });
     }
     function pauseAll(vids) {
-      vids.forEach(v => { if (v.src) v.pause(); });
+      vids.forEach(v => {
+        if (!v.getAttribute('src')) return;
+        if (mnVideoSuspend(v)) delete v.dataset.loaded; // tekrar görünürse loadVideo yeniden yükler
+      });
     }
 
     if (!('IntersectionObserver' in window)) {
@@ -4099,6 +4166,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
     const catVideoObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         const vids = activeVideos(entry.target);
+        entry.target._mnVisible = entry.isIntersecting;
         if (entry.isIntersecting) playAll(vids); else pauseAll(vids);
       });
     }, { threshold: 0.15 });
