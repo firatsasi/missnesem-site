@@ -3939,6 +3939,32 @@ html, body { overflow-x: hidden; max-width: 100%; }
 
   loadCatalog();
 
+  // 2026-11-11: panel.missnesem.com'dan gelen görsellerin bir kısmı (ölçümde %0-20, ağa göre)
+  // yarıda takılıp hiç bitmiyordu → kart boş kalıyordu. Görsel 8 sn içinde gelmezse (ya da hata
+  // verirse) aynı dosya cache-bust parametresiyle BİR kez yeniden istenir; src değişince takılan
+  // istek de iptal olur (bağlantı boşalır). İkinci deneme de olmazsa placeholder kalır.
+  const CARD_IMG_RETRY_MS = 8000;
+  function cardImgWatchdog(img) {
+    if (img._mnWatch || img.dataset.mnRetried) return;
+    img._mnWatch = true;
+    const ok = () => img.complete && img.naturalWidth > 0;
+    if (ok()) return;
+    let timer = null;
+    const done = () => { clearTimeout(timer); img.removeEventListener('load', onLoad); img.removeEventListener('error', retry); };
+    const onLoad = () => { if (ok()) done(); };
+    function retry() {
+      done();
+      if (ok() || img.dataset.mnRetried || !img.isConnected) return;
+      const src = img.getAttribute('src');
+      if (!src) return;
+      img.dataset.mnRetried = '1';
+      img.src = src + (src.includes('?') ? '&' : '?') + 'r=' + Date.now().toString(36);
+    }
+    img.addEventListener('load', onLoad);
+    img.addEventListener('error', retry);
+    timer = setTimeout(retry, CARD_IMG_RETRY_MS);
+  }
+
   // ===== LAZY LOAD (ürün görselleri) =====
   // data-src taşıyan kartlar viewport'a ~200px kala gerçek src'ye kavuşur; loading="lazy"
   // ayrıca tarayıcının kendi native lazy-load mekanizmasını da devrede tutar.
@@ -3954,6 +3980,9 @@ html, body { overflow-x: hidden; max-width: 100%; }
       dots.forEach(d => dotObserver.observe(d));
     }
 
+    // İlk ekrandaki (eager, src'si şablonda) kartlar için de bekçi kurulur.
+    document.querySelectorAll('.product-card-img[src]').forEach(cardImgWatchdog);
+
     const images = document.querySelectorAll('.product-card-img[data-src]');
     if (images.length === 0) return;
 
@@ -3961,6 +3990,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
       images.forEach(img => {
         img.src = img.dataset.src;
         img.removeAttribute('data-src');
+        cardImgWatchdog(img);
       });
       return;
     }
@@ -3971,6 +4001,7 @@ html, body { overflow-x: hidden; max-width: 100%; }
         const img = entry.target;
         img.src = img.dataset.src;
         img.removeAttribute('data-src');
+        cardImgWatchdog(img);
         obs.unobserve(img);
       });
     }, { rootMargin: '200px 0px', threshold: 0.01 });
